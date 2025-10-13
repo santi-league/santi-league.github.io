@@ -13,13 +13,35 @@
     ul {
       padding-left: 120px; /* 加大缩进距离 */
     }
+
+    /* 新增：横行（水平）列表样式 */
+    .players {
+      display: flex;
+      gap: 80px;            /* 每个名字之间的间距 */
+      list-style: none;     /* 去掉圆点 */
+      padding-left: 120px;  /* 与上面列表对齐 */
+      margin-top: 60px;     /* 与上方内容留空 */
+    }
   </style>
 </head>
 <body>
-  <p>Welcome to santi-league</p>
+  <p>Welcome to Santi-League. Greeting.</p>
+
+<!--
+
   <ul>
-    <li><a href="https://santi-league.github.io/wrc">wrc</a></li>
-    <li><a href="https://santi-league.github.io/m-league">m-league</a></li>
+    <li><a href="./WRC">WRC</a></li>
+    <li><a href="./M-League">M-League</a></li>
   </ul>
+
+-->
+
+  <!-- 新增横行玩家列表 -->
+  <ul class="players">
+    <li><a href="./players/地鼠.html"> 地鼠 </a></li>
+    <li><a href="./players/santi.html"> santi </a></li>
+    <li><a href="./players/凯恩.html"> 凯恩 </a></li>
+  </ul>
+
 </body>
 </html>
