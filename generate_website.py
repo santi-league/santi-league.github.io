@@ -9,7 +9,31 @@
 import os
 import sys
 import json
+import re
+from datetime import datetime
 from player_stats import calculate_player_stats, scan_files, summarize_log
+
+
+def extract_latest_date(files):
+    """从文件名列表中提取最新日期"""
+    dates = []
+    for fp in files:
+        filename = os.path.basename(fp)
+        # 匹配格式：月_日_年
+        match = re.match(r'(\d+)_(\d+)_(\d+)', filename)
+        if match:
+            month, day, year = match.groups()
+            try:
+                date_obj = datetime(int(year), int(month), int(day))
+                dates.append(date_obj)
+            except ValueError:
+                continue
+
+    if dates:
+        latest_date = max(dates)
+        return latest_date.strftime("%Y年%m月%d日")
+    return None
+
 
 def generate_index_html():
     """生成首页"""
@@ -145,17 +169,25 @@ def generate_index_html():
     return html
 
 
-def generate_stats_html(title, stats_data, league_name):
+def generate_stats_html(title, stats_data, league_name, latest_date=None):
     """生成统计页面"""
-    # 按对局数降序排序
+    # 提取并移除league_average
+    league_avg = stats_data.pop("_league_average", {})
+
+    # 按对局数降序排序（排除_league_average）
     sorted_players = sorted(stats_data.items(), key=lambda x: (-x[1]["games"], x[0]))
+
+    # 日期信息
+    date_info = f"<p class='date-info'>数据更新至：{latest_date}</p>" if latest_date else ""
 
     # 生成表格行
     table_rows = ""
     for name, data in sorted_players:
+        # 使用锚点链接
+        player_id = name.replace(" ", "_").replace("(", "").replace(")", "")
         table_rows += f"""
         <tr>
-            <td class="player-name">{name}</td>
+            <td class="player-name"><a href="#player-{player_id}" class="player-link">{name}</a></td>
             <td>{data['games']}</td>
             <td>{data['total_rounds']}</td>
             <td class="highlight">{data['tenhou_r']:.2f}</td>
@@ -172,9 +204,11 @@ def generate_stats_html(title, stats_data, league_name):
     # 生成详细统计卡片
     detail_cards = ""
     for name, data in sorted_players:
+        player_id = name.replace(" ", "_").replace("(", "").replace(")", "")
         riichi_win_hands = data['riichi_win_hands']
         furo_then_win_hands = data['furo_then_win_hands']
-        other_win_hands = data['other_win_hands']
+        dama_win_hands = data.get('dama_win_hands', 0)
+        tsumo_only_win_hands = data.get('tsumo_only_win_hands', 0)
 
         # 手役统计（前10）
         yaku_html = ""
@@ -184,10 +218,54 @@ def generate_stats_html(title, stats_data, league_name):
                 from player_stats import YAKU_TRANSLATION
                 yaku_cn = YAKU_TRANSLATION.get(yaku, yaku)
                 rate = data['yaku_rate'].get(yaku, 0)
-                yaku_html += f"<li>{yaku_cn}: {count}次 ({rate}%)</li>"
+                avg_rate = league_avg.get('yaku_rate', {}).get(yaku, 0) if league_avg else 0
+                avg_text = f' <span class="league-avg">(平均{avg_rate}%)</span>' if avg_rate > 0 else ''
+                yaku_html += f"<li>{yaku_cn}: {count}次 ({rate}%){avg_text}</li>"
+
+        # 对战情况表格
+        vs_players_html = ""
+        if data.get('vs_players'):
+            # 按对战场数排序
+            vs_sorted = sorted(data['vs_players'].items(), key=lambda x: -x[1]['games'])
+            vs_players_html = """
+            <table class="vs-table">
+                <thead>
+                    <tr>
+                        <th>对手</th>
+                        <th>对战数</th>
+                        <th>胜率</th>
+                        <th>和了获点</th>
+                        <th>放铳失点</th>
+                        <th>净和了放铳点数</th>
+                        <th>总得点差</th>
+                    </tr>
+                </thead>
+                <tbody>
+            """
+            for opponent, vs_data in vs_sorted:
+                net_points = vs_data['net_points']
+                net_class = 'positive' if net_points > 0 else 'negative' if net_points < 0 else 'neutral'
+                score_diff = vs_data['score_diff']
+                score_diff_class = 'positive' if score_diff > 0 else 'negative' if score_diff < 0 else 'neutral'
+                opponent_id = opponent.replace(" ", "_").replace("(", "").replace(")", "")
+                vs_players_html += f"""
+                    <tr>
+                        <td class="opponent-name"><a href="#player-{opponent_id}" class="opponent-link">{opponent}</a></td>
+                        <td>{vs_data['games']}</td>
+                        <td>{vs_data['win_rate']:.1f}%</td>
+                        <td class="positive">+{vs_data['win_points']}</td>
+                        <td class="negative">-{vs_data['lose_points']}</td>
+                        <td class="{net_class}">{net_points:+}</td>
+                        <td class="{score_diff_class}">{score_diff:+}</td>
+                    </tr>
+                """
+            vs_players_html += """
+                </tbody>
+            </table>
+            """
 
         detail_cards += f"""
-        <div class="player-card">
+        <div class="player-card" id="player-{player_id}">
             <h3>{name}</h3>
             <div class="stats-grid">
                 <div class="stat-item">
@@ -244,24 +322,98 @@ def generate_stats_html(title, stats_data, league_name):
 
             <div class="section">
                 <h4>和了统计</h4>
-                <p>和了: {data['win_hands']} 局 ({data['win_rate']:.1f}%), 平均打点: {data['avg_win_points']:.0f}</p>
-                <ul>
-                    <li>立直和了: {riichi_win_hands} 局 (平均{data['avg_riichi_win_points']:.0f}点), 一发: {data['ippatsu_hands']} 局 ({data['ippatsu_rate']:.1f}%), 里宝: {data['ura_hands']} 局 ({data['ura_rate']:.1f}%)</li>
-                    <li>副露和了: {furo_then_win_hands} 局 (平均{data['avg_furo_win_points']:.0f}点)</li>
-                    {f"<li>其他和了: {other_win_hands} 局 (平均{data['avg_other_win_points']:.0f}点)</li>" if other_win_hands > 0 else ""}
-                </ul>
+                <div class="summary-box">
+                    <span class="summary-label">总和了:</span>
+                    <span class="summary-value">{data['win_hands']} 局 ({data['win_rate']:.1f}%) <span class="league-avg">(平均{league_avg.get('win_rate', 0):.1f}%)</span></span>
+                    <span class="summary-label">平均打点:</span>
+                    <span class="summary-value">{data['avg_win_points']:.0f}点 <span class="league-avg">(平均{league_avg.get('avg_win_points', 0):.0f}点)</span></span>
+                </div>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>类型</th>
+                            <th>次数</th>
+                            <th>平均打点</th>
+                            <th>特殊统计</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="type-label">立直和了</td>
+                            <td>{riichi_win_hands} 局</td>
+                            <td class="points-value">{data['avg_riichi_win_points']:.0f}点 <span class="league-avg">(平均{league_avg.get('avg_riichi_win_points', 0):.0f})</span></td>
+                            <td class="special-stats">一发: {data['ippatsu_hands']}局 ({data['ippatsu_rate']:.1f}%) <span class="league-avg">(平均{league_avg.get('ippatsu_rate', 0):.1f}%)</span> · 里宝: {data['ura_hands']}局 ({data['ura_rate']:.1f}%) <span class="league-avg">(平均{league_avg.get('ura_rate', 0):.1f}%)</span></td>
+                        </tr>
+                        <tr>
+                            <td class="type-label">副露和了</td>
+                            <td>{furo_then_win_hands} 局</td>
+                            <td class="points-value">{data['avg_furo_win_points']:.0f}点 <span class="league-avg">(平均{league_avg.get('avg_furo_win_points', 0):.0f})</span></td>
+                            <td class="special-stats">-</td>
+                        </tr>
+                        {f'''<tr>
+                            <td class="type-label">默听和了</td>
+                            <td>{dama_win_hands} 局</td>
+                            <td class="points-value">{data['avg_dama_win_points']:.0f}点 <span class="league-avg">(平均{league_avg.get('avg_dama_win_points', 0):.0f})</span></td>
+                            <td class="special-stats">有役门清</td>
+                        </tr>''' if dama_win_hands > 0 else ''}
+                        {f'''<tr>
+                            <td class="type-label">仅自摸和了</td>
+                            <td>{tsumo_only_win_hands} 局</td>
+                            <td class="points-value">{data['avg_tsumo_only_win_points']:.0f}点 <span class="league-avg">(平均{league_avg.get('avg_tsumo_only_win_points', 0):.0f})</span></td>
+                            <td class="special-stats">门清自摸</td>
+                        </tr>''' if tsumo_only_win_hands > 0 else ''}
+                    </tbody>
+                </table>
             </div>
 
             <div class="section">
                 <h4>立直 & 副露</h4>
-                <p>立直: {data['riichi_hands']} 局 ({data['riichi_rate']:.1f}%), 立直后: 和了{data['riichi_win_rate']:.1f}% / 流局{data['riichi_ryuukyoku_rate']:.1f}% / 放铳{data['riichi_then_deal_in_rate']:.1f}% / 横移{data['riichi_pass_rate']:.1f}%</p>
-                <p>副露: {data['furo_hands']} 局 ({data['furo_rate']:.1f}%), 副露后: 和了{data['furo_then_win_rate']:.1f}% / 流局{data['furo_ryuukyoku_rate']:.1f}% / 放铳{data['furo_then_deal_in_rate']:.1f}% / 横移{data['furo_pass_rate']:.1f}%</p>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>类型</th>
+                            <th>次数/比率</th>
+                            <th>和了</th>
+                            <th>流局</th>
+                            <th>放铳</th>
+                            <th>横移动</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="type-label">立直</td>
+                            <td>{data['riichi_hands']} 局 ({data['riichi_rate']:.1f}%) <span class="league-avg">(平均{league_avg.get('riichi_rate', 0):.1f}%)</span></td>
+                            <td class="rate-good">{data['riichi_win_rate']:.1f}% <span class="league-avg">(平均{league_avg.get('riichi_win_rate', 0):.1f}%)</span></td>
+                            <td class="rate-neutral">{data['riichi_ryuukyoku_rate']:.1f}%</td>
+                            <td class="rate-bad">{data['riichi_then_deal_in_rate']:.1f}% <span class="league-avg">(平均{league_avg.get('riichi_then_deal_in_rate', 0):.1f}%)</span></td>
+                            <td class="rate-neutral">{data['riichi_pass_rate']:.1f}%</td>
+                        </tr>
+                        <tr>
+                            <td class="type-label">副露</td>
+                            <td>{data['furo_hands']} 局 ({data['furo_rate']:.1f}%) <span class="league-avg">(平均{league_avg.get('furo_rate', 0):.1f}%)</span></td>
+                            <td class="rate-good">{data['furo_then_win_rate']:.1f}% <span class="league-avg">(平均{league_avg.get('furo_then_win_rate', 0):.1f}%)</span></td>
+                            <td class="rate-neutral">{data['furo_ryuukyoku_rate']:.1f}%</td>
+                            <td class="rate-bad">{data['furo_then_deal_in_rate']:.1f}% <span class="league-avg">(平均{league_avg.get('furo_then_deal_in_rate', 0):.1f}%)</span></td>
+                            <td class="rate-neutral">{data['furo_pass_rate']:.1f}%</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
             <div class="section">
                 <h4>放铳统计</h4>
-                <p>放铳: {data['deal_in_hands']} 局 ({data['deal_in_rate']:.1f}%), 平均失点: {data['avg_deal_in_points']:.0f}</p>
+                <div class="summary-box">
+                    <span class="summary-label">放铳:</span>
+                    <span class="summary-value">{data['deal_in_hands']} 局 ({data['deal_in_rate']:.1f}%) <span class="league-avg">(平均{league_avg.get('deal_in_rate', 0):.1f}%)</span></span>
+                    <span class="summary-label">平均失点:</span>
+                    <span class="summary-value negative">{data['avg_deal_in_points']:.0f}点 <span class="league-avg">(平均{league_avg.get('avg_deal_in_points', 0):.0f}点)</span></span>
+                </div>
             </div>
+
+            {f'''<div class="section">
+                <h4>对战情况</h4>
+                {vs_players_html}
+            </div>''' if vs_players_html else ''}
 
             {f'''<div class="section">
                 <h4>手役统计 (前10名)</h4>
@@ -272,7 +424,7 @@ def generate_stats_html(title, stats_data, league_name):
 
             {f'''<div class="section">
                 <h4>流局听牌</h4>
-                <p>流局: {data['ryuukyoku_hands']} 次, 听牌 {data['ryuukyoku_tenpai']} 次 ({data['tenpai_rate']:.1f}%)</p>
+                <p>流局: {data['ryuukyoku_hands']} 次, 听牌 {data['ryuukyoku_tenpai']} 次 ({data['tenpai_rate']:.1f}%) <span class="league-avg">(平均{league_avg.get('tenpai_rate', 0):.1f}%)</span></p>
             </div>''' if data['ryuukyoku_hands'] > 0 else ''}
         </div>
         """
@@ -307,6 +459,12 @@ def generate_stats_html(title, stats_data, league_name):
         .header h1 {{
             font-size: 36px;
             margin-bottom: 10px;
+        }}
+
+        .date-info {{
+            font-size: 16px;
+            margin: 10px 0;
+            opacity: 0.9;
         }}
 
         .back-link {{
@@ -361,12 +519,26 @@ def generate_stats_html(title, stats_data, league_name):
 
         .player-name {{
             font-weight: bold;
+        }}
+
+        .player-link {{
             color: #667eea;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }}
+
+        .player-link:hover {{
+            color: #764ba2;
+            text-decoration: underline;
         }}
 
         .highlight {{
             background: #fff3cd;
             font-weight: bold;
+        }}
+
+        html {{
+            scroll-behavior: smooth;
         }}
 
         h2 {{
@@ -472,10 +644,10 @@ def generate_stats_html(title, stats_data, league_name):
             border-radius: 5px;
         }}
 
-        .bar-1 {{ background: linear-gradient(90deg, #ffd700, #ffed4e); }}
-        .bar-2 {{ background: linear-gradient(90deg, #c0c0c0, #e8e8e8); }}
-        .bar-3 {{ background: linear-gradient(90deg, #cd7f32, #daa06d); }}
-        .bar-4 {{ background: linear-gradient(90deg, #999, #bbb); }}
+        .bar-1 {{ background: linear-gradient(90deg, #28a745, #5cb85c); }}
+        .bar-2 {{ background: linear-gradient(90deg, #17a2b8, #5bc0de); }}
+        .bar-3 {{ background: linear-gradient(90deg, #ffc107, #ffda6a); }}
+        .bar-4 {{ background: linear-gradient(90deg, #dc3545, #e66a73); }}
 
         .bar-text {{
             position: absolute;
@@ -497,6 +669,167 @@ def generate_stats_html(title, stats_data, league_name):
             margin-bottom: 5px;
         }}
 
+        .vs-table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }}
+
+        .vs-table th {{
+            background: #667eea;
+            color: white;
+            padding: 10px 8px;
+            text-align: center;
+            font-weight: 600;
+        }}
+
+        .vs-table td {{
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }}
+
+        .vs-table tr:hover {{
+            background: #f9f9f9;
+        }}
+
+        .vs-table .opponent-name {{
+            font-weight: bold;
+            text-align: left;
+        }}
+
+        .vs-table .opponent-link {{
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }}
+
+        .vs-table .opponent-link:hover {{
+            color: #764ba2;
+            text-decoration: underline;
+        }}
+
+        .vs-table .positive {{
+            color: #28a745;
+            font-weight: bold;
+        }}
+
+        .vs-table .negative {{
+            color: #dc3545;
+            font-weight: bold;
+        }}
+
+        .vs-table .neutral {{
+            color: #666;
+        }}
+
+        .summary-box {{
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            border-left: 4px solid #667eea;
+        }}
+
+        .summary-label {{
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }}
+
+        .summary-value {{
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+        }}
+
+        .summary-value.negative {{
+            color: #dc3545;
+        }}
+
+        .league-avg {{
+            font-size: 13px;
+            color: #888;
+            margin-left: 8px;
+            font-weight: normal;
+        }}
+
+        .stats-table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }}
+
+        .stats-table thead {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }}
+
+        .stats-table th {{
+            color: white;
+            padding: 12px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+        }}
+
+        .stats-table td {{
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 16px;
+        }}
+
+        .stats-table tbody tr:hover {{
+            background: #f8f9fa;
+        }}
+
+        .stats-table tbody tr:last-child td {{
+            border-bottom: none;
+        }}
+
+        .stats-table .type-label {{
+            font-weight: 600;
+            color: #555;
+            text-align: left;
+        }}
+
+        .stats-table .points-value {{
+            color: #667eea;
+            font-weight: 600;
+            font-size: 18px;
+        }}
+
+        .stats-table .special-stats {{
+            color: #666;
+            font-size: 14px;
+        }}
+
+        .stats-table .rate-good {{
+            color: #28a745;
+            font-weight: 600;
+            font-size: 17px;
+        }}
+
+        .stats-table .rate-bad {{
+            color: #dc3545;
+            font-weight: 600;
+            font-size: 17px;
+        }}
+
+        .stats-table .rate-neutral {{
+            color: #666;
+            font-size: 16px;
+        }}
+
         @media (max-width: 768px) {{
             .stats-grid {{
                 grid-template-columns: 1fr;
@@ -505,12 +838,41 @@ def generate_stats_html(title, stats_data, league_name):
             .yaku-list {{
                 columns: 1;
             }}
+
+            .vs-table {{
+                font-size: 12px;
+            }}
+
+            .vs-table th,
+            .vs-table td {{
+                padding: 6px 4px;
+            }}
+
+            .stats-table {{
+                font-size: 12px;
+            }}
+
+            .stats-table th,
+            .stats-table td {{
+                padding: 8px 5px;
+            }}
+
+            .stats-table .special-stats {{
+                font-size: 11px;
+            }}
+
+            .summary-box {{
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }}
         }}
     </style>
 </head>
 <body>
     <div class="header">
         <h1>{title}</h1>
+        {date_info}
         <a href="index.html" class="back-link">← 返回首页</a>
     </div>
 
@@ -574,12 +936,17 @@ def main():
             except Exception as ex:
                 print(f"  处理失败: {fp} - {ex}", file=sys.stderr)
 
+        # 提取最新日期
+        latest_date = extract_latest_date(files)
+
         stats = calculate_player_stats(results, round_counts)
-        m_league_html = generate_stats_html("M-League 数据统计", stats, "m-league")
+        m_league_html = generate_stats_html("M-League 数据统计", stats, "m-league", latest_date)
 
         with open("docs/m-league.html", "w", encoding="utf-8") as f:
             f.write(m_league_html)
         print(f"✓ 已生成 docs/m-league.html (处理了 {len(results)} 个文件)", file=sys.stderr)
+        if latest_date:
+            print(f"  最新牌谱日期: {latest_date}", file=sys.stderr)
     else:
         print("⚠ 未找到 M-League 数据文件", file=sys.stderr)
 

@@ -62,6 +62,7 @@ YAKU_TRANSLATION = {
     # 3番役
     "Twice Pure Double Sequence": "两杯口",
     "Half Outside Hand": "混全带幺九",
+    "Mixed Triple Sequence": "三色同顺",
 
     # 6番役
     "Full Flush": "清一色",
@@ -198,7 +199,10 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
         "win_points_sum": 0,
         "riichi_win_points_sum": 0,  # 立直和牌打点总和
         "furo_win_points_sum": 0,    # 副露和牌打点总和
-        "other_win_points_sum": 0,   # 其他和牌打点总和（门清荣和等）
+        "dama_win_hands": 0,         # 默听和牌次数
+        "dama_win_points_sum": 0,    # 默听和牌打点总和
+        "tsumo_only_win_hands": 0,   # 仅自摸和牌次数
+        "tsumo_only_win_points_sum": 0,  # 仅自摸和牌打点总和
         "deal_in_hands": 0,
         "deal_in_points_sum": 0,
         "furo_then_win_hands": 0,
@@ -227,6 +231,14 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
         # 新增：天凤R值
         "current_r": 1500.0,  # 当前R值
         "total_rank": 0,      # 用于计算平均顺位
+        # 新增：对战统计
+        "vs_players": defaultdict(lambda: {
+            "games": 0,           # 对战场数
+            "wins": 0,            # 胜利次数（顺位更高）
+            "win_points": 0,      # 从对方和了获得的点数
+            "lose_points": 0,     # 放铳给对方的点数
+            "score_diff": 0,      # 总得点差值（自己-对方，含马点）
+        }),
     })
 
     # 天凤R值追踪：{玩家名: 当前R值}
@@ -241,6 +253,9 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
         # 计算这一局的桌平均R值（在游戏开始前）
         table_players = [p.get("name", "") for p in summary if p.get("name")]
         table_avg_r = sum(player_r_values[name] for name in table_players) / len(table_players) if table_players else 1500.0
+
+        # 构建本局玩家名次映射
+        player_ranks = {p.get("name"): p.get("rank", 4) for p in summary if p.get("name")}
 
         for player_stat in summary:
             name = player_stat.get("name", "")
@@ -257,7 +272,10 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
             pd["win_points_sum"] += player_stat.get("win_points_sum", 0)
             pd["riichi_win_points_sum"] += player_stat.get("riichi_win_points_sum", 0)
             pd["furo_win_points_sum"] += player_stat.get("furo_win_points_sum", 0)
-            pd["other_win_points_sum"] += player_stat.get("other_win_points_sum", 0)
+            pd["dama_win_hands"] += player_stat.get("dama_win_hands", 0)
+            pd["dama_win_points_sum"] += player_stat.get("dama_win_points_sum", 0)
+            pd["tsumo_only_win_hands"] += player_stat.get("tsumo_only_win_hands", 0)
+            pd["tsumo_only_win_points_sum"] += player_stat.get("tsumo_only_win_points_sum", 0)
             pd["deal_in_hands"] += player_stat.get("deal_in_hands", 0)
             pd["deal_in_points_sum"] += player_stat.get("deal_in_points_sum", 0)
             pd["furo_then_win_hands"] += player_stat.get("furo_then_win_hands", 0)
@@ -324,6 +342,40 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
                 else:
                     pd["yaku_count"][yaku] += count
 
+            # 对战统计：计算与其他玩家的对战情况
+            my_rank = player_stat.get("rank", 4)
+            my_final_points = player_stat.get("final_points", 25000)
+            my_score = (my_final_points - 25000) + uma_points.get(my_rank, 0)
+
+            for other_player in summary:
+                other_name = other_player.get("name", "")
+                if not other_name or other_name == name:
+                    continue
+
+                other_rank = other_player.get("rank", 4)
+                other_final_points = other_player.get("final_points", 25000)
+                other_score = (other_final_points - 25000) + uma_points.get(other_rank, 0)
+
+                vs_stat = pd["vs_players"][other_name]
+                vs_stat["games"] += 1
+
+                # 胜负判定：自己顺位更高（数字更小）为胜
+                if my_rank < other_rank:
+                    vs_stat["wins"] += 1
+
+                # 从对方和了获得的点数（对方放铳给自己）
+                other_deal_in_detail = other_player.get("deal_in_points_detail", {})
+                if name in other_deal_in_detail:
+                    vs_stat["win_points"] += sum(other_deal_in_detail[name])
+
+                # 放铳给对方的点数
+                my_deal_in_detail = player_stat.get("deal_in_points_detail", {})
+                if other_name in my_deal_in_detail:
+                    vs_stat["lose_points"] += sum(my_deal_in_detail[other_name])
+
+                # 总得点差值（自己的得分 - 对方的得分）
+                vs_stat["score_diff"] += (my_score - other_score)
+
     # 计算百分比和平均值
     stats = {}
     for name, pd in player_data.items():
@@ -381,8 +433,10 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
             "avg_win_points": round(pd["win_points_sum"] / win_hands, 0) if win_hands > 0 else 0,
             "avg_riichi_win_points": round(pd["riichi_win_points_sum"] / riichi_win_hands, 0) if riichi_win_hands > 0 else 0,
             "avg_furo_win_points": round(pd["furo_win_points_sum"] / pd["furo_then_win_hands"], 0) if pd["furo_then_win_hands"] > 0 else 0,
-            "other_win_hands": win_hands - riichi_win_hands - pd["furo_then_win_hands"],
-            "avg_other_win_points": round(pd["other_win_points_sum"] / (win_hands - riichi_win_hands - pd["furo_then_win_hands"]), 0) if (win_hands - riichi_win_hands - pd["furo_then_win_hands"]) > 0 else 0,
+            "dama_win_hands": pd["dama_win_hands"],
+            "avg_dama_win_points": round(pd["dama_win_points_sum"] / pd["dama_win_hands"], 0) if pd["dama_win_hands"] > 0 else 0,
+            "tsumo_only_win_hands": pd["tsumo_only_win_hands"],
+            "avg_tsumo_only_win_points": round(pd["tsumo_only_win_points_sum"] / pd["tsumo_only_win_hands"], 0) if pd["tsumo_only_win_hands"] > 0 else 0,
             "avg_deal_in_points": round(pd["deal_in_points_sum"] / deal_in_hands, 0) if deal_in_hands > 0 else 0,
             "avg_rank": round(pd["rank_sum"] / games, 2) if games > 0 else 0,
             "avg_final_points": round(pd["final_points_sum"] / games, 0) if games > 0 else 0,
@@ -418,7 +472,77 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
                 yaku: round(count / win_hands * 100, 2) if win_hands > 0 else 0
                 for yaku, count in pd["yaku_count"].items()
             },
+
+            # 对战统计
+            "vs_players": {
+                opponent: {
+                    "games": vs_data["games"],
+                    "wins": vs_data["wins"],
+                    "win_rate": round(vs_data["wins"] / vs_data["games"] * 100, 2) if vs_data["games"] > 0 else 0,
+                    "win_points": vs_data["win_points"],
+                    "lose_points": vs_data["lose_points"],
+                    "net_points": vs_data["win_points"] - vs_data["lose_points"],
+                    "score_diff": vs_data["score_diff"],
+                }
+                for opponent, vs_data in pd["vs_players"].items()
+            },
         }
+
+    # 计算所有半庄数超过10的玩家的平均值
+    qualified_players = [data for data in stats.values() if data["games"] > 10]
+
+    if qualified_players:
+        num_qualified = len(qualified_players)
+
+        # 收集所有手役以计算平均率
+        all_yaku = set()
+        for player_data in qualified_players:
+            all_yaku.update(player_data["yaku_rate"].keys())
+
+        league_average = {
+            "win_rate": round(sum(p["win_rate"] for p in qualified_players) / num_qualified, 2),
+            "deal_in_rate": round(sum(p["deal_in_rate"] for p in qualified_players) / num_qualified, 2),
+            "riichi_rate": round(sum(p["riichi_rate"] for p in qualified_players) / num_qualified, 2),
+            "furo_rate": round(sum(p["furo_rate"] for p in qualified_players) / num_qualified, 2),
+            "avg_win_points": round(sum(p["avg_win_points"] for p in qualified_players) / num_qualified, 0),
+            "avg_deal_in_points": round(sum(p["avg_deal_in_points"] for p in qualified_players) / num_qualified, 0),
+            "avg_rank": round(sum(p["avg_rank"] for p in qualified_players) / num_qualified, 2),
+            "rank_1_rate": round(sum(p["rank_1_rate"] for p in qualified_players) / num_qualified, 2),
+            "rank_2_rate": round(sum(p["rank_2_rate"] for p in qualified_players) / num_qualified, 2),
+            "rank_3_rate": round(sum(p["rank_3_rate"] for p in qualified_players) / num_qualified, 2),
+            "rank_4_rate": round(sum(p["rank_4_rate"] for p in qualified_players) / num_qualified, 2),
+            "tenpai_rate": round(sum(p["tenpai_rate"] for p in qualified_players if p["ryuukyoku_hands"] > 0) /
+                                 sum(1 for p in qualified_players if p["ryuukyoku_hands"] > 0), 2) if any(p["ryuukyoku_hands"] > 0 for p in qualified_players) else 0,
+            "ippatsu_rate": round(sum(p["ippatsu_rate"] for p in qualified_players if p["riichi_win_hands"] > 0) /
+                                  sum(1 for p in qualified_players if p["riichi_win_hands"] > 0), 2) if any(p["riichi_win_hands"] > 0 for p in qualified_players) else 0,
+            "ura_rate": round(sum(p["ura_rate"] for p in qualified_players if p["riichi_win_hands"] > 0) /
+                             sum(1 for p in qualified_players if p["riichi_win_hands"] > 0), 2) if any(p["riichi_win_hands"] > 0 for p in qualified_players) else 0,
+            "riichi_win_rate": round(sum(p["riichi_win_rate"] for p in qualified_players if p["riichi_hands"] > 0) /
+                                     sum(1 for p in qualified_players if p["riichi_hands"] > 0), 2) if any(p["riichi_hands"] > 0 for p in qualified_players) else 0,
+            "riichi_then_deal_in_rate": round(sum(p["riichi_then_deal_in_rate"] for p in qualified_players if p["riichi_hands"] > 0) /
+                                              sum(1 for p in qualified_players if p["riichi_hands"] > 0), 2) if any(p["riichi_hands"] > 0 for p in qualified_players) else 0,
+            "furo_then_win_rate": round(sum(p["furo_then_win_rate"] for p in qualified_players if p["furo_hands"] > 0) /
+                                        sum(1 for p in qualified_players if p["furo_hands"] > 0), 2) if any(p["furo_hands"] > 0 for p in qualified_players) else 0,
+            "furo_then_deal_in_rate": round(sum(p["furo_then_deal_in_rate"] for p in qualified_players if p["furo_hands"] > 0) /
+                                            sum(1 for p in qualified_players if p["furo_hands"] > 0), 2) if any(p["furo_hands"] > 0 for p in qualified_players) else 0,
+            "avg_riichi_win_points": round(sum(p["avg_riichi_win_points"] for p in qualified_players if p["riichi_win_hands"] > 0) /
+                                           sum(1 for p in qualified_players if p["riichi_win_hands"] > 0), 0) if any(p["riichi_win_hands"] > 0 for p in qualified_players) else 0,
+            "avg_furo_win_points": round(sum(p["avg_furo_win_points"] for p in qualified_players if p["furo_then_win_hands"] > 0) /
+                                         sum(1 for p in qualified_players if p["furo_then_win_hands"] > 0), 0) if any(p["furo_then_win_hands"] > 0 for p in qualified_players) else 0,
+            "avg_dama_win_points": round(sum(p["avg_dama_win_points"] for p in qualified_players if p["dama_win_hands"] > 0) /
+                                         sum(1 for p in qualified_players if p["dama_win_hands"] > 0), 0) if any(p["dama_win_hands"] > 0 for p in qualified_players) else 0,
+            "avg_tsumo_only_win_points": round(sum(p["avg_tsumo_only_win_points"] for p in qualified_players if p["tsumo_only_win_hands"] > 0) /
+                                                sum(1 for p in qualified_players if p["tsumo_only_win_hands"] > 0), 0) if any(p["tsumo_only_win_hands"] > 0 for p in qualified_players) else 0,
+            # 手役平均率
+            "yaku_rate": {
+                yaku: round(sum(p["yaku_rate"].get(yaku, 0) for p in qualified_players if p["win_hands"] > 0) /
+                           sum(1 for p in qualified_players if p["win_hands"] > 0 and yaku in p["yaku_rate"]), 2)
+                if sum(1 for p in qualified_players if p["win_hands"] > 0 and yaku in p["yaku_rate"]) > 0 else 0
+                for yaku in all_yaku
+            }
+        }
+
+        stats["_league_average"] = league_average
 
     return stats
 
@@ -461,16 +585,19 @@ def format_as_table(stats: Dict[str, Dict[str, Any]]) -> str:
         lines.append(f"  天凤R值: {data['tenhou_r']:.2f}")
         lines.append(f"  总点数: {data['total_score']:+} (平均 {data['total_score']/data['games']:+.0f}/半庄), 平均顺位: {data['avg_rank']:.2f}")
         lines.append(f"  名次分布: 1位 {data['rank_1']}次({data['rank_1_rate']}%), 2位 {data['rank_2']}次({data['rank_2_rate']}%), 3位 {data['rank_3']}次({data['rank_3_rate']}%), 4位 {data['rank_4']}次({data['rank_4_rate']}%)")
-        # 计算其他和牌数据（门清荣和等）
+        # 计算和牌类型数据
         riichi_win_hands = data['riichi_win_hands']
         furo_then_win_hands = data['furo_then_win_hands']
-        other_win_hands = data['other_win_hands']
+        dama_win_hands = data['dama_win_hands']
+        tsumo_only_win_hands = data['tsumo_only_win_hands']
 
         lines.append(f"  和了: {data['win_hands']} 局 ({data['win_rate']}%), 平均打点: {data['avg_win_points']:.0f}")
         lines.append(f"    立直和了: {riichi_win_hands} 局 (平均{data['avg_riichi_win_points']:.0f}点), 一发: {data['ippatsu_hands']} 局 ({data['ippatsu_rate']}%), 里宝: {data['ura_hands']} 局 ({data['ura_rate']}%)")
         lines.append(f"    副露和了: {furo_then_win_hands} 局 (平均{data['avg_furo_win_points']:.0f}点)")
-        if other_win_hands > 0:
-            lines.append(f"    其他和了: {other_win_hands} 局 (平均{data['avg_other_win_points']:.0f}点)")
+        if dama_win_hands > 0:
+            lines.append(f"    默听和了: {dama_win_hands} 局 (平均{data['avg_dama_win_points']:.0f}点)")
+        if tsumo_only_win_hands > 0:
+            lines.append(f"    仅自摸和了: {tsumo_only_win_hands} 局 (平均{data['avg_tsumo_only_win_points']:.0f}点)")
         lines.append(f"  放铳: {data['deal_in_hands']} 局 ({data['deal_in_rate']}%), 平均失点: {data['avg_deal_in_points']:.0f}")
         lines.append(f"  立直: {data['riichi_hands']} 局 ({data['riichi_rate']}%), 立直后: 和了{data['riichi_win_rate']}% / 流局{data['riichi_ryuukyoku_rate']}% / 放铳{data['riichi_then_deal_in_rate']}% / 横移{data['riichi_pass_rate']}%")
         lines.append(f"  副露: {data['furo_hands']} 局 ({data['furo_rate']}%), 副露后: 和了{data['furo_then_win_rate']}% / 流局{data['furo_ryuukyoku_rate']}% / 放铳{data['furo_then_deal_in_rate']}% / 横移{data['furo_pass_rate']}%")
@@ -542,13 +669,15 @@ def main():
 
     # 计算玩家统计
     stats = calculate_player_stats(results, round_counts)
+    ls = list(stats.items())
+    print(ls)
 
     # 输出结果
     if args.format == "table":
         output_text = format_as_table(stats)
     else:
         # 按对局数降序排序
-        sorted_stats = dict(sorted(stats.items(), key=lambda x: (-x[1]["games"], x[0])))
+        sorted_stats = dict(sorted(stats.items(), key=lambda x: (-x[1]["games"], x[0]) if x[0] != '_league_average' else (0, '_league_average')))
         output_text = json.dumps({
             "folder": folder,
             "files_processed": len(files),

@@ -41,10 +41,23 @@ def extract_yaku_names(info_list: List[Any]) -> List[str]:
     return names
 
 def extract_hand_yaku(info_list: List[Any]) -> List[str]:
-    """提取手役（排除宝牌、一发、里宝）"""
+    """提取手役（排除宝牌、一发、里宝、点数等级）"""
     yaku_names = extract_yaku_names(info_list)
+    # 排除：宝牌、一发、里宝、以及点数等级（满贯、跳满等）
     excluded = {'Dora', 'Ura Dora', 'Red Five', 'Ippatsu', 'One Shot', '一发'}
-    return [y for y in yaku_names if y not in excluded]
+    # 过滤掉包含点数等级关键词的项
+    point_levels = ['Mangan', 'Haneman', 'Baiman', 'Sanbaiman', 'Yakuman',
+                   '满贯', '跳满', '倍满', '三倍满', '役满']
+
+    result = []
+    for yaku in yaku_names:
+        if yaku in excluded:
+            continue
+        # 检查是否包含点数等级关键词
+        if any(level in yaku for level in point_levels):
+            continue
+        result.append(yaku)
+    return result
 
 def ura_han_total(info_list: List[Any]) -> int:
     total = 0
@@ -150,7 +163,10 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
             "riichi_win_hands": 0,  # 新增：立直后和牌次数
             "riichi_win_points_sum": 0,  # 新增：立直和牌打点总和
             "furo_win_points_sum": 0,    # 新增：副露和牌打点总和
-            "other_win_points_sum": 0,   # 新增：其他和牌打点总和
+            "dama_win_hands": 0,         # 新增：默听和牌次数（门清荣和）
+            "dama_win_points_sum": 0,    # 新增：默听和牌打点总和
+            "tsumo_only_win_hands": 0,   # 新增：仅自摸和牌次数
+            "tsumo_only_win_points_sum": 0,  # 新增：仅自摸和牌打点总和
             "deal_in_targets": { n: 0 for n in names },
             "deal_in_points_detail": { n: [] for n in names },  # 新增：记录每次放铳的点数
             "furo_then_win_hands": 0,
@@ -251,7 +267,7 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
                 total_pts = base_pts + add_ky + add_hn
                 per[w]["win_points_sum"] += total_pts
 
-                # 判断和牌类型（互斥分类）：优先级：立直 > 副露 > 其他
+                # 判断和牌类型（互斥分类）：优先级：立直 > 副露 > 默听/仅自摸
                 is_riichi_win = riichi_flag[w]
                 is_furo_win = furo_flag[w]
 
@@ -268,9 +284,20 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
                 elif is_furo_win:
                     per[w]["furo_then_win_hands"] += 1
                     per[w]["furo_win_points_sum"] += total_pts
-                # 其他和牌（既没有立直也没有副露，如门清荣和）
+                # 门清和牌（既没有立直也没有副露）
                 else:
-                    per[w]["other_win_points_sum"] += total_pts
+                    # 检查手役中是否有除了"门前清自摸和"之外的其他役
+                    # 手役已经排除了宝牌、一发、里宝
+                    non_tsumo_yaku = [y for y in hand_yaku_list if y not in ['Fully Concealed Hand', '门前清自摸和', '门清自摸']]
+
+                    if non_tsumo_yaku:
+                        # 默听：有其他役，可以荣和或自摸
+                        per[w]["dama_win_hands"] += 1
+                        per[w]["dama_win_points_sum"] += total_pts
+                    else:
+                        # 仅自摸：只有门前清自摸和这个役
+                        per[w]["tsumo_only_win_hands"] += 1
+                        per[w]["tsumo_only_win_points_sum"] += total_pts
 
                 # 记录手役
                 for yaku in hand_yaku_list:
