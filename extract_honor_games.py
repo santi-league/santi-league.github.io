@@ -147,10 +147,10 @@ def generate_tenhou_url(round_data, game_data):
     """生成天凤牌谱再生URL"""
     # 转换为天凤格式
     tenhou_data = convert_round_to_tenhou(round_data, game_data)
-    # 生成URL：https://tenhou.net/6/#json=<json_data>
+    # 生成URL：https://tenhou.net/5/#json=<json_data>
     # 注意：直接拼接JSON字符串，不需要URL编码
     json_str = json.dumps(tenhou_data, ensure_ascii=False, separators=(',', ':'))
-    return f"https://tenhou.net/6/#json={json_str}"
+    return f"https://tenhou.net/5/#json={json_str}"
 
 def extract_honor_games(folder, recursive=True):
     """提取所有役满和三倍满的牌谱"""
