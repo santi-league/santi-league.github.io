@@ -66,8 +66,6 @@ def calculate_shanten(tiles: List[int]) -> int:
     """
     计算向听数（距离听牌还差几张）
     返回: -1=和了, 0=听牌, 1=一向听, 2=二向听, ...
-
-    这是简化版本，只计算标准型向听数（不包括七对子和国士无双）
     """
     if len(tiles) not in [13, 14]:
         return 99  # 非法手牌
@@ -75,146 +73,181 @@ def calculate_shanten(tiles: List[int]) -> int:
     # 解码牌
     decoded = [decode_tile(t) for t in tiles]
 
-    # 统计各花色的牌
-    suits = {'m': [], 'p': [], 's': [], 'z': []}
-    for suit, rank in decoded:
-        if suit in suits:
-            suits[suit].append(rank)
+    # 过滤掉unknown牌
+    decoded = [(s, r) for s, r in decoded if s != 'unknown']
+
+    if len(decoded) not in [13, 14]:
+        return 99
+
+    # 转换为34牌编码（0-33）
+    tiles_34 = _convert_to_34_array(decoded)
 
     # 尝试标准型（4面子1雀头）
-    standard_shanten = _calculate_standard_shanten(suits)
+    standard_shanten = _calculate_standard_shanten_34(tiles_34)
 
     # 尝试七对子型
-    pairs_shanten = _calculate_pairs_shanten(tiles)
+    pairs_shanten = _calculate_pairs_shanten_34(tiles_34)
 
-    # 尝试国士无双型（只对13张牌）
-    kokushi_shanten = 99
-    if len(tiles) == 13:
-        kokushi_shanten = _calculate_kokushi_shanten(decoded)
+    # 尝试国士无双型
+    kokushi_shanten = _calculate_kokushi_shanten_34(tiles_34)
 
     return min(standard_shanten, pairs_shanten, kokushi_shanten)
 
 
-def _calculate_standard_shanten(suits: Dict[str, List[int]]) -> int:
-    """计算标准型向听数（4面子1雀头）"""
-    total_tiles = sum(len(tiles) for tiles in suits.values())
+def _convert_to_34_array(decoded: List[Tuple[str, int]]) -> List[int]:
+    """
+    将牌转换为34种类编码数组
+    0-8: 1-9万, 9-17: 1-9条, 18-26: 1-9筒, 27-33: 东南西北白发中
+    返回长度为34的数组，每个元素表示该种牌有几张
+    """
+    tiles_34 = [0] * 34
 
-    # 递归计算所有可能的面子组合
-    best_shanten = 99
+    for suit, rank in decoded:
+        if suit == 'm':
+            tiles_34[rank - 1] += 1
+        elif suit == 'p':
+            tiles_34[9 + rank - 1] += 1
+        elif suit == 's':
+            tiles_34[18 + rank - 1] += 1
+        elif suit == 'z':
+            tiles_34[27 + rank - 1] += 1
 
-    def search(suit_idx: int, mentsu: int, jantou: int, remaining: Dict[str, List[int]]):
-        nonlocal best_shanten
+    return tiles_34
 
-        suit_names = ['m', 'p', 's', 'z']
 
-        # 所有花色都处理完了
-        if suit_idx >= len(suit_names):
-            # 计算向听数: 8 - 面子*2 - 雀头 - (还需要的搭子数)
-            tatsu = 0  # 搭子数
-            isolated = 0  # 孤立牌数
+def _calculate_standard_shanten_34(tiles_34: List[int]) -> int:
+    """
+    计算标准型向听数（4面子1雀头）
+    使用递归算法，参考天凤向听数计算
+    """
+    def remove_mentsu(tiles: List[int]) -> Tuple[int, int, int]:
+        """移除所有面子，返回(面子数, 搭子数, 对子数)"""
+        mentsu_count = 0
+        tatsu_count = 0
+        pair_count = 0
 
-            for suit_name in suit_names:
-                tiles = sorted(remaining[suit_name])
-                if not tiles:
-                    continue
-                counter = Counter(tiles)
+        result = _remove_mentsu_recursive(tiles[:], 0, mentsu_count, tatsu_count, pair_count)
+        return result
 
-                # 简单估算搭子
-                for rank in sorted(counter.keys()):
-                    if counter[rank] >= 2:
-                        tatsu += 1
-                        counter[rank] -= 2
-                    elif counter[rank] == 1:
-                        # 检查是否能形成顺子搭子
-                        if rank + 1 in counter or rank + 2 in counter:
-                            tatsu += 1
-                            counter[rank] -= 1
-                        else:
-                            isolated += 1
+    def _remove_mentsu_recursive(tiles: List[int], pos: int, mentsu: int, tatsu: int, pair: int) -> Tuple[int, int, int]:
+        """递归移除面子"""
+        # 跳过数量为0的牌
+        while pos < 34 and tiles[pos] == 0:
+            pos += 1
 
-            # 计算向听数
-            need_groups = 4 - mentsu
-            tatsu = min(tatsu, need_groups)
-            shanten = need_groups - tatsu + (1 if jantou == 0 else 0) - 1
-            best_shanten = min(best_shanten, max(-1, shanten))
-            return
+        if pos >= 34:
+            return (mentsu, tatsu, pair)
 
-        suit_name = suit_names[suit_idx]
-        tiles = remaining[suit_name]
+        results = []
+        current = tiles[pos]
 
-        if not tiles:
-            search(suit_idx + 1, mentsu, jantou, remaining)
-            return
-
-        counter = Counter(tiles)
-
-        # 尝试不取任何面子/雀头，直接跳到下一花色
-        search(suit_idx + 1, mentsu, jantou, remaining)
+        # 尝试不取任何组合，直接跳过
+        results.append(_remove_mentsu_recursive(tiles, pos + 1, mentsu, tatsu, pair))
 
         # 尝试取刻子
-        for rank in sorted(counter.keys()):
-            if counter[rank] >= 3 and mentsu < 4:
-                new_remaining = {k: v[:] for k, v in remaining.items()}
-                for _ in range(3):
-                    new_remaining[suit_name].remove(rank)
-                search(suit_idx, mentsu + 1, jantou, new_remaining)
+        if current >= 3:
+            tiles[pos] -= 3
+            results.append(_remove_mentsu_recursive(tiles, pos, mentsu + 1, tatsu, pair))
+            tiles[pos] += 3
 
-        # 尝试取顺子（仅数牌）
-        if suit_name in ['m', 'p', 's']:
-            for rank in sorted(counter.keys()):
-                if rank <= 7 and rank + 1 in counter and rank + 2 in counter and mentsu < 4:
-                    new_remaining = {k: v[:] for k, v in remaining.items()}
-                    new_remaining[suit_name].remove(rank)
-                    new_remaining[suit_name].remove(rank + 1)
-                    new_remaining[suit_name].remove(rank + 2)
-                    search(suit_idx, mentsu + 1, jantou, new_remaining)
+        # 尝试取顺子（只能是数牌：0-8, 9-17, 18-26）
+        if pos % 9 <= 6 and pos < 27:  # 不能是字牌，且不能是8、9（无法组成顺子）
+            if tiles[pos] >= 1 and tiles[pos + 1] >= 1 and tiles[pos + 2] >= 1:
+                tiles[pos] -= 1
+                tiles[pos + 1] -= 1
+                tiles[pos + 2] -= 1
+                results.append(_remove_mentsu_recursive(tiles, pos, mentsu + 1, tatsu, pair))
+                tiles[pos] += 1
+                tiles[pos + 1] += 1
+                tiles[pos + 2] += 1
 
-        # 尝试取雀头
-        for rank in sorted(counter.keys()):
-            if counter[rank] >= 2 and jantou == 0:
-                new_remaining = {k: v[:] for k, v in remaining.items()}
-                for _ in range(2):
-                    new_remaining[suit_name].remove(rank)
-                search(suit_idx, mentsu, 1, new_remaining)
+        # 尝试取对子
+        if current >= 2:
+            tiles[pos] -= 2
+            results.append(_remove_mentsu_recursive(tiles, pos + 1, mentsu, tatsu, pair + 1))
+            tiles[pos] += 2
 
-    search(0, 0, 0, suits)
-    return best_shanten
+        # 尝试取搭子（两张的组合）
+        # 对子搭子
+        if current >= 2:
+            tiles[pos] -= 2
+            results.append(_remove_mentsu_recursive(tiles, pos + 1, mentsu, tatsu + 1, pair))
+            tiles[pos] += 2
+
+        # 两面/嵌张搭子（只能是数牌）
+        if pos % 9 <= 7 and pos < 27:
+            if tiles[pos] >= 1 and tiles[pos + 1] >= 1:
+                tiles[pos] -= 1
+                tiles[pos + 1] -= 1
+                results.append(_remove_mentsu_recursive(tiles, pos, mentsu, tatsu + 1, pair))
+                tiles[pos] += 1
+                tiles[pos + 1] += 1
+
+        if pos % 9 <= 6 and pos < 27:
+            if tiles[pos] >= 1 and tiles[pos + 2] >= 1:
+                tiles[pos] -= 1
+                tiles[pos + 2] -= 1
+                results.append(_remove_mentsu_recursive(tiles, pos, mentsu, tatsu + 1, pair))
+                tiles[pos] += 1
+                tiles[pos + 2] += 1
+
+        # 返回最优结果（面子数最多，搭子数次之，对子数再次）
+        return max(results, key=lambda x: (x[0], x[1], x[2]))
+
+    # 计算最优组合
+    best_mentsu, best_tatsu, best_pair = remove_mentsu(tiles_34)
+
+    # 计算向听数
+    # 有雀头的情况
+    if best_pair > 0:
+        shanten_with_pair = 8 - best_mentsu * 2 - best_tatsu - 1
+    else:
+        shanten_with_pair = 99
+
+    # 无雀头的情况
+    shanten_no_pair = 8 - best_mentsu * 2 - best_tatsu
+
+    return min(shanten_with_pair, shanten_no_pair)
 
 
-def _calculate_pairs_shanten(tiles: List[int]) -> int:
+def _calculate_pairs_shanten_34(tiles_34: List[int]) -> int:
     """计算七对子向听数"""
-    counter = Counter(tiles)
-    pairs = sum(1 for count in counter.values() if count >= 2)
-    singles = sum(1 for count in counter.values() if count == 1)
+    pairs = 0
+    kinds = 0
+
+    for count in tiles_34:
+        if count >= 2:
+            pairs += 1
+            kinds += 1
+        elif count == 1:
+            kinds += 1
 
     # 七对子向听数 = 6 - 对子数
-    # 但如果有4张一样的牌，算作两对
     shanten = 6 - pairs
 
     # 如果不同种类的牌少于7种，无法组成七对子
-    if len(counter) < 7:
-        shanten = max(shanten, 7 - len(counter))
+    if kinds < 7:
+        return 99  # 不可能
 
     return shanten
 
 
-def _calculate_kokushi_shanten(decoded: List[Tuple[str, int]]) -> int:
+def _calculate_kokushi_shanten_34(tiles_34: List[int]) -> int:
     """计算国士无双向听数"""
-    # 国士牌: 1m, 9m, 1p, 9p, 1s, 9s, z1-z7 (共13种)
-    yaochu = set()
-    yaochu_tiles = []
+    # 国士牌: 0,8(1m,9m), 9,17(1p,9p), 18,26(1s,9s), 27-33(东南西北白发中)
+    yaochu_indices = [0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33]
 
-    for suit, rank in decoded:
-        if suit in ['m', 'p', 's'] and rank in [1, 9]:
-            yaochu.add((suit, rank))
-            yaochu_tiles.append((suit, rank))
-        elif suit == 'z':
-            yaochu.add((suit, rank))
-            yaochu_tiles.append((suit, rank))
+    yaochu_kinds = 0
+    has_pair = False
+
+    for idx in yaochu_indices:
+        if tiles_34[idx] >= 1:
+            yaochu_kinds += 1
+        if tiles_34[idx] >= 2:
+            has_pair = True
 
     # 国士向听数 = 13 - 幺九种类数 - (是否有对子)
-    has_pair = len(yaochu_tiles) > len(yaochu)
-    shanten = 13 - len(yaochu) - (1 if has_pair else 0)
+    shanten = 13 - yaochu_kinds - (1 if has_pair else 0)
 
     return shanten
 
@@ -226,7 +259,8 @@ def is_tenpai(tiles: List[int]) -> bool:
 
 # ==================== 手役检测 ====================
 
-def detect_yaku(tiles: List[int], furo_groups: List = None, is_riichi: bool = False) -> List[str]:
+def detect_yaku(tiles: List[int], furo_groups: List = None, is_riichi: bool = False,
+                seat_wind: int = 1, prevalent_wind: int = 1) -> List[str]:
     """
     检测手牌中可能的手役（不考虑宝牌、一发、里宝等）
 
@@ -234,11 +268,15 @@ def detect_yaku(tiles: List[int], furo_groups: List = None, is_riichi: bool = Fa
     - tiles: 手牌（13张）
     - furo_groups: 副露组（如果有）
     - is_riichi: 是否立直
+    - seat_wind: 自风 (1=东, 2=南, 3=西, 4=北)
+    - prevalent_wind: 场风 (1=东, 2=南, 3=西, 4=北)
 
     返回: 可能的手役名称列表
 
     注意：这个函数检测的是在听牌状态下，如果和牌可能拥有的役
     不包括：立直、一发、里宝、宝牌、岭上开花、抢杠、海底等和牌时才能确定的役
+
+    这里只检测"确定的役"，即无论听什么牌和了都一定有的役
     """
     if furo_groups is None:
         furo_groups = []
@@ -248,92 +286,113 @@ def detect_yaku(tiles: List[int], furo_groups: List = None, is_riichi: bool = Fa
     # 如果有副露，不能是门清役
     is_menzen = len(furo_groups) == 0
 
-    decoded = [decode_tile(t) for t in tiles]
-    suits = {'m': [], 'p': [], 's': []}
-    honors = []
+    # 转换为34编码
+    decoded = [decode_tile(t) for t in tiles if decode_tile(t)[0] != 'unknown']
+    tiles_34 = _convert_to_34_array(decoded)
 
-    for suit, rank in decoded:
-        if suit in suits:
-            suits[suit].append(rank)
-        elif suit == 'z':
-            honors.append(rank)
+    # 统计各花色
+    m_tiles = [i for i in range(0, 9) if tiles_34[i] > 0]
+    p_tiles = [i for i in range(9, 18) if tiles_34[i] > 0]
+    s_tiles = [i for i in range(18, 27) if tiles_34[i] > 0]
+    z_tiles = [i for i in range(27, 34) if tiles_34[i] > 0]
 
-    # 统计各花色牌数
-    m_count = len(suits['m'])
-    p_count = len(suits['p'])
-    s_count = len(suits['s'])
-    z_count = len(honors)
+    has_m = len(m_tiles) > 0
+    has_p = len(p_tiles) > 0
+    has_s = len(s_tiles) > 0
+    has_z = len(z_tiles) > 0
 
-    # === 检测基本役种 ===
+    num_suits = sum([has_m, has_p, has_s])
+    total_tiles = sum(tiles_34)
 
-    # 断幺九（全是2-8的数牌，没有字牌和1,9）
-    if z_count == 0:
-        all_simples = True
-        for suit_name in ['m', 'p', 's']:
-            if any(rank in [1, 9] for rank in suits[suit_name]):
-                all_simples = False
-                break
-        if all_simples and (m_count + p_count + s_count) == len(tiles):
-            yaku_list.append("All Simples")
+    # === 检测确定的役种 ===
 
-    # 清一色/混一色（只有一种花色+字牌）
-    num_suits = sum(1 for suit_name in ['m', 'p', 's'] if len(suits[suit_name]) > 0)
-    if num_suits == 1:
-        if z_count == 0:
+    # 七对子（听牌时就能确定）
+    pairs = sum(1 for count in tiles_34 if count >= 2)
+    if pairs == 6 and total_tiles == 13:
+        # 如果已经有6对，那就是七对子听牌
+        yaku_list.append("Seven Pairs")
+        return yaku_list  # 七对子不能和其他役复合
+
+    # 清一色/混一色
+    if num_suits == 1 and (has_m or has_p or has_s):
+        if not has_z:
             yaku_list.append("Full Flush")  # 清一色
         else:
             yaku_list.append("Half Flush")  # 混一色
 
-    # 对对和（七对子在这里检测）
-    counter = Counter(tiles)
-    if all(count >= 2 for count in counter.values()) and len(counter) == 7:
-        yaku_list.append("Seven Pairs")  # 七对子
+    # 断幺九（全是2-8的数牌）
+    if not has_z:
+        all_simples = True
+        for i in range(0, 9):
+            if tiles_34[i] > 0 and i in [0, 8]:  # 1万或9万
+                all_simples = False
+        for i in range(9, 18):
+            if tiles_34[i] > 0 and i in [9, 17]:  # 1条或9条
+                all_simples = False
+        for i in range(18, 27):
+            if tiles_34[i] > 0 and i in [18, 26]:  # 1筒或9筒
+                all_simples = False
 
-    # 字牌役（役牌：白发中、自风、场风）
-    # 注意：这里简化处理，不考虑自风场风的具体判断
-    honor_counter = Counter(honors)
-    if honor_counter.get(5, 0) >= 3:  # 白
+        if all_simples and total_tiles == 13:
+            yaku_list.append("All Simples")
+
+    # 役牌：白发中
+    if tiles_34[31] >= 3:  # 白 (z5)
         yaku_list.append("White Dragon")
-    if honor_counter.get(6, 0) >= 3:  # 发
+    if tiles_34[32] >= 3:  # 发 (z6)
         yaku_list.append("Green Dragon")
-    if honor_counter.get(7, 0) >= 3:  # 中
+    if tiles_34[33] >= 3:  # 中 (z7)
         yaku_list.append("Red Dragon")
 
-    # 平和（门清且没有字牌，4个顺子+1个雀头）
-    # 简化检测：如果是门清、没有字牌、没有刻子，可能是平和
-    if is_menzen and z_count == 0:
-        # 这里需要更复杂的逻辑来准确判断，暂时简化
-        has_triplet = any(count >= 3 for count in Counter(tiles).values())
-        if not has_triplet:
-            yaku_list.append("Pinfu")
+    # 役牌：自风
+    if seat_wind >= 1 and seat_wind <= 4:
+        wind_idx = 27 + seat_wind - 1
+        if tiles_34[wind_idx] >= 3:
+            yaku_list.append("Seat Wind")
 
-    # 一杯口/二杯口（门清，有重复的顺子）
-    if is_menzen:
-        # 简化检测：检查是否有相同的顺子
-        # 实际需要解析面子后判断
-        pass
+    # 役牌：场风
+    if prevalent_wind >= 1 and prevalent_wind <= 4:
+        wind_idx = 27 + prevalent_wind - 1
+        if tiles_34[wind_idx] >= 3:
+            yaku_list.append("Prevalent Wind")
 
-    # 三色同顺（三种花色的同数字顺子）
-    # 简化检测：检查三种花色是否都有连续数字
-    if m_count > 0 and p_count > 0 and s_count > 0:
-        for num in range(1, 8):
-            if (all((num in suits['m'], num+1 in suits['m'], num+2 in suits['m']) and
-                    (num in suits['p'], num+1 in suits['p'], num+2 in suits['p']) and
-                    (num in suits['s'], num+1 in suits['s'], num+2 in suits['s']))):
-                yaku_list.append("Mixed Triple Sequence")
-                break
+    # 对对和（4个刻子+1个雀头，听牌时刻子数>=3）
+    triplets = sum(1 for count in tiles_34 if count >= 3)
+    if triplets >= 3:
+        yaku_list.append("All Triplets")
 
-    # 三色同刻（三种花色的同数字刻子）
-    if m_count > 0 and p_count > 0 and s_count > 0:
-        m_counter = Counter(suits['m'])
-        p_counter = Counter(suits['p'])
-        s_counter = Counter(suits['s'])
-        for num in range(1, 10):
-            if m_counter.get(num, 0) >= 3 and p_counter.get(num, 0) >= 3 and s_counter.get(num, 0) >= 3:
-                yaku_list.append("Triple Triplets")
-                break
+    # 三暗刻（门清时，已有3个暗刻）
+    if is_menzen and triplets >= 3:
+        yaku_list.append("Three Concealed Triplets")
+
+    # 混全带幺九（每个面子和雀头都有幺九牌）
+    # 简化检测：略
+
+    # 纯全带幺九（每个面子和雀头都有19，没有字牌）
+    # 简化检测：略
+
+    # 混老头（只有幺九牌，有字牌）
+    # 简化检测：略
+
+    # 清老头（只有19牌，没有字牌）
+    # 简化检测：略
+
+    # 三色同顺/三色同刻
+    # 简化检测：略（需要和牌后才能确定具体面子）
+
+    # 一气通贯
+    # 简化检测：略
 
     return yaku_list
+
+
+def has_yaku_for_dama(tiles: List[int], furo_groups: List = None) -> bool:
+    """
+    判断手牌是否有役（用于默听判断）
+    只要有任何确定的役（除了门前清自摸和），就返回True
+    """
+    yaku = detect_yaku(tiles, furo_groups)
+    return len(yaku) > 0
 
 
 # ==================== 手牌状态追踪器 ====================
@@ -343,64 +402,70 @@ class HandTracker:
 
     def __init__(self, seat: int, initial_hand: List[int]):
         self.seat = seat
-        self.hand = sorted([t for t in initial_hand if t < 60])  # 过滤掉60
-        self.draws = []  # 摸牌序列
-        self.discards = []  # 打牌序列
+        # 过滤掉非整数、60和0
+        self.hand = sorted([t for t in initial_hand if isinstance(t, int) and 0 < t < 60])
         self.furo_groups = []  # 副露组
         self.riichi_declared = False
-        self.current_turn = 0
 
         # 默听状态追踪
         self.dama_state = False  # 当前是否处于默听状态
-        self.dama_turns = 0  # 默听持续回合数
+        self.dama_turns_count = 0  # 总共经历默听的次数
 
-    def process_turn(self, actions: List):
+        # 默听结果统计
+        self.dama_hands = 0  # 进入默听的局数
+        self.dama_win = 0  # 默听后和了
+        self.dama_deal_in = 0  # 默听后放铳
+        self.dama_draw = 0  # 默听后流局
+        self.dama_pass = 0  # 默听后横移（别人和了）
+
+    def process_action_pair(self, draw_tile: int, discard_tile: int):
         """
-        处理一个回合的动作
-        actions: 牌谱中一个玩家的回合数据，可能包含数字（摸/打）和字符串（副露/立直标记）
+        处理一次摸打
+        draw_tile: 摸的牌（60表示没有摸牌）
+        discard_tile: 打的牌（60表示没有打牌，可能是副露或立直）
         """
-        for action in actions:
-            if isinstance(action, int):
-                if action < 60:
-                    # 摸牌
-                    self.hand.append(action)
-                    self.hand.sort()
-                    self.draws.append(action)
-                # 60 表示跳过或占位
-            elif isinstance(action, str):
-                # 处理特殊操作
-                if action.startswith('r'):
-                    # 立直：r后面跟打出的牌
-                    self.riichi_declared = True
-                    discard = int(action[1:]) if len(action) > 1 else 0
-                    if discard in self.hand:
-                        self.hand.remove(discard)
-                        self.discards.append(discard)
-                elif action.startswith('c'):
-                    # 吃：c后面跟三张牌
-                    self._process_furo(action, 'chi')
-                elif action.startswith('p'):
-                    # 碰：p后面跟三张牌
-                    self._process_furo(action, 'pon')
-                elif action.startswith('k'):
-                    # 杠
-                    self._process_furo(action, 'kan')
-
-        # 检查默听状态
-        self._check_dama_state()
-        self.current_turn += 1
-
-    def process_discard(self, tile: int):
-        """处理打牌"""
-        if tile in self.hand:
-            self.hand.remove(tile)
-            self.discards.append(tile)
+        # 摸牌
+        if draw_tile > 0 and draw_tile < 60:
+            self.hand.append(draw_tile)
             self.hand.sort()
 
-    def _process_furo(self, furo_str: str, furo_type: str):
+        # 打牌
+        if discard_tile > 0 and discard_tile < 60:
+            if discard_tile in self.hand:
+                self.hand.remove(discard_tile)
+            self.hand.sort()
+
+        # 每次摸打后检查默听状态
+        if len(self.hand) == 13:
+            self._check_dama_state()
+
+    def process_special_action(self, action_str: str):
+        """
+        处理特殊操作（立直、副露等）
+        action_str: 如 'r29', 'c171618', 'p131313' 等
+        """
+        if action_str.startswith('r'):
+            # 立直：r后面跟打出的牌
+            self.riichi_declared = True
+            discard = int(action_str[1:]) if len(action_str) > 1 else 0
+            if discard > 0 and discard < 60 and discard in self.hand:
+                self.hand.remove(discard)
+                self.hand.sort()
+            # 立直后不再是默听
+            self.dama_state = False
+
+        elif action_str.startswith('c') or action_str.startswith('p') or action_str.startswith('k'):
+            # 副露
+            self._process_furo(action_str)
+            # 副露后不再是默听
+            self.dama_state = False
+
+    def _process_furo(self, furo_str: str):
         """处理副露"""
-        # 提取副露的牌
+        furo_type = furo_str[0]  # c/p/k
         tiles_str = furo_str[1:]
+
+        # 解析副露的牌
         tiles = []
         i = 0
         while i < len(tiles_str):
@@ -411,7 +476,8 @@ class HandTracker:
             else:
                 break
 
-        # 从手牌中移除副露的牌（除了从别人那里获得的那张）
+        # 从手牌中移除副露用到的牌（吃/碰是从手里拿2张，从别人那里拿1张）
+        # 杠是从手里拿3张或4张
         for tile in tiles:
             if tile in self.hand:
                 self.hand.remove(tile)
@@ -433,32 +499,55 @@ class HandTracker:
         """
         # 如果已经立直或有副露，不可能是默听
         if self.riichi_declared or len(self.furo_groups) > 0:
-            self.dama_state = False
+            if self.dama_state:
+                # 退出默听状态
+                self.dama_state = False
             return
 
         # 检查是否听牌
         if len(self.hand) != 13:
-            self.dama_state = False
+            if self.dama_state:
+                self.dama_state = False
             return
 
         if not is_tenpai(self.hand):
-            self.dama_state = False
+            if self.dama_state:
+                self.dama_state = False
             return
 
-        # 检查是否有役（不包括门前清自摸和）
-        yaku_list = detect_yaku(self.hand, self.furo_groups, False)
-
-        # 如果有任何役（除了仅自摸），就是默听
-        if len(yaku_list) > 0:
+        # 检查是否有役（用于默听）
+        if has_yaku_for_dama(self.hand, self.furo_groups):
             if not self.dama_state:
                 # 刚进入默听状态
                 self.dama_state = True
-                self.dama_turns = 1
-            else:
-                self.dama_turns += 1
+                self.dama_hands += 1
         else:
+            if self.dama_state:
+                self.dama_state = False
+
+    def record_win(self):
+        """记录和了"""
+        if self.dama_state:
+            self.dama_win += 1
             self.dama_state = False
-            self.dama_turns = 0
+
+    def record_deal_in(self):
+        """记录放铳"""
+        if self.dama_state:
+            self.dama_deal_in += 1
+            self.dama_state = False
+
+    def record_draw(self):
+        """记录流局"""
+        if self.dama_state:
+            self.dama_draw += 1
+            self.dama_state = False
+
+    def record_pass(self):
+        """记录横移（别人和了，自己既没和也没放铳）"""
+        if self.dama_state:
+            self.dama_pass += 1
+            self.dama_state = False
 
     def is_dama(self) -> bool:
         """返回当前是否处于默听状态"""
@@ -467,6 +556,16 @@ class HandTracker:
     def get_hand_string(self) -> str:
         """获取手牌的可读字符串"""
         return tiles_to_string(self.hand)
+
+    def get_stats(self) -> Dict:
+        """返回默听统计数据"""
+        return {
+            'dama_hands': self.dama_hands,
+            'dama_win': self.dama_win,
+            'dama_deal_in': self.dama_deal_in,
+            'dama_draw': self.dama_draw,
+            'dama_pass': self.dama_pass
+        }
 
 
 # ==================== 测试代码 ====================
@@ -489,3 +588,25 @@ if __name__ == "__main__":
     # 测试手役检测
     print("\n=== 测试手役检测 ===")
     print(f"检测到的役: {detect_yaku(tenpai_hand)}")
+
+    # 测试清一色听牌
+    print("\n=== 测试清一色听牌 ===")
+    honitsu_hand = [11, 12, 13, 14, 15, 16, 17, 18, 19, 11, 12, 13, 14]
+    print(f"手牌: {tiles_to_string(honitsu_hand)}")
+    print(f"向听数: {calculate_shanten(honitsu_hand)}")
+    print(f"检测到的役: {detect_yaku(honitsu_hand)}")
+    print(f"是否有役（用于默听）: {has_yaku_for_dama(honitsu_hand)}")
+
+    # 测试HandTracker
+    print("\n=== 测试HandTracker ===")
+    initial = [14, 47, 13, 19, 15, 46, 31, 34, 16, 47, 22, 13, 38]
+    tracker = HandTracker(0, initial)
+    print(f"初始手牌: {tracker.get_hand_string()}")
+    print(f"是否默听: {tracker.is_dama()}")
+
+    # 模拟摸打几次
+    tracker.process_action_pair(34, 47)
+    print(f"\n摸34打47后: {tracker.get_hand_string()}")
+    print(f"是否默听: {tracker.is_dama()}")
+
+    print(f"\n默听统计: {tracker.get_stats()}")

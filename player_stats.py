@@ -231,6 +231,12 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
         # 新增：天凤R值
         "current_r": 1500.0,  # 当前R值
         "total_rank": 0,      # 用于计算平均顺位
+        # 新增：默听状态统计（基于手牌追踪）
+        "dama_state_hands": 0,      # 进入默听状态的次数
+        "dama_state_win": 0,        # 默听状态下和了
+        "dama_state_deal_in": 0,    # 默听状态下放铳
+        "dama_state_draw": 0,       # 默听状态下流局
+        "dama_state_pass": 0,       # 默听状态下横移
         # 新增：对战统计
         "vs_players": defaultdict(lambda: {
             "games": 0,           # 对战场数
@@ -341,6 +347,13 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
                     pd["yaku_count"]["役牌"] += count
                 else:
                     pd["yaku_count"][yaku] += count
+
+            # 默听状态统计
+            pd["dama_state_hands"] += player_stat.get("dama_state_hands", 0)
+            pd["dama_state_win"] += player_stat.get("dama_state_win", 0)
+            pd["dama_state_deal_in"] += player_stat.get("dama_state_deal_in", 0)
+            pd["dama_state_draw"] += player_stat.get("dama_state_draw", 0)
+            pd["dama_state_pass"] += player_stat.get("dama_state_pass", 0)
 
             # 对战统计：计算与其他玩家的对战情况
             my_rank = player_stat.get("rank", 4)
@@ -456,6 +469,17 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
             "ryuukyoku_hands": pd["ryuukyoku_hands"],
             "ryuukyoku_tenpai": pd["ryuukyoku_tenpai"],
             "tenpai_rate": round(pd["ryuukyoku_tenpai"] / pd["ryuukyoku_hands"] * 100, 2) if pd["ryuukyoku_hands"] > 0 else 0,
+
+            # 默听状态统计
+            "dama_state_hands": pd["dama_state_hands"],
+            "dama_state_win": pd["dama_state_win"],
+            "dama_state_deal_in": pd["dama_state_deal_in"],
+            "dama_state_draw": pd["dama_state_draw"],
+            "dama_state_pass": pd["dama_state_pass"],
+            "dama_state_win_rate": round(pd["dama_state_win"] / pd["dama_state_hands"] * 100, 2) if pd["dama_state_hands"] > 0 else 0,
+            "dama_state_deal_in_rate": round(pd["dama_state_deal_in"] / pd["dama_state_hands"] * 100, 2) if pd["dama_state_hands"] > 0 else 0,
+            "dama_state_draw_rate": round(pd["dama_state_draw"] / pd["dama_state_hands"] * 100, 2) if pd["dama_state_hands"] > 0 else 0,
+            "dama_state_pass_rate": round(pd["dama_state_pass"] / pd["dama_state_hands"] * 100, 2) if pd["dama_state_hands"] > 0 else 0,
 
             # 放铳目标
             "deal_in_targets": dict(pd["deal_in_targets"]),

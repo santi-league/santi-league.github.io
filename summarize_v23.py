@@ -20,6 +20,9 @@ import re
 from collections import defaultdict
 from typing import Any, Dict, List, Tuple
 
+# 导入手牌分析模块
+from mahjong_hand_analyzer import HandTracker
+
 # ---------- 役/点数解析 ----------
 YAKU_LINE   = re.compile(r'^\d+符\d+飜')
 RE_DORA     = re.compile(r'Dora\((\d+)飜\)')
@@ -186,6 +189,12 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
             "furo_ryuukyoku": 0,         # 副露后流局次数
             # —— 新增：手役统计 ——
             "yaku_count": {},            # 各种手役的出现次数
+            # —— 新增：默听状态统计（基于手牌追踪）——
+            "dama_state_hands": 0,       # 进入默听状态的次数
+            "dama_state_win": 0,         # 默听状态下和了
+            "dama_state_deal_in": 0,     # 默听状态下放铳
+            "dama_state_draw": 0,        # 默听状态下流局
+            "dama_state_pass": 0,        # 默听状态下横移（别人和了）
         })
 
     for hand in v23.get("log", []):
@@ -203,12 +212,61 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
         furo_flag   = [False]*N
         riichi_flag = [False]*N
 
+        # ==== 新增：初始化手牌追踪器 ====
+        hand_trackers = []
+        for i in range(N):
+            # hand[4+i] 是各家的初始手牌（按东南西北顺序）
+            initial_idx = 4 + i
+            if initial_idx < len(hand) and isinstance(hand[initial_idx], list):
+                initial_hand = hand[initial_idx]
+                tracker = HandTracker((east + i) % 4, initial_hand)
+                hand_trackers.append(tracker)
+            else:
+                hand_trackers.append(None)
+
         # 从 hand[4] 到 hand[-2]（hand[-1] 为结算），按东→南→西→北轮转归属
-        for idx in range(4, len(hand)-1):
+        # hand[4+0~3]: 初始手牌
+        # hand[4+4]: 第1家的操作序列（摸牌+打牌）
+        # hand[4+5]: 第2家的操作序列
+        # ...
+        for idx in range(4 + N, len(hand)-1):
             arr = hand[idx]
             if not isinstance(arr, list):
                 continue
-            seat = (east + (idx - 4)) % 4
+            seat = (east + (idx - 4 - N)) % 4
+
+            # ==== 新增：处理手牌追踪 ====
+            if hand_trackers[seat] is not None:
+                tracker = hand_trackers[seat]
+
+                # 处理操作序列中的每一对（摸牌+打牌）或特殊操作
+                draw_tiles = []
+                discard_tiles = []
+                special_actions = []
+
+                for action in arr:
+                    if isinstance(action, int):
+                        if action >= 60:
+                            # 60表示占位符
+                            draw_tiles.append(action)
+                        else:
+                            # 普通数字牌，偶数位置是摸牌，奇数位置是打牌
+                            if len(draw_tiles) == len(discard_tiles):
+                                draw_tiles.append(action)
+                            else:
+                                discard_tiles.append(action)
+                    elif isinstance(action, str):
+                        special_actions.append(action)
+
+                # 处理摸打对
+                for i in range(min(len(draw_tiles), len(discard_tiles))):
+                    tracker.process_action_pair(draw_tiles[i], discard_tiles[i])
+
+                # 处理特殊操作
+                for action_str in special_actions:
+                    tracker.process_special_action(action_str)
+
+            # 原有的副露/立直标记逻辑
             c, p, k, r = count_cpk_r(arr)
             if (c + p + k) > 0:
                 furo_flag[seat] = True
@@ -235,6 +293,22 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
 
         if tag == "和了":
             is_tsumo = (len(winners) == 1 and len(losers) == 3)
+
+            # ==== 新增：记录默听状态下的和了 ====
+            for w in winners:
+                if hand_trackers[w] is not None:
+                    hand_trackers[w].record_win()
+
+            # ==== 新增：记录默听状态下的放铳 ====
+            for L in losers:
+                if hand_trackers[L] is not None:
+                    hand_trackers[L].record_deal_in()
+
+            # ==== 新增：记录默听状态下的横移 ====
+            for i in range(N):
+                if i not in winners and i not in losers:
+                    if hand_trackers[i] is not None:
+                        hand_trackers[i].record_pass()
 
             # 若赢家役中出现 Riichi，也视为其本局立直
             yaku_names = extract_yaku_names(info_list)
@@ -327,6 +401,11 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
 
         # 流局听牌统计
         if tag == "Ryuukyoku" or tag == "流局":
+            # ==== 新增：记录默听状态下的流局 ====
+            for i in range(N):
+                if hand_trackers[i] is not None:
+                    hand_trackers[i].record_draw()
+
             # deltas 中正数表示听牌收入，负数表示不听罚符
             if isinstance(deltas, list) and len(deltas) == N:
                 for i, dv in enumerate(deltas):
@@ -346,6 +425,16 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
                 per[i]["furo_hands"] += 1
             if riichi_flag[i]:
                 per[i]["riichi_hands"] += 1
+
+        # ==== 新增：汇总本局的默听状态统计 ====
+        for i in range(N):
+            if hand_trackers[i] is not None:
+                stats = hand_trackers[i].get_stats()
+                per[i]["dama_state_hands"] += stats['dama_hands']
+                per[i]["dama_state_win"] += stats['dama_win']
+                per[i]["dama_state_deal_in"] += stats['dama_deal_in']
+                per[i]["dama_state_draw"] += stats['dama_draw']
+                per[i]["dama_state_pass"] += stats['dama_pass']
 
     # 写入素点与顺位
     sc = v23.get("sc", [])
