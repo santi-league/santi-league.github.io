@@ -10,6 +10,7 @@ import os
 import sys
 import json
 import re
+import html as html_module
 from datetime import datetime
 from player_stats import calculate_player_stats, scan_files, summarize_log, YAKU_TRANSLATION
 
@@ -399,6 +400,9 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
             game_type_text = t['yakuman'] if game_type == 'yakuman' else t['sanbaiman']
             game_type_class = 'yakuman' if game_type == 'yakuman' else 'sanbaiman'
 
+            # HTML转义URL中的特殊字符
+            escaped_url = html_module.escape(game['tenhou_url'], quote=True)
+
             honor_cards += f"""
             <div class="honor-card {game_type_class}">
                 <div class="honor-type">{game_type_text}</div>
@@ -408,7 +412,7 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
                     <div class="honor-winner">{game['winner']}</div>
                     <div class="honor-yaku">{translated_yaku}</div>
                 </div>
-                <a href="{game['tenhou_url']}" target="_blank" class="honor-replay-btn">{t['view_replay']}</a>
+                <a href="{escaped_url}" target="_blank" class="honor-replay-btn">{t['view_replay']}</a>
             </div>
             """
 

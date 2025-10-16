@@ -11,8 +11,67 @@ import sys
 import json
 import argparse
 import re
+import copy
 from urllib.parse import quote
 from datetime import datetime
+
+# 手役英文到日文的翻译
+HAND_DICT = {
+    "Mangan": "満貫",
+    "Haneman": "跳満",
+    "Baiman": "倍満",
+    "Sanbaiman": "三倍満",
+    "Yakuman": "役満",
+    "Kazoeyakuman": "数え役満",
+    "Kiriagemangan": "切り上げ満貫"
+}
+
+# 役种英文到日文的翻译
+YAKU_DICT = {
+    "White Dragon": "役牌 白",
+    "Green Dragon": "役牌 發",
+    "Red Dragon": "役牌 中",
+    "Seat Wind": "自風 南",
+    "Prevalent Wind": "場風 南",
+    "Dora": "ドラ",
+    "Ura Dora": "裏ドラ",
+    "Red Five": "赤ドラ",
+    "Riichi": "立直",
+    "Double Riichi": "両立直",
+    "Ippatsu": "一発",
+    "Fully Concealed Hand": "門前清自摸和",
+    "Mixed Triple Sequence": "三色同順",
+    "Triple Triplets": "三色同刻",
+    "Pure Double Sequence": "一盃口",
+    "Twice Pure Double Sequence": "二盃口",
+    "Pinfu": "平和",
+    "All Simples": "断幺九",
+    "Pure Straight": "一気通貫",
+    "Seven Pairs": "七対子",
+    "All Triplets": "対々和",
+    "Half Outside Hand": "混全帯幺九",
+    "Fully Outside Hand": "純全帯幺九",
+    "After a Kan": "嶺上開花",
+    "Under the Sea": "海底摸月",
+    "Under the River": "河底撈魚",
+    "Half Flush": "混一色",
+    "Full Flush": "清一色",
+    "Three Concealed Triplets": "三暗刻",
+    "Thirteen Orphans": "国士無双",
+    "Little Three Dragons": "小三元",
+    "Three Kans": "三槓子",
+    "All Terminals and Honors": "混老頭",
+    "Blessing of Heaven": "天和",
+    "Blessing of Earth": "地和",
+    "Four Concealed Triplets": "四暗刻",
+    "Big Three Dragons": "大三元",
+    "All Honors": "字一色",
+    "All Green": "緑一色",
+    "All Terminals": "清老頭",
+    "Nine Gates": "九蓮宝燈",
+    "Four Winds": "四風連打",
+    "Four Kans": "四槓子"
+}
 
 def parse_round_name(round_info):
     """解析局数信息"""
@@ -40,12 +99,58 @@ def extract_date_from_filename(filename):
             return filename
     return filename
 
-def generate_tenhou_url(game_data):
+def convert_round_to_tenhou(round_data, game_data):
+    """将单局数据转换为天凤格式"""
+    # 翻译和了信息中的手役和役种
+    if isinstance(round_data[-1], list) and len(round_data[-1]) > 0:
+        if round_data[-1][0] == '和了':
+            win_info = round_data[-1][2]
+
+            # 翻译手役（如 "Yakuman 32000点∀" -> "役満32000点∀"）
+            if len(win_info) > 3:
+                point_desc = win_info[3]
+                for en_hand, jp_hand in HAND_DICT.items():
+                    if point_desc.startswith(en_hand):
+                        point_desc = jp_hand + point_desc[len(en_hand):]
+                        break
+                win_info[3] = point_desc
+
+            # 翻译役种列表（从第5个元素开始）
+            new_yaku_list = win_info[:4]  # 前4个元素保持不变
+            for i in range(4, len(win_info)):
+                yaku_str = win_info[i]
+                # 分离役种名和番数
+                if '(' in yaku_str:
+                    yaku_name = yaku_str.split('(')[0]
+                    yaku_han = '(' + yaku_str.split('(')[1]
+                    # 翻译役种名
+                    if yaku_name in YAKU_DICT:
+                        new_yaku_list.append(YAKU_DICT[yaku_name] + yaku_han)
+                    else:
+                        new_yaku_list.append(yaku_str)
+                else:
+                    new_yaku_list.append(yaku_str)
+
+            round_data[-1][2] = new_yaku_list
+
+    # 构建天凤格式的JSON（只包含单局）
+    tenhou_data = {
+        "title": ["Tournament", "M-League"],
+        "name": game_data.get("name", []),
+        "rule": game_data.get("rule", {}),
+        "log": [round_data]
+    }
+
+    return tenhou_data
+
+def generate_tenhou_url(round_data, game_data):
     """生成天凤牌谱再生URL"""
-    # 天凤牌谱再生URL格式：https://tenhou.net/5/?log=<json_data>
-    json_str = json.dumps(game_data, ensure_ascii=False, separators=(',', ':'))
-    encoded = quote(json_str)
-    return f"https://tenhou.net/5/?log={encoded}"
+    # 转换为天凤格式
+    tenhou_data = convert_round_to_tenhou(round_data, game_data)
+    # 生成URL：https://tenhou.net/6/#json=<json_data>
+    # 注意：直接拼接JSON字符串，不需要URL编码
+    json_str = json.dumps(tenhou_data, ensure_ascii=False, separators=(',', ':'))
+    return f"https://tenhou.net/6/#json={json_str}"
 
 def extract_honor_games(folder, recursive=True):
     """提取所有役满和三倍满的牌谱"""
@@ -97,8 +202,9 @@ def extract_honor_games(folder, recursive=True):
                         yaku_list = win_info[4:] if len(win_info) > 4 else []
                         yaku_str = ', '.join(yaku_list)
 
-                        # 生成天凤URL
-                        tenhou_url = generate_tenhou_url(game_data)
+                        # 生成天凤URL（需要深拷贝以避免修改原始数据）
+                        round_data_copy = copy.deepcopy(round_data)
+                        tenhou_url = generate_tenhou_url(round_data_copy, game_data)
 
                         honor_game = {
                             'date': date_str,
