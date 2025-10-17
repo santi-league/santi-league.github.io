@@ -18,7 +18,7 @@ import sys
 import json
 import re
 from collections import defaultdict
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # 导入手牌分析模块
 from mahjong_hand_analyzer import HandTracker
@@ -99,14 +99,34 @@ def parse_win_points_total(info_list: List[Any], is_tsumo: bool, winner_is_deale
     return 3 * a if is_tsumo else a
 
 # ---------- c/p/k/r 记号 ----------
+def _extract_furo_tag(token: str) -> Optional[str]:
+    """识别副露标记字符，忽略如 Ryuukyoku 等非副露字符串"""
+    if not isinstance(token, str):
+        return None
+    if token == 'Ryuukyoku':
+        return None
+    if not any(ch.isdigit() for ch in token):
+        return None
+    for ch in token:
+        if ch in ('c', 'p', 'k', 'm'):
+            return ch
+    return None
+
+
 def count_cpk_r(mark_array: List[Any]) -> Tuple[int, int, int, int]:
     c = p = k = r = 0
     for x in mark_array:
-        if isinstance(x, str):
-            c += x.count('c')
-            p += x.count('p')
-            k += x.count('k')
-            r += x.count('r')
+        if not isinstance(x, str):
+            continue
+        tag = _extract_furo_tag(x)
+        if tag == 'c':
+            c += 1
+        elif tag == 'p':
+            p += 1
+        elif tag in ('k', 'm'):
+            k += 1
+        if x.startswith('r'):
+            r += 1
     return c, p, k, r
 
 # ---------- 本场/供托分配 ----------
@@ -212,66 +232,75 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
         furo_flag   = [False]*N
         riichi_flag = [False]*N
 
-        # ==== 新增：初始化手牌追踪器 ====
-        hand_trackers = []
-        for i in range(N):
-            # hand[4+i] 是各家的初始手牌（按东南西北顺序）
-            initial_idx = 4 + i
-            if initial_idx < len(hand) and isinstance(hand[initial_idx], list):
-                initial_hand = hand[initial_idx]
-                tracker = HandTracker((east + i) % 4, initial_hand)
-                hand_trackers.append(tracker)
-            else:
-                hand_trackers.append(None)
+        META_LIST_COUNT = 4
+        PLAYER_BLOCK_SIZE = 3
+        prevalent_wind = min(round_idx // 4 + 1, 4)
 
-        # 从 hand[4] 到 hand[-2]（hand[-1] 为结算），按东→南→西→北轮转归属
-        # hand[4+0~3]: 初始手牌
-        # hand[4+4]: 第1家的操作序列（摸牌+打牌）
-        # hand[4+5]: 第2家的操作序列
-        # ...
-        for idx in range(4 + N, len(hand)-1):
-            arr = hand[idx]
-            if not isinstance(arr, list):
-                continue
-            seat = (east + (idx - 4 - N)) % 4
+        player_blocks = []
+        hand_trackers = [None] * N
 
-            # ==== 新增：处理手牌追踪 ====
-            if hand_trackers[seat] is not None:
-                tracker = hand_trackers[seat]
+        for seat in range(N):
+            block = []
+            block_start = META_LIST_COUNT + seat * PLAYER_BLOCK_SIZE
+            for offset in range(PLAYER_BLOCK_SIZE):
+                idx = block_start + offset
+                if idx >= len(hand) - 1:
+                    block.append([])
+                    continue
+                item = hand[idx]
+                block.append(item if isinstance(item, list) else [])
+            player_blocks.append(block)
 
-                # 处理操作序列中的每一对（摸牌+打牌）或特殊操作
-                draw_tiles = []
-                discard_tiles = []
-                special_actions = []
+            initial_hand_raw = block[0] if block else []
+            initial_hand = [t for t in initial_hand_raw if isinstance(t, int)]
+            if initial_hand:
+                seat_wind = ((seat - east) % 4) + 1
+                hand_trackers[seat] = HandTracker(
+                    seat,
+                    initial_hand,
+                    seat_wind=seat_wind,
+                    prevalent_wind=prevalent_wind
+                )
 
-                for action in arr:
-                    if isinstance(action, int):
-                        if action >= 60:
-                            # 60表示占位符
-                            draw_tiles.append(action)
-                        else:
-                            # 普通数字牌，偶数位置是摸牌，奇数位置是打牌
-                            if len(draw_tiles) == len(discard_tiles):
+        for seat in range(N):
+            block = player_blocks[seat]
+            tracker = hand_trackers[seat]
+            action_lists = block[1:] if block else []
+
+            for arr in action_lists:
+                if not isinstance(arr, list) or not arr:
+                    continue
+
+                # ==== 新增：处理手牌追踪 ====
+                if tracker is not None:
+                    draw_tiles = []
+                    discard_tiles = []
+                    special_actions = []
+
+                    for action in arr:
+                        if isinstance(action, int):
+                            if action >= 60:
                                 draw_tiles.append(action)
                             else:
-                                discard_tiles.append(action)
-                    elif isinstance(action, str):
-                        special_actions.append(action)
+                                if len(draw_tiles) == len(discard_tiles):
+                                    draw_tiles.append(action)
+                                else:
+                                    discard_tiles.append(action)
+                        elif isinstance(action, str):
+                            special_actions.append(action)
 
-                # 处理摸打对
-                for i in range(min(len(draw_tiles), len(discard_tiles))):
-                    tracker.process_action_pair(draw_tiles[i], discard_tiles[i])
+                    for i in range(min(len(draw_tiles), len(discard_tiles))):
+                        tracker.process_action_pair(draw_tiles[i], discard_tiles[i])
 
-                # 处理特殊操作
-                for action_str in special_actions:
-                    tracker.process_special_action(action_str)
+                    for action_str in special_actions:
+                        tracker.process_special_action(action_str)
 
-            # 原有的副露/立直标记逻辑
-            c, p, k, r = count_cpk_r(arr)
-            if (c + p + k) > 0:
-                furo_flag[seat] = True
-            if r > 0:
-                riichi_flag[seat] = True
+                # 原有的副露/立直标记逻辑
+                c, p, k, r = count_cpk_r(arr)
+                if (c + p + k) > 0:
+                    furo_flag[seat] = True
+                if r > 0:
+                    riichi_flag[seat] = True
 
         # 结算
         result = hand[-1]
@@ -469,4 +498,3 @@ if __name__ == "__main__":
 
     result = summarize_log(data)
     print(json.dumps(result, ensure_ascii=False, indent=2))
-

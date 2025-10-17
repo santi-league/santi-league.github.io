@@ -73,6 +73,28 @@ YAKU_DICT = {
     "Four Kans": "四槓子"
 }
 
+# 役种英文到中文（简体）名称，用于标题
+YAKU_NAME_CN = {
+    "Thirteen Orphans": "国士无双",
+    "Four Concealed Triplets": "四暗刻",
+    "Big Three Dragons": "大三元",
+    "Little Three Dragons": "小三元",
+    "All Green": "绿一色",
+    "All Terminals": "清老头",
+    "All Honors": "字一色",
+    "Nine Gates": "九莲宝灯",
+    "Four Winds": "四风连打",
+    "Blessing of Heaven": "天和",
+    "Blessing of Earth": "地和",
+    "Four Kans": "四杠子",
+    "Three Kans": "三杠子",
+    "All Terminals and Honors": "混老头",
+    "All Triplets": "对对和",
+    "Seven Pairs": "七对子",
+    "Little Four Winds": "小四喜",
+    "Big Four Winds": "大四喜",
+}
+
 def parse_round_name(round_info):
     """解析局数信息"""
     ba_ju, honba, riichi_sticks = round_info
@@ -99,7 +121,7 @@ def extract_date_from_filename(filename):
             return filename
     return filename
 
-def convert_round_to_tenhou(round_data, game_data):
+def convert_round_to_tenhou(round_data, game_data, title_suffix=None):
     """将单局数据转换为天凤格式"""
     # 翻译和了信息中的手役和役种
     if isinstance(round_data[-1], list) and len(round_data[-1]) > 0:
@@ -134,19 +156,22 @@ def convert_round_to_tenhou(round_data, game_data):
             round_data[-1][2] = new_yaku_list
 
     # 构建天凤格式的JSON（只包含单局）
+    rule_info = copy.deepcopy(game_data.get("rule", {}))
+    rule_info["disp"] = "M League Rule"
+
     tenhou_data = {
-        "title": ["Tournament", "M-League"],
+        "title": ["Santi League -- M League Rule", title_suffix or "M League Replay"],
         "name": game_data.get("name", []),
-        "rule": game_data.get("rule", {}),
+        "rule": rule_info,
         "log": [round_data]
     }
 
     return tenhou_data
 
-def generate_tenhou_url(round_data, game_data):
+def generate_tenhou_url(round_data, game_data, title_suffix=None):
     """生成天凤牌谱再生URL"""
     # 转换为天凤格式
-    tenhou_data = convert_round_to_tenhou(round_data, game_data)
+    tenhou_data = convert_round_to_tenhou(round_data, game_data, title_suffix=title_suffix)
     # 生成URL：https://tenhou.net/5/#json=<json_data>
     # 注意：直接拼接JSON字符串，不需要URL编码
     json_str = json.dumps(tenhou_data, ensure_ascii=False, separators=(',', ':'))
@@ -202,9 +227,34 @@ def extract_honor_games(folder, recursive=True):
                         yaku_list = win_info[4:] if len(win_info) > 4 else []
                         yaku_str = ', '.join(yaku_list)
 
+                        # 判断自摸或荣和
+                        deltas = last_element[1] if len(last_element) > 1 else []
+                        is_tsumo = False
+                        if isinstance(deltas, list):
+                            negatives = sum(1 for d in deltas if isinstance(d, (int, float)) and d < 0)
+                            is_tsumo = negatives >= 3
+
+                        finish_text = '自摸' if is_tsumo else '荣和'
+
+                        # 构造主要役信息
+                        main_desc = '三倍满'
+                        honor_type = 'yakuman' if ('役満' in point_desc or 'Yakuman' in point_desc) else 'sanbaiman'
+                        if honor_type == 'yakuman':
+                            base_name = None
+                            for yaku in yaku_list:
+                                base = yaku.split('(')[0]
+                                if base in YAKU_NAME_CN:
+                                    base_name = YAKU_NAME_CN[base]
+                                    break
+                            if base_name:
+                                main_desc = f"{base_name}役满"
+                            else:
+                                main_desc = "役满"
+                        title_suffix = f"{winner}的{main_desc}{finish_text}"
+
                         # 生成天凤URL（需要深拷贝以避免修改原始数据）
                         round_data_copy = copy.deepcopy(round_data)
-                        tenhou_url = generate_tenhou_url(round_data_copy, game_data)
+                        tenhou_url = generate_tenhou_url(round_data_copy, game_data, title_suffix=title_suffix)
 
                         honor_game = {
                             'date': date_str,
@@ -215,8 +265,10 @@ def extract_honor_games(folder, recursive=True):
                             'point_desc': point_desc,
                             'yaku': yaku_str,
                             'yaku_list': yaku_list,
+                            'is_tsumo': is_tsumo,
+                            'title_suffix': title_suffix,
                             'tenhou_url': tenhou_url,
-                            'type': 'yakuman' if ('役満' in point_desc or 'Yakuman' in point_desc) else 'sanbaiman'
+                            'type': honor_type
                         }
 
                         honor_games.append(honor_game)

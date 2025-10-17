@@ -4,7 +4,7 @@
 提供手牌追踪、向听数计算、听牌判断和手役检测功能
 """
 
-from typing import List, Tuple, Optional, Set, Dict
+from typing import List, Tuple, Optional, Set, Dict, Any
 from collections import Counter
 
 
@@ -386,12 +386,20 @@ def detect_yaku(tiles: List[int], furo_groups: List = None, is_riichi: bool = Fa
     return yaku_list
 
 
-def has_yaku_for_dama(tiles: List[int], furo_groups: List = None) -> bool:
+def has_yaku_for_dama(tiles: List[int],
+                      furo_groups: List = None,
+                      seat_wind: int = 1,
+                      prevalent_wind: int = 1) -> bool:
     """
     判断手牌是否有役（用于默听判断）
     只要有任何确定的役（除了门前清自摸和），就返回True
     """
-    yaku = detect_yaku(tiles, furo_groups)
+    yaku = detect_yaku(
+        tiles,
+        furo_groups,
+        seat_wind=seat_wind,
+        prevalent_wind=prevalent_wind
+    )
     return len(yaku) > 0
 
 
@@ -400,8 +408,16 @@ def has_yaku_for_dama(tiles: List[int], furo_groups: List = None) -> bool:
 class HandTracker:
     """追踪一个玩家在一局中的手牌状态"""
 
-    def __init__(self, seat: int, initial_hand: List[int]):
+    def __init__(self,
+                 seat: int,
+                 initial_hand: List[int],
+                 seat_wind: int = 1,
+                 prevalent_wind: int = 1,
+                 debug: bool = False):
         self.seat = seat
+        self.seat_wind = seat_wind
+        self.prevalent_wind = prevalent_wind
+        self.debug = debug
         # 过滤掉非整数、60和0
         self.hand = sorted([t for t in initial_hand if isinstance(t, int) and 0 < t < 60])
         self.furo_groups = []  # 副露组
@@ -417,6 +433,9 @@ class HandTracker:
         self.dama_deal_in = 0  # 默听后放铳
         self.dama_draw = 0  # 默听后流局
         self.dama_pass = 0  # 默听后横移（别人和了）
+        self.debug_log: List[Dict[str, Any]] = []
+
+        self._record_snapshot("init")
 
     def process_action_pair(self, draw_tile: int, discard_tile: int):
         """
@@ -439,11 +458,22 @@ class HandTracker:
         if len(self.hand) == 13:
             self._check_dama_state()
 
+        self._record_snapshot(
+            "action_pair",
+            {
+                "draw": draw_tile,
+                "discard": discard_tile
+            }
+        )
+
     def process_special_action(self, action_str: str):
         """
         处理特殊操作（立直、副露等）
         action_str: 如 'r29', 'c171618', 'p131313' 等
         """
+        if not isinstance(action_str, str):
+            return
+
         if action_str.startswith('r'):
             # 立直：r后面跟打出的牌
             self.riichi_declared = True
@@ -453,28 +483,52 @@ class HandTracker:
                 self.hand.sort()
             # 立直后不再是默听
             self.dama_state = False
+            return
 
-        elif action_str.startswith('c') or action_str.startswith('p') or action_str.startswith('k'):
+        furo_info = self._parse_furo_string(action_str)
+        if furo_info is not None:
             # 副露
-            self._process_furo(action_str)
+            furo_type, tiles = furo_info
+            self._process_furo(furo_type, tiles)
             # 副露后不再是默听
             self.dama_state = False
 
-    def _process_furo(self, furo_str: str):
-        """处理副露"""
-        furo_type = furo_str[0]  # c/p/k
-        tiles_str = furo_str[1:]
+        self._record_snapshot("special_action", {"action": action_str})
 
-        # 解析副露的牌
-        tiles = []
-        i = 0
-        while i < len(tiles_str):
-            if i + 1 < len(tiles_str):
-                tile = int(tiles_str[i:i+2])
-                tiles.append(tile)
-                i += 2
-            else:
+    def _parse_furo_string(self, action_str: str) -> Optional[Tuple[str, List[int]]]:
+        """从操作字符串中解析副露信息，返回(类型, 牌列表)"""
+        if not action_str or not isinstance(action_str, str):
+            return None
+        if action_str == 'Ryuukyoku':
+            return None
+
+        furo_type = None
+        for ch in action_str:
+            if ch in ('c', 'p', 'k', 'm'):
+                furo_type = ch
                 break
+        if furo_type is None:
+            return None
+
+        digits = ''.join(ch for ch in action_str if ch.isdigit())
+        if len(digits) < 2:
+            return None
+
+        tiles = []
+        for i in range(0, len(digits) - 1, 2):
+            tile_str = digits[i:i+2]
+            if len(tile_str) == 2:
+                tiles.append(int(tile_str))
+
+        if not tiles:
+            return None
+
+        return furo_type, tiles
+
+    def _process_furo(self, furo_type: str, tiles: List[int]):
+        """处理副露"""
+        if not tiles:
+            return
 
         # 从手牌中移除副露用到的牌（吃/碰是从手里拿2张，从别人那里拿1张）
         # 杠是从手里拿3张或4张
@@ -502,52 +556,66 @@ class HandTracker:
             if self.dama_state:
                 # 退出默听状态
                 self.dama_state = False
+                self._record_snapshot("exit_dama_state", {"detail": "riichi_or_furo"})
             return
 
         # 检查是否听牌
         if len(self.hand) != 13:
             if self.dama_state:
                 self.dama_state = False
+                self._record_snapshot("exit_dama_state", {"detail": "tile_count"})
             return
 
         if not is_tenpai(self.hand):
             if self.dama_state:
                 self.dama_state = False
+                self._record_snapshot("exit_dama_state", {"detail": "not_tenpai"})
             return
 
         # 检查是否有役（用于默听）
-        if has_yaku_for_dama(self.hand, self.furo_groups):
+        if has_yaku_for_dama(
+            self.hand,
+            self.furo_groups,
+            seat_wind=self.seat_wind,
+            prevalent_wind=self.prevalent_wind
+        ):
             if not self.dama_state:
                 # 刚进入默听状态
                 self.dama_state = True
                 self.dama_hands += 1
+                self._record_snapshot("enter_dama_state")
         else:
             if self.dama_state:
                 self.dama_state = False
+                self._record_snapshot("exit_dama_state", {"detail": "no_yaku"})
 
     def record_win(self):
         """记录和了"""
         if self.dama_state:
             self.dama_win += 1
             self.dama_state = False
+        self._record_snapshot("record_win")
 
     def record_deal_in(self):
         """记录放铳"""
         if self.dama_state:
             self.dama_deal_in += 1
             self.dama_state = False
+        self._record_snapshot("record_deal_in")
 
     def record_draw(self):
         """记录流局"""
         if self.dama_state:
             self.dama_draw += 1
             self.dama_state = False
+        self._record_snapshot("record_draw")
 
     def record_pass(self):
         """记录横移（别人和了，自己既没和也没放铳）"""
         if self.dama_state:
             self.dama_pass += 1
             self.dama_state = False
+        self._record_snapshot("record_pass")
 
     def is_dama(self) -> bool:
         """返回当前是否处于默听状态"""
@@ -566,6 +634,41 @@ class HandTracker:
             'dama_draw': self.dama_draw,
             'dama_pass': self.dama_pass
         }
+
+    def get_debug_log(self) -> List[Dict[str, Any]]:
+        """获取调试日志"""
+        return self.debug_log
+
+    def _record_snapshot(self, reason: str, extra: Optional[Dict[str, Any]] = None):
+        if not self.debug:
+            return
+
+        snapshot: Dict[str, Any] = {
+            'reason': reason,
+            'hand': self.hand.copy(),
+            'hand_str': tiles_to_string(self.hand),
+            'tile_count': len(self.hand),
+            'dama_state': self.dama_state,
+            'riichi_declared': self.riichi_declared,
+            'furo_groups': list(self.furo_groups),
+        }
+
+        tenpai = len(self.hand) == 13 and is_tenpai(self.hand)
+        snapshot['tenpai'] = tenpai
+        if tenpai:
+            snapshot['yaku'] = detect_yaku(
+                self.hand,
+                self.furo_groups,
+                seat_wind=self.seat_wind,
+                prevalent_wind=self.prevalent_wind
+            )
+        else:
+            snapshot['yaku'] = []
+
+        if extra:
+            snapshot.update(extra)
+
+        self.debug_log.append(snapshot)
 
 
 # ==================== 测试代码 ====================
