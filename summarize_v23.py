@@ -265,42 +265,64 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
         for seat in range(N):
             block = player_blocks[seat]
             tracker = hand_trackers[seat]
-            action_lists = block[1:] if block else []
 
-            for arr in action_lists:
-                if not isinstance(arr, list) or not arr:
-                    continue
+            # block[0] = initial hand (already processed)
+            # block[1] = draw list (tiles drawn each turn)
+            # block[2] = discard list (tiles discarded each turn, 60 = tsumogiri)
+            draw_list = block[1] if len(block) > 1 else []
+            discard_list = block[2] if len(block) > 2 else []
 
-                # ==== 新增：处理手牌追踪 ====
-                if tracker is not None:
-                    draw_tiles = []
-                    discard_tiles = []
-                    special_actions = []
+            # 处理手牌追踪
+            if tracker is not None and isinstance(draw_list, list) and isinstance(discard_list, list):
+                # 过滤出数字牌
+                draws = [t for t in draw_list if isinstance(t, int)]
 
-                    for action in arr:
-                        if isinstance(action, int):
-                            if action >= 60:
-                                draw_tiles.append(action)
-                            else:
-                                if len(draw_tiles) == len(discard_tiles):
-                                    draw_tiles.append(action)
-                                else:
-                                    discard_tiles.append(action)
-                        elif isinstance(action, str):
-                            special_actions.append(action)
+                # 处理打牌列表：将立直标记'rXX'转换为对应的牌和立直标记
+                discards = []
+                riichi_turns = set()
+                for i, item in enumerate(discard_list):
+                    if isinstance(item, str) and item.startswith('r'):
+                        # 立直标记，例如'r44'表示立直打44
+                        tile_str = item[1:]
+                        if tile_str.isdigit():
+                            discards.append(int(tile_str))
+                            riichi_turns.add(i)
+                        else:
+                            discards.append(60)
+                    elif isinstance(item, int):
+                        discards.append(item)
+                    else:
+                        discards.append(60)
 
-                    for i in range(min(len(draw_tiles), len(discard_tiles))):
-                        tracker.process_action_pair(draw_tiles[i], discard_tiles[i])
+                # 处理每一轮的摸打
+                for i in range(max(len(draws), len(discards))):
+                    draw_tile = draws[i] if i < len(draws) else 60
+                    discard_tile = discards[i] if i < len(discards) else 60
 
-                    for action_str in special_actions:
-                        tracker.process_special_action(action_str)
+                    # 如果打出的是60（摸切），则打出摸到的牌
+                    if discard_tile == 60:
+                        discard_tile = draw_tile
 
-                # 原有的副露/立直标记逻辑
-                c, p, k, r = count_cpk_r(arr)
-                if (c + p + k) > 0:
-                    furo_flag[seat] = True
-                if r > 0:
-                    riichi_flag[seat] = True
+                    tracker.process_action_pair(draw_tile, discard_tile)
+
+                    # 如果这一巡是立直，只设置立直标志（牌已经在process_action_pair中打出了）
+                    if i in riichi_turns:
+                        tracker.riichi_declared = True
+                        tracker.dama_state = False
+
+                # 处理其他特殊动作（副露等）
+                for item in discard_list:
+                    if isinstance(item, str) and not item.startswith('r'):
+                        tracker.process_special_action(item)
+
+            # 检查副露和立直标记（需要检查所有三个列表）
+            for arr in block:
+                if isinstance(arr, list):
+                    c, p, k, r = count_cpk_r(arr)
+                    if (c + p + k) > 0:
+                        furo_flag[seat] = True
+                    if r > 0:
+                        riichi_flag[seat] = True
 
         # 结算
         result = hand[-1]

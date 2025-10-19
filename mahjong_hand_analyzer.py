@@ -13,11 +13,12 @@ from collections import Counter
 def decode_tile(tile_num: int) -> Tuple[str, int]:
     """
     将牌谱中的数字编码转换为麻将牌
-    编码规则：
+    编码规则（实际数据编码）：
     - 11-19: 1-9万 (m)
-    - 21-29: 1-9条 (p)
-    - 31-39: 1-9筒 (s)
+    - 21-29: 1-9筒 (s)
+    - 31-39: 1-9条 (p)
     - 41-47: 东南西北白发中 (z1-z7)
+    - 51: 红5万, 52: 红5条, 53: 红5筒
 
     返回: (suit, rank)
     - suit: 'm'(万), 'p'(条), 's'(筒), 'z'(字牌)
@@ -26,15 +27,23 @@ def decode_tile(tile_num: int) -> Tuple[str, int]:
     if tile_num == 0 or tile_num >= 60:
         return ('unknown', 0)
 
+    # 红宝牌处理
+    if tile_num == 51:
+        return ('m', 5)  # 红5万
+    elif tile_num == 52:
+        return ('s', 5)  # 红5筒 (对应21-29)
+    elif tile_num == 53:
+        return ('p', 5)  # 红5条 (对应31-39)
+
     tens = tile_num // 10
     ones = tile_num % 10
 
     if tens == 1 and 1 <= ones <= 9:
         return ('m', ones)
     elif tens == 2 and 1 <= ones <= 9:
-        return ('p', ones)
+        return ('s', ones)  # 21-29是筒
     elif tens == 3 and 1 <= ones <= 9:
-        return ('s', ones)
+        return ('p', ones)  # 31-39是条
     elif tens == 4 and 1 <= ones <= 7:
         return ('z', ones)
     else:
@@ -42,8 +51,8 @@ def decode_tile(tile_num: int) -> Tuple[str, int]:
 
 
 def encode_tile(suit: str, rank: int) -> int:
-    """将麻将牌转换回数字编码"""
-    suit_map = {'m': 10, 'p': 20, 's': 30, 'z': 40}
+    """将麻将牌转换回数字编码（实际数据编码）"""
+    suit_map = {'m': 10, 's': 20, 'p': 30, 'z': 40}  # s=筒(20), p=条(30)
     if suit in suit_map:
         return suit_map[suit] + rank
     return 0
@@ -97,8 +106,10 @@ def calculate_shanten(tiles: List[int]) -> int:
 def _convert_to_34_array(decoded: List[Tuple[str, int]]) -> List[int]:
     """
     将牌转换为34种类编码数组
-    0-8: 1-9万, 9-17: 1-9条, 18-26: 1-9筒, 27-33: 东南西北白发中
+    0-8: 1-9万(m), 9-17: 1-9条(p), 18-26: 1-9筒(s), 27-33: 东南西北白发中(z)
     返回长度为34的数组，每个元素表示该种牌有几张
+    注意：这里的p=条、s=筒与实际牌谱编码(21-29=筒,31-39=条)不同，
+    但decode_tile函数会正确转换。
     """
     tiles_34 = [0] * 34
 
@@ -211,23 +222,35 @@ def _calculate_standard_shanten_34(tiles_34: List[int]) -> int:
 
 
 def _calculate_pairs_shanten_34(tiles_34: List[int]) -> int:
-    """计算七对子向听数"""
-    pairs = 0
-    kinds = 0
+    """
+    计算七对子向听数
+
+    七对子听牌形态：6个对子（每个恰好2张）+ 1个单张
+    如果手牌中有暗刻（3张），虽然算作1个对子，但会产生多余的牌，
+    这些多余的牌需要额外的巡目来处理。
+    """
+    pairs = 0  # 对子数
+    triples = 0  # 暗刻数（count=3）
 
     for count in tiles_34:
-        if count >= 2:
+        if count >= 4:
+            # 如果有任何一种牌>=4张，不可能做七对子
+            return 99
+        elif count == 3:
             pairs += 1
-            kinds += 1
-        elif count == 1:
-            kinds += 1
+            triples += 1
+        elif count == 2:
+            pairs += 1
 
-    # 七对子向听数 = 6 - 对子数
+    # 基础向听数 = 6 - 对子数
     shanten = 6 - pairs
 
-    # 如果不同种类的牌少于7种，无法组成七对子
-    if kinds < 7:
-        return 99  # 不可能
+    # 如果有多个暗刻，每多1个暗刻就多1张需要处理的多余牌
+    # 七对子听牌允许1张单张（可以是1个暗刻的多余牌）
+    # 但如果有2个或更多暗刻，就有2张或更多多余的牌，需要额外处理
+    if triples >= 2:
+        # 每多1个暗刻（超过1个），向听数+1
+        shanten += (triples - 1)
 
     return shanten
 
