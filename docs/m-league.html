@@ -419,6 +419,113 @@
             font-size: 16px;
         }
 
+        /* 最近牌谱样式 - 紧凑版 */
+        .recent-games-section {
+            margin-bottom: 30px;
+        }
+
+        .recent-games-section h2 {
+            margin: 0 0 15px 0;
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .recent-games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .recent-game-card {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            border-top: 3px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .recent-game-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+        }
+
+        .game-date {
+            font-size: 13px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .game-results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .game-results-table th {
+            background: #f8f9fa;
+            padding: 5px 3px;
+            text-align: center;
+            font-weight: 600;
+            color: #555;
+            font-size: 11px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .game-results-table td {
+            padding: 6px 3px;
+            text-align: center;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .game-results-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .game-results-table .rank-1 {
+            background: linear-gradient(90deg, #fffbf0 0%, #fff 100%);
+        }
+
+        .game-results-table .rank-1 .rank-cell {
+            color: #ffc107;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .game-results-table .rank-2 .rank-cell {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .game-results-table .rank-3 .rank-cell {
+            color: #999;
+        }
+
+        .game-results-table .rank-4 .rank-cell {
+            color: #ccc;
+        }
+
+        .game-results-table .player-cell {
+            font-weight: 500;
+            color: #333;
+            font-size: 11px;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .game-results-table .score-cell {
+            color: #667eea;
+            font-weight: 500;
+            font-size: 11px;
+        }
+
         /* 荣誉牌谱样式 */
         .honor-games-section {
             margin-bottom: 40px;
@@ -560,6 +667,10 @@
                 gap: 8px;
             }
 
+            .recent-games-grid {
+                grid-template-columns: 1fr;
+            }
+
             .honor-games-grid {
                 grid-template-columns: 1fr;
             }
@@ -570,11 +681,219 @@
     <div class="header">
         <a href="m-league-en.html" class="lang-switch">🌐 English</a>
         <h1>M-League 数据统计</h1>
-        <p class='date-info'>数据更新至: 2025年10月15日</p>
+        <p class='date-info'>数据更新至: 2025年10月23日</p>
         <a href="index.html" class="back-link">← 返回首页</a>
     </div>
 
     <div class="container">
+        
+        <div class="recent-games-section">
+            <h2>最近牌谱</h2>
+            <div class="recent-games-grid">
+                
+            <div class="recent-game-card">
+                <div class="game-date">2025年10月23日</div>
+                <table class="game-results-table">
+                    <thead>
+                        <tr>
+                            <th>最终名次</th>
+                            <th>玩家</th>
+                            <th>总点数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                <tr class="rank-1">
+                    <td class="rank-cell">1</td>
+                    <td class="player-cell">santi</td>
+                    <td class="score-cell">34100</td>
+                </tr>
+                
+                <tr class="rank-2">
+                    <td class="rank-cell">2</td>
+                    <td class="player-cell">gumikurumi</td>
+                    <td class="score-cell">32800</td>
+                </tr>
+                
+                <tr class="rank-3">
+                    <td class="rank-cell">3</td>
+                    <td class="player-cell">姫野婭也</td>
+                    <td class="score-cell">23900</td>
+                </tr>
+                
+                <tr class="rank-4">
+                    <td class="rank-cell">4</td>
+                    <td class="player-cell">RinshanNomi</td>
+                    <td class="score-cell">9200</td>
+                </tr>
+                
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="recent-game-card">
+                <div class="game-date">2025年10月22日</div>
+                <table class="game-results-table">
+                    <thead>
+                        <tr>
+                            <th>最终名次</th>
+                            <th>玩家</th>
+                            <th>总点数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                <tr class="rank-1">
+                    <td class="rank-cell">1</td>
+                    <td class="player-cell">Samuel122</td>
+                    <td class="score-cell">39000</td>
+                </tr>
+                
+                <tr class="rank-2">
+                    <td class="rank-cell">2</td>
+                    <td class="player-cell">santi</td>
+                    <td class="score-cell">38800</td>
+                </tr>
+                
+                <tr class="rank-3">
+                    <td class="rank-cell">3</td>
+                    <td class="player-cell">DreamKQ</td>
+                    <td class="score-cell">36300</td>
+                </tr>
+                
+                <tr class="rank-4">
+                    <td class="rank-cell">4</td>
+                    <td class="player-cell">南美雀后</td>
+                    <td class="score-cell">-14100</td>
+                </tr>
+                
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="recent-game-card">
+                <div class="game-date">2025年10月22日</div>
+                <table class="game-results-table">
+                    <thead>
+                        <tr>
+                            <th>最终名次</th>
+                            <th>玩家</th>
+                            <th>总点数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                <tr class="rank-1">
+                    <td class="rank-cell">1</td>
+                    <td class="player-cell">DreamKQ</td>
+                    <td class="score-cell">53600</td>
+                </tr>
+                
+                <tr class="rank-2">
+                    <td class="rank-cell">2</td>
+                    <td class="player-cell">南美雀后</td>
+                    <td class="score-cell">22500</td>
+                </tr>
+                
+                <tr class="rank-3">
+                    <td class="rank-cell">3</td>
+                    <td class="player-cell">santi</td>
+                    <td class="score-cell">22100</td>
+                </tr>
+                
+                <tr class="rank-4">
+                    <td class="rank-cell">4</td>
+                    <td class="player-cell">Samuel122</td>
+                    <td class="score-cell">1800</td>
+                </tr>
+                
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="recent-game-card">
+                <div class="game-date">2025年10月22日</div>
+                <table class="game-results-table">
+                    <thead>
+                        <tr>
+                            <th>最终名次</th>
+                            <th>玩家</th>
+                            <th>总点数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                <tr class="rank-1">
+                    <td class="rank-cell">1</td>
+                    <td class="player-cell">DreamKQ</td>
+                    <td class="score-cell">41400</td>
+                </tr>
+                
+                <tr class="rank-2">
+                    <td class="rank-cell">2</td>
+                    <td class="player-cell">南美雀后</td>
+                    <td class="score-cell">35700</td>
+                </tr>
+                
+                <tr class="rank-3">
+                    <td class="rank-cell">3</td>
+                    <td class="player-cell">santi</td>
+                    <td class="score-cell">12100</td>
+                </tr>
+                
+                <tr class="rank-4">
+                    <td class="rank-cell">4</td>
+                    <td class="player-cell">姫野婭也</td>
+                    <td class="score-cell">10800</td>
+                </tr>
+                
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="recent-game-card">
+                <div class="game-date">2025年10月22日</div>
+                <table class="game-results-table">
+                    <thead>
+                        <tr>
+                            <th>最终名次</th>
+                            <th>玩家</th>
+                            <th>总点数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                <tr class="rank-1">
+                    <td class="rank-cell">1</td>
+                    <td class="player-cell">santi</td>
+                    <td class="score-cell">52700</td>
+                </tr>
+                
+                <tr class="rank-2">
+                    <td class="rank-cell">2</td>
+                    <td class="player-cell">南美雀后</td>
+                    <td class="score-cell">22800</td>
+                </tr>
+                
+                <tr class="rank-3">
+                    <td class="rank-cell">3</td>
+                    <td class="player-cell">DreamKQ</td>
+                    <td class="score-cell">15400</td>
+                </tr>
+                
+                <tr class="rank-4">
+                    <td class="rank-cell">4</td>
+                    <td class="player-cell">小地鼠爱点炮</td>
+                    <td class="score-cell">9100</td>
+                </tr>
+                
+                    </tbody>
+                </table>
+            </div>
+            
+            </div>
+        </div>
+        
         
         <div class="honor-games-section">
             <h2>荣誉牌谱</h2>
@@ -638,107 +957,107 @@
                     
         <tr>
             <td class="player-name"><a href="#player-santi" class="player-link">santi</a></td>
-            <td>97</td>
-            <td>1118</td>
-            <td class="highlight">1453.11</td>
-            <td>+36900</td>
-            <td>2.49</td>
-            <td>26.8%</td>
-            <td>21.1%</td>
+            <td>105</td>
+            <td>1205</td>
+            <td class="highlight">1470.20</td>
+            <td>+207700</td>
+            <td>2.45</td>
+            <td>27.6%</td>
+            <td>21.7%</td>
             <td>13.4%</td>
             <td>23.2%</td>
-            <td>31.6%</td>
+            <td>32.5%</td>
         </tr>
         
         <tr>
             <td class="player-name"><a href="#player-南美雀后" class="player-link">南美雀后</a></td>
-            <td>73</td>
-            <td>826</td>
-            <td class="highlight">1445.03</td>
-            <td>-367500</td>
-            <td>2.60</td>
-            <td>16.4%</td>
-            <td>20.0%</td>
+            <td>80</td>
+            <td>902</td>
+            <td class="highlight">1438.99</td>
+            <td>-457500</td>
+            <td>2.61</td>
+            <td>16.2%</td>
+            <td>19.5%</td>
             <td>13.1%</td>
-            <td>20.9%</td>
+            <td>21.2%</td>
             <td>30.5%</td>
         </tr>
         
         <tr>
             <td class="player-name"><a href="#player-姫野婭也" class="player-link">姫野婭也</a></td>
-            <td>72</td>
-            <td>836</td>
-            <td class="highlight">1544.09</td>
-            <td>+299600</td>
-            <td>2.46</td>
-            <td>27.8%</td>
-            <td>25.7%</td>
-            <td>14.0%</td>
-            <td>20.9%</td>
-            <td>39.8%</td>
+            <td>76</td>
+            <td>880</td>
+            <td class="highlight">1530.93</td>
+            <td>+228100</td>
+            <td>2.49</td>
+            <td>26.3%</td>
+            <td>25.6%</td>
+            <td>14.4%</td>
+            <td>20.8%</td>
+            <td>40.9%</td>
         </tr>
         
         <tr>
             <td class="player-name"><a href="#player-小地鼠爱点炮" class="player-link">小地鼠爱点炮</a></td>
-            <td>53</td>
-            <td>637</td>
-            <td class="highlight">1611.61</td>
-            <td>+299800</td>
+            <td>55</td>
+            <td>661</td>
+            <td class="highlight">1612.10</td>
+            <td>+303200</td>
             <td>2.36</td>
-            <td>32.1%</td>
-            <td>23.1%</td>
-            <td>13.8%</td>
-            <td>21.2%</td>
-            <td>29.8%</td>
-        </tr>
-        
-        <tr>
-            <td class="player-name"><a href="#player-RinshanNomi" class="player-link">RinshanNomi</a></td>
-            <td>45</td>
-            <td>518</td>
-            <td class="highlight">1574.30</td>
-            <td>+247800</td>
-            <td>2.40</td>
-            <td>35.6%</td>
-            <td>21.4%</td>
-            <td>16.0%</td>
-            <td>21.2%</td>
-            <td>33.8%</td>
+            <td>32.7%</td>
+            <td>22.8%</td>
+            <td>13.6%</td>
+            <td>21.0%</td>
+            <td>30.1%</td>
         </tr>
         
         <tr>
             <td class="player-name"><a href="#player-DreamKQ" class="player-link">DreamKQ</a></td>
-            <td>42</td>
-            <td>501</td>
-            <td class="highlight">1448.05</td>
-            <td>-294600</td>
-            <td>2.64</td>
+            <td>49</td>
+            <td>577</td>
+            <td class="highlight">1453.31</td>
+            <td>-270100</td>
+            <td>2.63</td>
+            <td>22.4%</td>
+            <td>19.8%</td>
+            <td>13.9%</td>
+            <td>24.4%</td>
+            <td>22.4%</td>
+        </tr>
+        
+        <tr>
+            <td class="player-name"><a href="#player-RinshanNomi" class="player-link">RinshanNomi</a></td>
+            <td>46</td>
+            <td>529</td>
+            <td class="highlight">1565.15</td>
+            <td>+197000</td>
+            <td>2.43</td>
+            <td>34.8%</td>
             <td>21.4%</td>
-            <td>19.6%</td>
-            <td>13.8%</td>
-            <td>22.8%</td>
-            <td>22.8%</td>
+            <td>16.4%</td>
+            <td>21.2%</td>
+            <td>33.5%</td>
         </tr>
         
         <tr>
             <td class="player-name"><a href="#player-Samuel122" class="player-link">Samuel122</a></td>
-            <td>22</td>
-            <td>243</td>
-            <td class="highlight">1525.01</td>
-            <td>+37700</td>
-            <td>2.41</td>
-            <td>18.2%</td>
-            <td>20.2%</td>
-            <td>11.5%</td>
-            <td>18.5%</td>
-            <td>30.0%</td>
+            <td>24</td>
+            <td>262</td>
+            <td class="highlight">1524.96</td>
+            <td>+38500</td>
+            <td>2.42</td>
+            <td>20.8%</td>
+            <td>20.6%</td>
+            <td>11.4%</td>
+            <td>18.7%</td>
+            <td>30.5%</td>
         </tr>
         
         <tr>
             <td class="player-name"><a href="#player-天逸" class="player-link">天逸</a></td>
             <td>15</td>
             <td>189</td>
-            <td class="highlight">1556.50</td>
+            <td class="highlight">1556.64</td>
             <td>+14800</td>
             <td>2.33</td>
             <td>20.0%</td>
@@ -752,7 +1071,7 @@
             <td class="player-name"><a href="#player-mkcu" class="player-link">mkcu</a></td>
             <td>5</td>
             <td>48</td>
-            <td class="highlight">1454.19</td>
+            <td class="highlight">1454.01</td>
             <td>-104400</td>
             <td>3.00</td>
             <td>0.0%</td>
@@ -766,7 +1085,7 @@
             <td class="player-name"><a href="#player-黑子哲也kuroko" class="player-link">黑子哲也kuroko</a></td>
             <td>5</td>
             <td>57</td>
-            <td class="highlight">1493.65</td>
+            <td class="highlight">1493.94</td>
             <td>-56500</td>
             <td>2.60</td>
             <td>20.0%</td>
@@ -780,7 +1099,7 @@
             <td class="player-name"><a href="#player-23樓Ken少" class="player-link">23樓Ken少</a></td>
             <td>2</td>
             <td>23</td>
-            <td class="highlight">1442.55</td>
+            <td class="highlight">1442.84</td>
             <td>-90600</td>
             <td>4.00</td>
             <td>0.0%</td>
@@ -791,10 +1110,24 @@
         </tr>
         
         <tr>
+            <td class="player-name"><a href="#player-gumikurumi" class="player-link">gumikurumi</a></td>
+            <td>1</td>
+            <td>11</td>
+            <td class="highlight">1510.72</td>
+            <td>+12800</td>
+            <td>2.00</td>
+            <td>0.0%</td>
+            <td>18.2%</td>
+            <td>9.1%</td>
+            <td>27.3%</td>
+            <td>9.1%</td>
+        </tr>
+        
+        <tr>
             <td class="player-name"><a href="#player-澜猫猫" class="player-link">澜猫猫</a></td>
             <td>1</td>
             <td>12</td>
-            <td class="highlight">1490.73</td>
+            <td class="highlight">1490.87</td>
             <td>-23000</td>
             <td>3.00</td>
             <td>0.0%</td>
@@ -815,19 +1148,19 @@
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">天凤R值</div>
-                    <div class="stat-value large">1453.11</div>
+                    <div class="stat-value large">1470.20</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">总点数</div>
-                    <div class="stat-value">+36900</div>
+                    <div class="stat-value">+207700</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">平均顺位</div>
-                    <div class="stat-value">2.49</div>
+                    <div class="stat-value">2.45</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">对战数</div>
-                    <div class="stat-value">97 半庄</div>
+                    <div class="stat-value">105 半庄</div>
                 </div>
             </div>
 
@@ -837,29 +1170,29 @@
                     <div class="rank-bar">
                         <span class="rank-label">1位</span>
                         <div class="bar-container">
-                            <div class="bar bar-1" style="width: 26.8%"></div>
-                            <span class="bar-text">26 次 (26.8%)</span>
+                            <div class="bar bar-1" style="width: 27.62%"></div>
+                            <span class="bar-text">29 次 (27.6%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">2位</span>
                         <div class="bar-container">
-                            <div class="bar bar-2" style="width: 19.59%"></div>
-                            <span class="bar-text">19 次 (19.6%)</span>
+                            <div class="bar bar-2" style="width: 20.95%"></div>
+                            <span class="bar-text">22 次 (20.9%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">3位</span>
                         <div class="bar-container">
-                            <div class="bar bar-3" style="width: 30.93%"></div>
-                            <span class="bar-text">30 次 (30.9%)</span>
+                            <div class="bar bar-3" style="width: 30.48%"></div>
+                            <span class="bar-text">32 次 (30.5%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">4位</span>
                         <div class="bar-container">
-                            <div class="bar bar-4" style="width: 22.68%"></div>
-                            <span class="bar-text">22 次 (22.7%)</span>
+                            <div class="bar bar-4" style="width: 20.95%"></div>
+                            <span class="bar-text">22 次 (20.9%)</span>
                         </div>
                     </div>
                 </div>
@@ -869,9 +1202,9 @@
                 <h4>和了统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">总和了:</span>
-                    <span class="summary-value">236 小局 (21.1%) <span class="league-avg">(平均21.4%)</span></span>
+                    <span class="summary-value">261 小局 (21.7%) <span class="league-avg">(平均21.4%)</span></span>
                     <span class="summary-label">平均打点:</span>
-                    <span class="summary-value">6449点 <span class="league-avg">(平均6310点)</span></span>
+                    <span class="summary-value">6428点 <span class="league-avg">(平均6325点)</span></span>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -885,20 +1218,20 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直和了</td>
-                            <td>123 小局</td>
-                            <td class="points-value">7549点 <span class="league-avg">(平均7503)</span></td>
-                            <td class="special-stats">一发: 22小局 (17.9%) <span class="league-avg">(平均14.7%)</span> · 里宝: 40小局 (32.5%) <span class="league-avg">(平均30.7%)</span></td>
+                            <td>138 小局</td>
+                            <td class="points-value">7466点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 22小局 (15.9%) <span class="league-avg">(平均14.4%)</span> · 里宝: 42小局 (30.4%) <span class="league-avg">(平均31.0%)</span></td>
                         </tr>
                         <tr>
                             <td class="type-label">副露和了</td>
-                            <td>85 小局</td>
-                            <td class="points-value">4669点 <span class="league-avg">(平均4958)</span></td>
+                            <td>94 小局</td>
+                            <td class="points-value">4755点 <span class="league-avg">(平均4988)</span></td>
                             <td class="special-stats">-</td>
                         </tr>
                         <tr>
                             <td class="type-label">默听和了</td>
-                            <td>28 小局</td>
-                            <td class="points-value">7021点 <span class="league-avg">(平均6475)</span></td>
+                            <td>29 小局</td>
+                            <td class="points-value">6914点 <span class="league-avg">(平均6511)</span></td>
                             <td class="special-stats">有役门清</td>
                         </tr>
                         
@@ -922,28 +1255,21 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直</td>
-                            <td>259 小局 (23.2%) <span class="league-avg">(平均21.6%)</span></td>
-                            <td class="rate-good">47.5% <span class="league-avg">(平均46.8%)</span></td>
-                            <td class="rate-neutral">11.6%</td>
-                            <td class="rate-bad">15.8% <span class="league-avg">(平均13.8%)</span></td>
-                            <td class="rate-neutral">25.1%</td>
+                            <td>280 小局 (23.2%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">49.3% <span class="league-avg">(平均46.2%)</span></td>
+                            <td class="rate-neutral">11.4%</td>
+                            <td class="rate-bad">15.0% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">24.3%</td>
                         </tr>
                         <tr>
                             <td class="type-label">副露</td>
-                            <td>353 小局 (31.6%) <span class="league-avg">(平均31.3%)</span></td>
-                            <td class="rate-good">24.1% <span class="league-avg">(平均27.4%)</span></td>
-                            <td class="rate-neutral">17.0%</td>
-                            <td class="rate-bad">15.0% <span class="league-avg">(平均13.9%)</span></td>
-                            <td class="rate-neutral">43.9%</td>
+                            <td>392 小局 (32.5%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">24.0% <span class="league-avg">(平均27.6%)</span></td>
+                            <td class="rate-neutral">17.4%</td>
+                            <td class="rate-bad">15.1% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">43.6%</td>
                         </tr>
-                        <tr>
-                            <td class="type-label">默听</td>
-                            <td>119 次</td>
-                            <td class="rate-good">17.6%</td>
-                            <td class="rate-neutral">2.5%</td>
-                            <td class="rate-bad">5.9%</td>
-                            <td class="rate-neutral">10.1%</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -952,9 +1278,9 @@
                 <h4>放铳统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">放铳:</span>
-                    <span class="summary-value">150 小局 (13.4%) <span class="league-avg">(平均13.2%)</span></span>
+                    <span class="summary-value">161 小局 (13.4%) <span class="league-avg">(平均13.3%)</span></span>
                     <span class="summary-label">平均失点:</span>
-                    <span class="summary-value negative">5220点 <span class="league-avg">(平均5406点)</span></span>
+                    <span class="summary-value negative">5329点 <span class="league-avg">(平均5475点)</span></span>
                 </div>
             </div>
 
@@ -977,62 +1303,62 @@
             
                     <tr>
                         <td class="opponent-name"><a href="#player-南美雀后" class="opponent-link">南美雀后</a></td>
-                        <td>62</td>
-                        <td>53.2%</td>
-                        <td class="positive">+145300</td>
-                        <td class="negative">-133000</td>
-                        <td class="positive">+12300</td>
-                        <td class="positive">+411600</td>
+                        <td>69</td>
+                        <td>53.6%</td>
+                        <td class="positive">+187300</td>
+                        <td class="negative">-137500</td>
+                        <td class="positive">+49800</td>
+                        <td class="positive">+618300</td>
                     </tr>
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-姫野婭也" class="opponent-link">姫野婭也</a></td>
-                        <td>61</td>
-                        <td>54.1%</td>
-                        <td class="positive">+233300</td>
-                        <td class="negative">-159800</td>
-                        <td class="positive">+73500</td>
-                        <td class="positive">+100000</td>
+                        <td>65</td>
+                        <td>56.9%</td>
+                        <td class="positive">+252000</td>
+                        <td class="negative">-188700</td>
+                        <td class="positive">+63300</td>
+                        <td class="positive">+261500</td>
                     </tr>
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-小地鼠爱点炮" class="opponent-link">小地鼠爱点炮</a></td>
-                        <td>46</td>
-                        <td>43.5%</td>
+                        <td>48</td>
+                        <td>43.8%</td>
                         <td class="positive">+165400</td>
-                        <td class="negative">-114300</td>
-                        <td class="positive">+51100</td>
-                        <td class="negative">-751200</td>
+                        <td class="negative">-134900</td>
+                        <td class="positive">+30500</td>
+                        <td class="negative">-674700</td>
                     </tr>
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-RinshanNomi" class="opponent-link">RinshanNomi</a></td>
-                        <td>45</td>
-                        <td>40.0%</td>
-                        <td class="positive">+130300</td>
+                        <td>46</td>
+                        <td>41.3%</td>
+                        <td class="positive">+136100</td>
                         <td class="negative">-167300</td>
-                        <td class="negative">-37000</td>
-                        <td class="negative">-596100</td>
+                        <td class="negative">-31200</td>
+                        <td class="negative">-491200</td>
                     </tr>
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-DreamKQ" class="opponent-link">DreamKQ</a></td>
-                        <td>34</td>
-                        <td>61.8%</td>
-                        <td class="positive">+98500</td>
-                        <td class="negative">-95500</td>
-                        <td class="positive">+3000</td>
-                        <td class="positive">+829000</td>
+                        <td>41</td>
+                        <td>63.4%</td>
+                        <td class="positive">+125300</td>
+                        <td class="negative">-108100</td>
+                        <td class="positive">+17200</td>
+                        <td class="positive">+921200</td>
                     </tr>
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-Samuel122" class="opponent-link">Samuel122</a></td>
-                        <td>18</td>
-                        <td>55.6%</td>
-                        <td class="positive">+40900</td>
-                        <td class="negative">-44500</td>
+                        <td>20</td>
+                        <td>55.0%</td>
+                        <td class="positive">+49200</td>
+                        <td class="negative">-52800</td>
                         <td class="negative">-3600</td>
-                        <td class="positive">+182900</td>
+                        <td class="positive">+183000</td>
                     </tr>
                 
                     <tr>
@@ -1076,6 +1402,16 @@
                     </tr>
                 
                     <tr>
+                        <td class="opponent-name"><a href="#player-gumikurumi" class="opponent-link">gumikurumi</a></td>
+                        <td>1</td>
+                        <td>100.0%</td>
+                        <td class="positive">+3900</td>
+                        <td class="negative">-0</td>
+                        <td class="positive">+3900</td>
+                        <td class="positive">+41300</td>
+                    </tr>
+                
+                    <tr>
                         <td class="opponent-name"><a href="#player-澜猫猫" class="opponent-link">澜猫猫</a></td>
                         <td>1</td>
                         <td>0.0%</td>
@@ -1093,13 +1429,13 @@
             <div class="section">
                 <h4>手役统计 (前10名)</h4>
                 <ul class="yaku-list">
-                    <li>立直: 122次 (51.69%) <span class="league-avg">(平均46.95%)</span></li><li>役牌: 71次 (30.08%) <span class="league-avg">(平均40.9%)</span></li><li>断幺九: 56次 (23.73%) <span class="league-avg">(平均18.44%)</span></li><li>门前清自摸和: 53次 (22.46%) <span class="league-avg">(平均23.72%)</span></li><li>平和: 49次 (20.76%) <span class="league-avg">(平均22.03%)</span></li><li>七对子: 13次 (5.51%) <span class="league-avg">(平均3.08%)</span></li><li>混一色: 10次 (4.24%) <span class="league-avg">(平均5.65%)</span></li><li>一杯口: 8次 (3.39%) <span class="league-avg">(平均5.08%)</span></li><li>三色同顺: 6次 (2.54%) <span class="league-avg">(平均3.07%)</span></li><li>对对和: 4次 (1.69%) <span class="league-avg">(平均2.37%)</span></li>
+                    <li>立直: 137次 (52.49%) <span class="league-avg">(平均46.8%)</span></li><li>役牌: 76次 (29.12%) <span class="league-avg">(平均41.39%)</span></li><li>断幺九: 63次 (24.14%) <span class="league-avg">(平均18.71%)</span></li><li>门前清自摸和: 59次 (22.61%) <span class="league-avg">(平均23.4%)</span></li><li>平和: 54次 (20.69%) <span class="league-avg">(平均21.82%)</span></li><li>七对子: 13次 (4.98%) <span class="league-avg">(平均3.07%)</span></li><li>混一色: 12次 (4.6%) <span class="league-avg">(平均5.9%)</span></li><li>一杯口: 10次 (3.83%) <span class="league-avg">(平均5.32%)</span></li><li>三色同顺: 6次 (2.3%) <span class="league-avg">(平均3.0%)</span></li><li>对对和: 4次 (1.53%) <span class="league-avg">(平均2.59%)</span></li>
                 </ul>
             </div>
 
             <div class="section">
                 <h4>流局听牌</h4>
-                <p>流局: 145 次, 听牌 73 次 (50.3%) <span class="league-avg">(平均48.5%)</span></p>
+                <p>流局: 157 次, 听牌 79 次 (50.3%) <span class="league-avg">(平均48.7%)</span></p>
             </div>
         </div>
         
@@ -1108,19 +1444,19 @@
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">天凤R值</div>
-                    <div class="stat-value large">1445.03</div>
+                    <div class="stat-value large">1438.99</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">总点数</div>
-                    <div class="stat-value">-367500</div>
+                    <div class="stat-value">-457500</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">平均顺位</div>
-                    <div class="stat-value">2.60</div>
+                    <div class="stat-value">2.61</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">对战数</div>
-                    <div class="stat-value">73 半庄</div>
+                    <div class="stat-value">80 半庄</div>
                 </div>
             </div>
 
@@ -1130,29 +1466,29 @@
                     <div class="rank-bar">
                         <span class="rank-label">1位</span>
                         <div class="bar-container">
-                            <div class="bar bar-1" style="width: 16.44%"></div>
-                            <span class="bar-text">12 次 (16.4%)</span>
+                            <div class="bar bar-1" style="width: 16.25%"></div>
+                            <span class="bar-text">13 次 (16.2%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">2位</span>
                         <div class="bar-container">
-                            <div class="bar bar-2" style="width: 34.25%"></div>
-                            <span class="bar-text">25 次 (34.2%)</span>
+                            <div class="bar bar-2" style="width: 35.0%"></div>
+                            <span class="bar-text">28 次 (35.0%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">3位</span>
                         <div class="bar-container">
-                            <div class="bar bar-3" style="width: 21.92%"></div>
-                            <span class="bar-text">16 次 (21.9%)</span>
+                            <div class="bar bar-3" style="width: 20.0%"></div>
+                            <span class="bar-text">16 次 (20.0%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">4位</span>
                         <div class="bar-container">
-                            <div class="bar bar-4" style="width: 27.4%"></div>
-                            <span class="bar-text">20 次 (27.4%)</span>
+                            <div class="bar bar-4" style="width: 28.75%"></div>
+                            <span class="bar-text">23 次 (28.8%)</span>
                         </div>
                     </div>
                 </div>
@@ -1162,9 +1498,9 @@
                 <h4>和了统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">总和了:</span>
-                    <span class="summary-value">165 小局 (20.0%) <span class="league-avg">(平均21.4%)</span></span>
+                    <span class="summary-value">176 小局 (19.5%) <span class="league-avg">(平均21.4%)</span></span>
                     <span class="summary-label">平均打点:</span>
-                    <span class="summary-value">6248点 <span class="league-avg">(平均6310点)</span></span>
+                    <span class="summary-value">6239点 <span class="league-avg">(平均6325点)</span></span>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -1178,20 +1514,20 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直和了</td>
-                            <td>77 小局</td>
-                            <td class="points-value">7696点 <span class="league-avg">(平均7503)</span></td>
-                            <td class="special-stats">一发: 8小局 (10.4%) <span class="league-avg">(平均14.7%)</span> · 里宝: 30小局 (39.0%) <span class="league-avg">(平均30.7%)</span></td>
+                            <td>83 小局</td>
+                            <td class="points-value">7649点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 8小局 (9.6%) <span class="league-avg">(平均14.4%)</span> · 里宝: 33小局 (39.8%) <span class="league-avg">(平均31.0%)</span></td>
                         </tr>
                         <tr>
                             <td class="type-label">副露和了</td>
-                            <td>62 小局</td>
-                            <td class="points-value">4758点 <span class="league-avg">(平均4958)</span></td>
+                            <td>67 小局</td>
+                            <td class="points-value">4773点 <span class="league-avg">(平均4988)</span></td>
                             <td class="special-stats">-</td>
                         </tr>
                         <tr>
                             <td class="type-label">默听和了</td>
                             <td>22 小局</td>
-                            <td class="points-value">5868点 <span class="league-avg">(平均6475)</span></td>
+                            <td class="points-value">5868点 <span class="league-avg">(平均6511)</span></td>
                             <td class="special-stats">有役门清</td>
                         </tr>
                         <tr>
@@ -1220,28 +1556,21 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直</td>
-                            <td>173 小局 (20.9%) <span class="league-avg">(平均21.6%)</span></td>
-                            <td class="rate-good">44.5% <span class="league-avg">(平均46.8%)</span></td>
-                            <td class="rate-neutral">16.2%</td>
-                            <td class="rate-bad">11.6% <span class="league-avg">(平均13.8%)</span></td>
-                            <td class="rate-neutral">27.8%</td>
+                            <td>191 小局 (21.2%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">43.5% <span class="league-avg">(平均46.2%)</span></td>
+                            <td class="rate-neutral">15.7%</td>
+                            <td class="rate-bad">12.6% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">28.3%</td>
                         </tr>
                         <tr>
                             <td class="type-label">副露</td>
-                            <td>252 小局 (30.5%) <span class="league-avg">(平均31.3%)</span></td>
-                            <td class="rate-good">24.6% <span class="league-avg">(平均27.4%)</span></td>
-                            <td class="rate-neutral">14.7%</td>
+                            <td>275 小局 (30.5%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">24.4% <span class="league-avg">(平均27.6%)</span></td>
+                            <td class="rate-neutral">15.3%</td>
                             <td class="rate-bad">13.1% <span class="league-avg">(平均13.9%)</span></td>
-                            <td class="rate-neutral">47.6%</td>
+                            <td class="rate-neutral">47.3%</td>
                         </tr>
-                        <tr>
-                            <td class="type-label">默听</td>
-                            <td>68 次</td>
-                            <td class="rate-good">19.1%</td>
-                            <td class="rate-neutral">2.9%</td>
-                            <td class="rate-bad">10.3%</td>
-                            <td class="rate-neutral">8.8%</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -1250,9 +1579,9 @@
                 <h4>放铳统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">放铳:</span>
-                    <span class="summary-value">108 小局 (13.1%) <span class="league-avg">(平均13.2%)</span></span>
+                    <span class="summary-value">118 小局 (13.1%) <span class="league-avg">(平均13.3%)</span></span>
                     <span class="summary-label">平均失点:</span>
-                    <span class="summary-value negative">5257点 <span class="league-avg">(平均5406点)</span></span>
+                    <span class="summary-value negative">5379点 <span class="league-avg">(平均5475点)</span></span>
                 </div>
             </div>
 
@@ -1275,42 +1604,52 @@
             
                     <tr>
                         <td class="opponent-name"><a href="#player-santi" class="opponent-link">santi</a></td>
-                        <td>62</td>
-                        <td>46.8%</td>
-                        <td class="positive">+133000</td>
-                        <td class="negative">-145300</td>
-                        <td class="negative">-12300</td>
-                        <td class="negative">-411600</td>
+                        <td>69</td>
+                        <td>46.4%</td>
+                        <td class="positive">+137500</td>
+                        <td class="negative">-187300</td>
+                        <td class="negative">-49800</td>
+                        <td class="negative">-618300</td>
                     </tr>
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-姫野婭也" class="opponent-link">姫野婭也</a></td>
-                        <td>52</td>
-                        <td>48.1%</td>
-                        <td class="positive">+211000</td>
-                        <td class="negative">-149600</td>
-                        <td class="positive">+61400</td>
-                        <td class="negative">-295300</td>
+                        <td>55</td>
+                        <td>49.1%</td>
+                        <td class="positive">+228200</td>
+                        <td class="negative">-153500</td>
+                        <td class="positive">+74700</td>
+                        <td class="negative">-213400</td>
                     </tr>
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-DreamKQ" class="opponent-link">DreamKQ</a></td>
-                        <td>36</td>
-                        <td>52.8%</td>
-                        <td class="positive">+79500</td>
-                        <td class="negative">-77400</td>
-                        <td class="positive">+2100</td>
-                        <td class="negative">-150500</td>
+                        <td>43</td>
+                        <td>48.8%</td>
+                        <td class="positive">+89500</td>
+                        <td class="negative">-91200</td>
+                        <td class="negative">-1700</td>
+                        <td class="negative">-265000</td>
                     </tr>
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-小地鼠爱点炮" class="opponent-link">小地鼠爱点炮</a></td>
-                        <td>24</td>
-                        <td>41.7%</td>
-                        <td class="positive">+70200</td>
-                        <td class="negative">-71000</td>
-                        <td class="negative">-800</td>
-                        <td class="negative">-93900</td>
+                        <td>26</td>
+                        <td>42.3%</td>
+                        <td class="positive">+74700</td>
+                        <td class="negative">-73000</td>
+                        <td class="positive">+1700</td>
+                        <td class="negative">-142200</td>
+                    </tr>
+                
+                    <tr>
+                        <td class="opponent-name"><a href="#player-Samuel122" class="opponent-link">Samuel122</a></td>
+                        <td>19</td>
+                        <td>36.8%</td>
+                        <td class="positive">+26900</td>
+                        <td class="negative">-70000</td>
+                        <td class="negative">-43100</td>
+                        <td class="negative">-527700</td>
                     </tr>
                 
                     <tr>
@@ -1321,16 +1660,6 @@
                         <td class="negative">-27600</td>
                         <td class="positive">+13700</td>
                         <td class="positive">+39300</td>
-                    </tr>
-                
-                    <tr>
-                        <td class="opponent-name"><a href="#player-Samuel122" class="opponent-link">Samuel122</a></td>
-                        <td>17</td>
-                        <td>35.3%</td>
-                        <td class="positive">+26900</td>
-                        <td class="negative">-64800</td>
-                        <td class="negative">-37900</td>
-                        <td class="negative">-455300</td>
                     </tr>
                 
                     <tr>
@@ -1361,13 +1690,13 @@
             <div class="section">
                 <h4>手役统计 (前10名)</h4>
                 <ul class="yaku-list">
-                    <li>立直: 76次 (46.06%) <span class="league-avg">(平均46.95%)</span></li><li>役牌: 64次 (38.79%) <span class="league-avg">(平均40.9%)</span></li><li>门前清自摸和: 37次 (22.42%) <span class="league-avg">(平均23.72%)</span></li><li>平和: 34次 (20.61%) <span class="league-avg">(平均22.03%)</span></li><li>断幺九: 23次 (13.94%) <span class="league-avg">(平均18.44%)</span></li><li>混一色: 13次 (7.88%) <span class="league-avg">(平均5.65%)</span></li><li>一杯口: 11次 (6.67%) <span class="league-avg">(平均5.08%)</span></li><li>一气通贯: 5次 (3.03%) <span class="league-avg">(平均2.84%)</span></li><li>三色同顺: 5次 (3.03%) <span class="league-avg">(平均3.07%)</span></li><li>七对子: 4次 (2.42%) <span class="league-avg">(平均3.08%)</span></li>
+                    <li>立直: 82次 (46.59%) <span class="league-avg">(平均46.8%)</span></li><li>役牌: 69次 (39.2%) <span class="league-avg">(平均41.39%)</span></li><li>门前清自摸和: 40次 (22.73%) <span class="league-avg">(平均23.4%)</span></li><li>平和: 37次 (21.02%) <span class="league-avg">(平均21.82%)</span></li><li>断幺九: 24次 (13.64%) <span class="league-avg">(平均18.71%)</span></li><li>混一色: 15次 (8.52%) <span class="league-avg">(平均5.9%)</span></li><li>一杯口: 12次 (6.82%) <span class="league-avg">(平均5.32%)</span></li><li>一气通贯: 5次 (2.84%) <span class="league-avg">(平均2.69%)</span></li><li>三色同顺: 5次 (2.84%) <span class="league-avg">(平均3.0%)</span></li><li>七对子: 4次 (2.27%) <span class="league-avg">(平均3.07%)</span></li>
                 </ul>
             </div>
 
             <div class="section">
                 <h4>流局听牌</h4>
-                <p>流局: 105 次, 听牌 63 次 (60.0%) <span class="league-avg">(平均48.5%)</span></p>
+                <p>流局: 116 次, 听牌 69 次 (59.5%) <span class="league-avg">(平均48.7%)</span></p>
             </div>
         </div>
         
@@ -1376,19 +1705,19 @@
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">天凤R值</div>
-                    <div class="stat-value large">1544.09</div>
+                    <div class="stat-value large">1530.93</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">总点数</div>
-                    <div class="stat-value">+299600</div>
+                    <div class="stat-value">+228100</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">平均顺位</div>
-                    <div class="stat-value">2.46</div>
+                    <div class="stat-value">2.49</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">对战数</div>
-                    <div class="stat-value">72 半庄</div>
+                    <div class="stat-value">76 半庄</div>
                 </div>
             </div>
 
@@ -1398,29 +1727,29 @@
                     <div class="rank-bar">
                         <span class="rank-label">1位</span>
                         <div class="bar-container">
-                            <div class="bar bar-1" style="width: 27.78%"></div>
-                            <span class="bar-text">20 次 (27.8%)</span>
+                            <div class="bar bar-1" style="width: 26.32%"></div>
+                            <span class="bar-text">20 次 (26.3%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">2位</span>
                         <div class="bar-container">
-                            <div class="bar bar-2" style="width: 20.83%"></div>
-                            <span class="bar-text">15 次 (20.8%)</span>
+                            <div class="bar bar-2" style="width: 21.05%"></div>
+                            <span class="bar-text">16 次 (21.1%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">3位</span>
                         <div class="bar-container">
-                            <div class="bar bar-3" style="width: 29.17%"></div>
-                            <span class="bar-text">21 次 (29.2%)</span>
+                            <div class="bar bar-3" style="width: 30.26%"></div>
+                            <span class="bar-text">23 次 (30.3%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">4位</span>
                         <div class="bar-container">
-                            <div class="bar bar-4" style="width: 22.22%"></div>
-                            <span class="bar-text">16 次 (22.2%)</span>
+                            <div class="bar bar-4" style="width: 22.37%"></div>
+                            <span class="bar-text">17 次 (22.4%)</span>
                         </div>
                     </div>
                 </div>
@@ -1430,9 +1759,9 @@
                 <h4>和了统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">总和了:</span>
-                    <span class="summary-value">215 小局 (25.7%) <span class="league-avg">(平均21.4%)</span></span>
+                    <span class="summary-value">225 小局 (25.6%) <span class="league-avg">(平均21.4%)</span></span>
                     <span class="summary-label">平均打点:</span>
-                    <span class="summary-value">6287点 <span class="league-avg">(平均6310点)</span></span>
+                    <span class="summary-value">6321点 <span class="league-avg">(平均6325点)</span></span>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -1446,20 +1775,20 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直和了</td>
-                            <td>105 小局</td>
-                            <td class="points-value">7304点 <span class="league-avg">(平均7503)</span></td>
-                            <td class="special-stats">一发: 16小局 (15.2%) <span class="league-avg">(平均14.7%)</span> · 里宝: 27小局 (25.7%) <span class="league-avg">(平均30.7%)</span></td>
+                            <td>108 小局</td>
+                            <td class="points-value">7384点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 16小局 (14.8%) <span class="league-avg">(平均14.4%)</span> · 里宝: 28小局 (25.9%) <span class="league-avg">(平均31.0%)</span></td>
                         </tr>
                         <tr>
                             <td class="type-label">副露和了</td>
-                            <td>89 小局</td>
-                            <td class="points-value">4427点 <span class="league-avg">(平均4958)</span></td>
+                            <td>96 小局</td>
+                            <td class="points-value">4521点 <span class="league-avg">(平均4988)</span></td>
                             <td class="special-stats">-</td>
                         </tr>
                         <tr>
                             <td class="type-label">默听和了</td>
                             <td>18 小局</td>
-                            <td class="points-value">8883点 <span class="league-avg">(平均6475)</span></td>
+                            <td class="points-value">8883点 <span class="league-avg">(平均6511)</span></td>
                             <td class="special-stats">有役门清</td>
                         </tr>
                         <tr>
@@ -1488,28 +1817,21 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直</td>
-                            <td>175 小局 (20.9%) <span class="league-avg">(平均21.6%)</span></td>
-                            <td class="rate-good">60.0% <span class="league-avg">(平均46.8%)</span></td>
-                            <td class="rate-neutral">8.6%</td>
-                            <td class="rate-bad">9.7% <span class="league-avg">(平均13.8%)</span></td>
-                            <td class="rate-neutral">21.7%</td>
+                            <td>183 小局 (20.8%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">59.0% <span class="league-avg">(平均46.2%)</span></td>
+                            <td class="rate-neutral">9.3%</td>
+                            <td class="rate-bad">10.4% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">21.3%</td>
                         </tr>
                         <tr>
                             <td class="type-label">副露</td>
-                            <td>333 小局 (39.8%) <span class="league-avg">(平均31.3%)</span></td>
-                            <td class="rate-good">26.7% <span class="league-avg">(平均27.4%)</span></td>
-                            <td class="rate-neutral">15.6%</td>
-                            <td class="rate-bad">16.5% <span class="league-avg">(平均13.9%)</span></td>
-                            <td class="rate-neutral">41.1%</td>
+                            <td>360 小局 (40.9%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">26.7% <span class="league-avg">(平均27.6%)</span></td>
+                            <td class="rate-neutral">15.0%</td>
+                            <td class="rate-bad">16.9% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">41.4%</td>
                         </tr>
-                        <tr>
-                            <td class="type-label">默听</td>
-                            <td>87 次</td>
-                            <td class="rate-good">19.5%</td>
-                            <td class="rate-neutral">5.8%</td>
-                            <td class="rate-bad">6.9%</td>
-                            <td class="rate-neutral">4.6%</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -1518,9 +1840,9 @@
                 <h4>放铳统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">放铳:</span>
-                    <span class="summary-value">117 小局 (14.0%) <span class="league-avg">(平均13.2%)</span></span>
+                    <span class="summary-value">127 小局 (14.4%) <span class="league-avg">(平均13.3%)</span></span>
                     <span class="summary-label">平均失点:</span>
-                    <span class="summary-value negative">6136点 <span class="league-avg">(平均5406点)</span></span>
+                    <span class="summary-value negative">6141点 <span class="league-avg">(平均5475点)</span></span>
                 </div>
             </div>
 
@@ -1543,32 +1865,32 @@
             
                     <tr>
                         <td class="opponent-name"><a href="#player-santi" class="opponent-link">santi</a></td>
-                        <td>61</td>
-                        <td>45.9%</td>
-                        <td class="positive">+159800</td>
-                        <td class="negative">-233300</td>
-                        <td class="negative">-73500</td>
-                        <td class="negative">-100000</td>
+                        <td>65</td>
+                        <td>43.1%</td>
+                        <td class="positive">+188700</td>
+                        <td class="negative">-252000</td>
+                        <td class="negative">-63300</td>
+                        <td class="negative">-261500</td>
                     </tr>
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-南美雀后" class="opponent-link">南美雀后</a></td>
-                        <td>52</td>
-                        <td>51.9%</td>
-                        <td class="positive">+149600</td>
-                        <td class="negative">-211000</td>
-                        <td class="negative">-61400</td>
-                        <td class="positive">+295300</td>
+                        <td>55</td>
+                        <td>50.9%</td>
+                        <td class="positive">+153500</td>
+                        <td class="negative">-228200</td>
+                        <td class="negative">-74700</td>
+                        <td class="positive">+213400</td>
                     </tr>
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-DreamKQ" class="opponent-link">DreamKQ</a></td>
-                        <td>39</td>
-                        <td>51.3%</td>
-                        <td class="positive">+154200</td>
-                        <td class="negative">-100700</td>
-                        <td class="positive">+53500</td>
-                        <td class="positive">+383100</td>
+                        <td>42</td>
+                        <td>52.4%</td>
+                        <td class="positive">+177400</td>
+                        <td class="negative">-126800</td>
+                        <td class="positive">+50600</td>
+                        <td class="positive">+334700</td>
                     </tr>
                 
                     <tr>
@@ -1583,12 +1905,12 @@
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-RinshanNomi" class="opponent-link">RinshanNomi</a></td>
-                        <td>16</td>
-                        <td>62.5%</td>
-                        <td class="positive">+60400</td>
+                        <td>17</td>
+                        <td>64.7%</td>
+                        <td class="positive">+69700</td>
                         <td class="negative">-22600</td>
-                        <td class="positive">+37800</td>
-                        <td class="positive">+172500</td>
+                        <td class="positive">+47100</td>
+                        <td class="positive">+207200</td>
                     </tr>
                 
                     <tr>
@@ -1621,6 +1943,16 @@
                         <td class="negative">-174900</td>
                     </tr>
                 
+                    <tr>
+                        <td class="opponent-name"><a href="#player-gumikurumi" class="opponent-link">gumikurumi</a></td>
+                        <td>1</td>
+                        <td>0.0%</td>
+                        <td class="positive">+0</td>
+                        <td class="negative">-0</td>
+                        <td class="neutral">+0</td>
+                        <td class="negative">-28900</td>
+                    </tr>
+                
                 </tbody>
             </table>
             
@@ -1629,13 +1961,13 @@
             <div class="section">
                 <h4>手役统计 (前10名)</h4>
                 <ul class="yaku-list">
-                    <li>立直: 105次 (48.84%) <span class="league-avg">(平均46.95%)</span></li><li>役牌: 89次 (41.4%) <span class="league-avg">(平均40.9%)</span></li><li>门前清自摸和: 57次 (26.51%) <span class="league-avg">(平均23.72%)</span></li><li>平和: 42次 (19.53%) <span class="league-avg">(平均22.03%)</span></li><li>断幺九: 34次 (15.81%) <span class="league-avg">(平均18.44%)</span></li><li>混一色: 16次 (7.44%) <span class="league-avg">(平均5.65%)</span></li><li>一杯口: 9次 (4.19%) <span class="league-avg">(平均5.08%)</span></li><li>三色同顺: 6次 (2.79%) <span class="league-avg">(平均3.07%)</span></li><li>七对子: 5次 (2.33%) <span class="league-avg">(平均3.08%)</span></li><li>混全带幺九: 3次 (1.4%) <span class="league-avg">(平均1.97%)</span></li>
+                    <li>立直: 108次 (48.0%) <span class="league-avg">(平均46.8%)</span></li><li>役牌: 92次 (40.89%) <span class="league-avg">(平均41.39%)</span></li><li>门前清自摸和: 58次 (25.78%) <span class="league-avg">(平均23.4%)</span></li><li>平和: 43次 (19.11%) <span class="league-avg">(平均21.82%)</span></li><li>断幺九: 37次 (16.44%) <span class="league-avg">(平均18.71%)</span></li><li>混一色: 16次 (7.11%) <span class="league-avg">(平均5.9%)</span></li><li>一杯口: 9次 (4.0%) <span class="league-avg">(平均5.32%)</span></li><li>三色同顺: 8次 (3.56%) <span class="league-avg">(平均3.0%)</span></li><li>七对子: 5次 (2.22%) <span class="league-avg">(平均3.07%)</span></li><li>混全带幺九: 4次 (1.78%) <span class="league-avg">(平均1.9%)</span></li>
                 </ul>
             </div>
 
             <div class="section">
                 <h4>流局听牌</h4>
-                <p>流局: 93 次, 听牌 49 次 (52.7%) <span class="league-avg">(平均48.5%)</span></p>
+                <p>流局: 98 次, 听牌 53 次 (54.1%) <span class="league-avg">(平均48.7%)</span></p>
             </div>
         </div>
         
@@ -1644,11 +1976,11 @@
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">天凤R值</div>
-                    <div class="stat-value large">1611.61</div>
+                    <div class="stat-value large">1612.10</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">总点数</div>
-                    <div class="stat-value">+299800</div>
+                    <div class="stat-value">+303200</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">平均顺位</div>
@@ -1656,7 +1988,7 @@
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">对战数</div>
-                    <div class="stat-value">53 半庄</div>
+                    <div class="stat-value">55 半庄</div>
                 </div>
             </div>
 
@@ -1666,29 +1998,29 @@
                     <div class="rank-bar">
                         <span class="rank-label">1位</span>
                         <div class="bar-container">
-                            <div class="bar bar-1" style="width: 32.08%"></div>
-                            <span class="bar-text">17 次 (32.1%)</span>
+                            <div class="bar bar-1" style="width: 32.73%"></div>
+                            <span class="bar-text">18 次 (32.7%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">2位</span>
                         <div class="bar-container">
-                            <div class="bar bar-2" style="width: 22.64%"></div>
-                            <span class="bar-text">12 次 (22.6%)</span>
+                            <div class="bar bar-2" style="width: 21.82%"></div>
+                            <span class="bar-text">12 次 (21.8%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">3位</span>
                         <div class="bar-container">
-                            <div class="bar bar-3" style="width: 22.64%"></div>
-                            <span class="bar-text">12 次 (22.6%)</span>
+                            <div class="bar bar-3" style="width: 21.82%"></div>
+                            <span class="bar-text">12 次 (21.8%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">4位</span>
                         <div class="bar-container">
-                            <div class="bar bar-4" style="width: 22.64%"></div>
-                            <span class="bar-text">12 次 (22.6%)</span>
+                            <div class="bar bar-4" style="width: 23.64%"></div>
+                            <span class="bar-text">13 次 (23.6%)</span>
                         </div>
                     </div>
                 </div>
@@ -1698,9 +2030,9 @@
                 <h4>和了统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">总和了:</span>
-                    <span class="summary-value">147 小局 (23.1%) <span class="league-avg">(平均21.4%)</span></span>
+                    <span class="summary-value">151 小局 (22.8%) <span class="league-avg">(平均21.4%)</span></span>
                     <span class="summary-label">平均打点:</span>
-                    <span class="summary-value">6356点 <span class="league-avg">(平均6310点)</span></span>
+                    <span class="summary-value">6373点 <span class="league-avg">(平均6325点)</span></span>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -1714,20 +2046,20 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直和了</td>
-                            <td>64 小局</td>
-                            <td class="points-value">8136点 <span class="league-avg">(平均7503)</span></td>
-                            <td class="special-stats">一发: 9小局 (14.1%) <span class="league-avg">(平均14.7%)</span> · 里宝: 18小局 (28.1%) <span class="league-avg">(平均30.7%)</span></td>
+                            <td>65 小局</td>
+                            <td class="points-value">8195点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 9小局 (13.8%) <span class="league-avg">(平均14.4%)</span> · 里宝: 19小局 (29.2%) <span class="league-avg">(平均31.0%)</span></td>
                         </tr>
                         <tr>
                             <td class="type-label">副露和了</td>
-                            <td>73 小局</td>
-                            <td class="points-value">4736点 <span class="league-avg">(平均4958)</span></td>
+                            <td>76 小局</td>
+                            <td class="points-value">4758点 <span class="league-avg">(平均4988)</span></td>
                             <td class="special-stats">-</td>
                         </tr>
                         <tr>
                             <td class="type-label">默听和了</td>
                             <td>9 小局</td>
-                            <td class="points-value">7200点 <span class="league-avg">(平均6475)</span></td>
+                            <td class="points-value">7200点 <span class="league-avg">(平均6511)</span></td>
                             <td class="special-stats">有役门清</td>
                         </tr>
                         <tr>
@@ -1756,28 +2088,21 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直</td>
-                            <td>135 小局 (21.2%) <span class="league-avg">(平均21.6%)</span></td>
-                            <td class="rate-good">47.4% <span class="league-avg">(平均46.8%)</span></td>
-                            <td class="rate-neutral">7.4%</td>
-                            <td class="rate-bad">17.8% <span class="league-avg">(平均13.8%)</span></td>
-                            <td class="rate-neutral">27.4%</td>
+                            <td>139 小局 (21.0%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">46.8% <span class="league-avg">(平均46.2%)</span></td>
+                            <td class="rate-neutral">8.6%</td>
+                            <td class="rate-bad">17.3% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">27.3%</td>
                         </tr>
                         <tr>
                             <td class="type-label">副露</td>
-                            <td>190 小局 (29.8%) <span class="league-avg">(平均31.3%)</span></td>
-                            <td class="rate-good">38.4% <span class="league-avg">(平均27.4%)</span></td>
-                            <td class="rate-neutral">17.4%</td>
-                            <td class="rate-bad">14.2% <span class="league-avg">(平均13.9%)</span></td>
-                            <td class="rate-neutral">30.0%</td>
+                            <td>199 小局 (30.1%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">38.2% <span class="league-avg">(平均27.6%)</span></td>
+                            <td class="rate-neutral">17.6%</td>
+                            <td class="rate-bad">14.1% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">30.1%</td>
                         </tr>
-                        <tr>
-                            <td class="type-label">默听</td>
-                            <td>60 次</td>
-                            <td class="rate-good">10.0%</td>
-                            <td class="rate-neutral">6.7%</td>
-                            <td class="rate-bad">8.3%</td>
-                            <td class="rate-neutral">5.0%</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -1786,9 +2111,9 @@
                 <h4>放铳统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">放铳:</span>
-                    <span class="summary-value">88 小局 (13.8%) <span class="league-avg">(平均13.2%)</span></span>
+                    <span class="summary-value">90 小局 (13.6%) <span class="league-avg">(平均13.3%)</span></span>
                     <span class="summary-label">平均失点:</span>
-                    <span class="summary-value negative">5449点 <span class="league-avg">(平均5406点)</span></span>
+                    <span class="summary-value negative">5514点 <span class="league-avg">(平均5475点)</span></span>
                 </div>
             </div>
 
@@ -1811,12 +2136,12 @@
             
                     <tr>
                         <td class="opponent-name"><a href="#player-santi" class="opponent-link">santi</a></td>
-                        <td>46</td>
-                        <td>56.5%</td>
-                        <td class="positive">+114300</td>
+                        <td>48</td>
+                        <td>56.2%</td>
+                        <td class="positive">+134900</td>
                         <td class="negative">-165400</td>
-                        <td class="negative">-51100</td>
-                        <td class="positive">+751200</td>
+                        <td class="negative">-30500</td>
+                        <td class="positive">+674700</td>
                     </tr>
                 
                     <tr>
@@ -1841,22 +2166,22 @@
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-南美雀后" class="opponent-link">南美雀后</a></td>
-                        <td>24</td>
-                        <td>58.3%</td>
-                        <td class="positive">+71000</td>
-                        <td class="negative">-70200</td>
-                        <td class="positive">+800</td>
-                        <td class="positive">+93900</td>
+                        <td>26</td>
+                        <td>57.7%</td>
+                        <td class="positive">+73000</td>
+                        <td class="negative">-74700</td>
+                        <td class="negative">-1700</td>
+                        <td class="positive">+142200</td>
                     </tr>
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-DreamKQ" class="opponent-link">DreamKQ</a></td>
-                        <td>14</td>
+                        <td>16</td>
                         <td>50.0%</td>
                         <td class="positive">+56000</td>
-                        <td class="negative">-39400</td>
-                        <td class="positive">+16600</td>
-                        <td class="positive">+74300</td>
+                        <td class="negative">-51700</td>
+                        <td class="positive">+4300</td>
+                        <td class="positive">+116100</td>
                     </tr>
                 
                     <tr>
@@ -1917,34 +2242,34 @@
             <div class="section">
                 <h4>手役统计 (前10名)</h4>
                 <ul class="yaku-list">
-                    <li>立直: 64次 (43.54%) <span class="league-avg">(平均46.95%)</span></li><li>役牌: 64次 (43.54%) <span class="league-avg">(平均40.9%)</span></li><li>门前清自摸和: 42次 (28.57%) <span class="league-avg">(平均23.72%)</span></li><li>断幺九: 32次 (21.77%) <span class="league-avg">(平均18.44%)</span></li><li>平和: 31次 (21.09%) <span class="league-avg">(平均22.03%)</span></li><li>混一色: 7次 (4.76%) <span class="league-avg">(平均5.65%)</span></li><li>一气通贯: 7次 (4.76%) <span class="league-avg">(平均2.84%)</span></li><li>三色同顺: 7次 (4.76%) <span class="league-avg">(平均3.07%)</span></li><li>一杯口: 5次 (3.4%) <span class="league-avg">(平均5.08%)</span></li><li>七对子: 4次 (2.72%) <span class="league-avg">(平均3.08%)</span></li>
+                    <li>立直: 65次 (43.05%) <span class="league-avg">(平均46.8%)</span></li><li>役牌: 65次 (43.05%) <span class="league-avg">(平均41.39%)</span></li><li>门前清自摸和: 42次 (27.81%) <span class="league-avg">(平均23.4%)</span></li><li>断幺九: 35次 (23.18%) <span class="league-avg">(平均18.71%)</span></li><li>平和: 32次 (21.19%) <span class="league-avg">(平均21.82%)</span></li><li>混一色: 7次 (4.64%) <span class="league-avg">(平均5.9%)</span></li><li>一气通贯: 7次 (4.64%) <span class="league-avg">(平均2.69%)</span></li><li>三色同顺: 7次 (4.64%) <span class="league-avg">(平均3.0%)</span></li><li>一杯口: 6次 (3.97%) <span class="league-avg">(平均5.32%)</span></li><li>七对子: 4次 (2.65%) <span class="league-avg">(平均3.07%)</span></li>
                 </ul>
             </div>
 
             <div class="section">
                 <h4>流局听牌</h4>
-                <p>流局: 94 次, 听牌 32 次 (34.0%) <span class="league-avg">(平均48.5%)</span></p>
+                <p>流局: 99 次, 听牌 35 次 (35.4%) <span class="league-avg">(平均48.7%)</span></p>
             </div>
         </div>
         
-        <div class="player-card" id="player-RinshanNomi">
-            <h3>RinshanNomi</h3>
+        <div class="player-card" id="player-DreamKQ">
+            <h3>DreamKQ</h3>
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">天凤R值</div>
-                    <div class="stat-value large">1574.30</div>
+                    <div class="stat-value large">1453.31</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">总点数</div>
-                    <div class="stat-value">+247800</div>
+                    <div class="stat-value">-270100</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">平均顺位</div>
-                    <div class="stat-value">2.40</div>
+                    <div class="stat-value">2.63</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">对战数</div>
-                    <div class="stat-value">45 半庄</div>
+                    <div class="stat-value">49 半庄</div>
                 </div>
             </div>
 
@@ -1954,29 +2279,29 @@
                     <div class="rank-bar">
                         <span class="rank-label">1位</span>
                         <div class="bar-container">
-                            <div class="bar bar-1" style="width: 35.56%"></div>
-                            <span class="bar-text">16 次 (35.6%)</span>
+                            <div class="bar bar-1" style="width: 22.45%"></div>
+                            <span class="bar-text">11 次 (22.4%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">2位</span>
                         <div class="bar-container">
-                            <div class="bar bar-2" style="width: 22.22%"></div>
-                            <span class="bar-text">10 次 (22.2%)</span>
+                            <div class="bar bar-2" style="width: 16.33%"></div>
+                            <span class="bar-text">8 次 (16.3%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">3位</span>
                         <div class="bar-container">
-                            <div class="bar bar-3" style="width: 8.89%"></div>
-                            <span class="bar-text">4 次 (8.9%)</span>
+                            <div class="bar bar-3" style="width: 36.73%"></div>
+                            <span class="bar-text">18 次 (36.7%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">4位</span>
                         <div class="bar-container">
-                            <div class="bar bar-4" style="width: 33.33%"></div>
-                            <span class="bar-text">15 次 (33.3%)</span>
+                            <div class="bar bar-4" style="width: 24.49%"></div>
+                            <span class="bar-text">12 次 (24.5%)</span>
                         </div>
                     </div>
                 </div>
@@ -1986,9 +2311,9 @@
                 <h4>和了统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">总和了:</span>
-                    <span class="summary-value">111 小局 (21.4%) <span class="league-avg">(平均21.4%)</span></span>
+                    <span class="summary-value">114 小局 (19.8%) <span class="league-avg">(平均21.4%)</span></span>
                     <span class="summary-label">平均打点:</span>
-                    <span class="summary-value">6443点 <span class="league-avg">(平均6310点)</span></span>
+                    <span class="summary-value">6198点 <span class="league-avg">(平均6325点)</span></span>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -2002,20 +2327,20 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直和了</td>
-                            <td>47 小局</td>
-                            <td class="points-value">7302点 <span class="league-avg">(平均7503)</span></td>
-                            <td class="special-stats">一发: 7小局 (14.9%) <span class="league-avg">(平均14.7%)</span> · 里宝: 13小局 (27.7%) <span class="league-avg">(平均30.7%)</span></td>
+                            <td>63 小局</td>
+                            <td class="points-value">6917点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 8小局 (12.7%) <span class="league-avg">(平均14.4%)</span> · 里宝: 18小局 (28.6%) <span class="league-avg">(平均31.0%)</span></td>
                         </tr>
                         <tr>
                             <td class="type-label">副露和了</td>
-                            <td>43 小局</td>
-                            <td class="points-value">5877点 <span class="league-avg">(平均4958)</span></td>
+                            <td>34 小局</td>
+                            <td class="points-value">4844点 <span class="league-avg">(平均4988)</span></td>
                             <td class="special-stats">-</td>
                         </tr>
                         <tr>
                             <td class="type-label">默听和了</td>
-                            <td>21 小局</td>
-                            <td class="points-value">5681点 <span class="league-avg">(平均6475)</span></td>
+                            <td>17 小局</td>
+                            <td class="points-value">6241点 <span class="league-avg">(平均6511)</span></td>
                             <td class="special-stats">有役门清</td>
                         </tr>
                         
@@ -2039,28 +2364,21 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直</td>
-                            <td>110 小局 (21.2%) <span class="league-avg">(平均21.6%)</span></td>
-                            <td class="rate-good">42.7% <span class="league-avg">(平均46.8%)</span></td>
-                            <td class="rate-neutral">15.4%</td>
-                            <td class="rate-bad">19.1% <span class="league-avg">(平均13.8%)</span></td>
-                            <td class="rate-neutral">22.7%</td>
+                            <td>141 小局 (24.4%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">44.7% <span class="league-avg">(平均46.2%)</span></td>
+                            <td class="rate-neutral">16.3%</td>
+                            <td class="rate-bad">13.5% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">25.5%</td>
                         </tr>
                         <tr>
                             <td class="type-label">副露</td>
-                            <td>175 小局 (33.8%) <span class="league-avg">(平均31.3%)</span></td>
-                            <td class="rate-good">24.6% <span class="league-avg">(平均27.4%)</span></td>
-                            <td class="rate-neutral">18.3%</td>
-                            <td class="rate-bad">15.4% <span class="league-avg">(平均13.9%)</span></td>
-                            <td class="rate-neutral">41.7%</td>
+                            <td>129 小局 (22.4%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">26.4% <span class="league-avg">(平均27.6%)</span></td>
+                            <td class="rate-neutral">9.3%</td>
+                            <td class="rate-bad">14.7% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">49.6%</td>
                         </tr>
-                        <tr>
-                            <td class="type-label">默听</td>
-                            <td>65 次</td>
-                            <td class="rate-good">16.9%</td>
-                            <td class="rate-neutral">9.2%</td>
-                            <td class="rate-bad">10.8%</td>
-                            <td class="rate-neutral">4.6%</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -2069,9 +2387,235 @@
                 <h4>放铳统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">放铳:</span>
-                    <span class="summary-value">83 小局 (16.0%) <span class="league-avg">(平均13.2%)</span></span>
+                    <span class="summary-value">80 小局 (13.9%) <span class="league-avg">(平均13.3%)</span></span>
                     <span class="summary-label">平均失点:</span>
-                    <span class="summary-value negative">5016点 <span class="league-avg">(平均5406点)</span></span>
+                    <span class="summary-value negative">5700点 <span class="league-avg">(平均5475点)</span></span>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>对战情况</h4>
+                
+            <table class="vs-table">
+                <thead>
+                    <tr>
+                        <th>对手</th>
+                        <th>对战数</th>
+                        <th>胜率</th>
+                        <th>和了获点</th>
+                        <th>放铳失点</th>
+                        <th>净和了放铳点数</th>
+                        <th>总得点差</th>
+                    </tr>
+                </thead>
+                <tbody>
+            
+                    <tr>
+                        <td class="opponent-name"><a href="#player-南美雀后" class="opponent-link">南美雀后</a></td>
+                        <td>43</td>
+                        <td>51.2%</td>
+                        <td class="positive">+91200</td>
+                        <td class="negative">-89500</td>
+                        <td class="positive">+1700</td>
+                        <td class="positive">+265000</td>
+                    </tr>
+                
+                    <tr>
+                        <td class="opponent-name"><a href="#player-姫野婭也" class="opponent-link">姫野婭也</a></td>
+                        <td>42</td>
+                        <td>47.6%</td>
+                        <td class="positive">+126800</td>
+                        <td class="negative">-177400</td>
+                        <td class="negative">-50600</td>
+                        <td class="negative">-334700</td>
+                    </tr>
+                
+                    <tr>
+                        <td class="opponent-name"><a href="#player-santi" class="opponent-link">santi</a></td>
+                        <td>41</td>
+                        <td>36.6%</td>
+                        <td class="positive">+108100</td>
+                        <td class="negative">-125300</td>
+                        <td class="negative">-17200</td>
+                        <td class="negative">-921200</td>
+                    </tr>
+                
+                    <tr>
+                        <td class="opponent-name"><a href="#player-小地鼠爱点炮" class="opponent-link">小地鼠爱点炮</a></td>
+                        <td>16</td>
+                        <td>50.0%</td>
+                        <td class="positive">+51700</td>
+                        <td class="negative">-56000</td>
+                        <td class="negative">-4300</td>
+                        <td class="negative">-116100</td>
+                    </tr>
+                
+                    <tr>
+                        <td class="opponent-name"><a href="#player-Samuel122" class="opponent-link">Samuel122</a></td>
+                        <td>5</td>
+                        <td>40.0%</td>
+                        <td class="positive">+8000</td>
+                        <td class="negative">-7800</td>
+                        <td class="positive">+200</td>
+                        <td class="positive">+26600</td>
+                    </tr>
+                
+                </tbody>
+            </table>
+            
+            </div>
+
+            <div class="section">
+                <h4>手役统计 (前10名)</h4>
+                <ul class="yaku-list">
+                    <li>立直: 63次 (55.26%) <span class="league-avg">(平均46.8%)</span></li><li>役牌: 36次 (31.58%) <span class="league-avg">(平均41.39%)</span></li><li>门前清自摸和: 33次 (28.95%) <span class="league-avg">(平均23.4%)</span></li><li>平和: 29次 (25.44%) <span class="league-avg">(平均21.82%)</span></li><li>断幺九: 19次 (16.67%) <span class="league-avg">(平均18.71%)</span></li><li>一杯口: 11次 (9.65%) <span class="league-avg">(平均5.32%)</span></li><li>七对子: 6次 (5.26%) <span class="league-avg">(平均3.07%)</span></li><li>混一色: 5次 (4.39%) <span class="league-avg">(平均5.9%)</span></li><li>三色同顺: 4次 (3.51%) <span class="league-avg">(平均3.0%)</span></li><li>混全带幺九: 3次 (2.63%) <span class="league-avg">(平均1.9%)</span></li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h4>流局听牌</h4>
+                <p>流局: 66 次, 听牌 39 次 (59.1%) <span class="league-avg">(平均48.7%)</span></p>
+            </div>
+        </div>
+        
+        <div class="player-card" id="player-RinshanNomi">
+            <h3>RinshanNomi</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">天凤R值</div>
+                    <div class="stat-value large">1565.15</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">总点数</div>
+                    <div class="stat-value">+197000</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">平均顺位</div>
+                    <div class="stat-value">2.43</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">对战数</div>
+                    <div class="stat-value">46 半庄</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>名次分布</h4>
+                <div class="rank-bars">
+                    <div class="rank-bar">
+                        <span class="rank-label">1位</span>
+                        <div class="bar-container">
+                            <div class="bar bar-1" style="width: 34.78%"></div>
+                            <span class="bar-text">16 次 (34.8%)</span>
+                        </div>
+                    </div>
+                    <div class="rank-bar">
+                        <span class="rank-label">2位</span>
+                        <div class="bar-container">
+                            <div class="bar bar-2" style="width: 21.74%"></div>
+                            <span class="bar-text">10 次 (21.7%)</span>
+                        </div>
+                    </div>
+                    <div class="rank-bar">
+                        <span class="rank-label">3位</span>
+                        <div class="bar-container">
+                            <div class="bar bar-3" style="width: 8.7%"></div>
+                            <span class="bar-text">4 次 (8.7%)</span>
+                        </div>
+                    </div>
+                    <div class="rank-bar">
+                        <span class="rank-label">4位</span>
+                        <div class="bar-container">
+                            <div class="bar bar-4" style="width: 34.78%"></div>
+                            <span class="bar-text">16 次 (34.8%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>和了统计</h4>
+                <div class="summary-box">
+                    <span class="summary-label">总和了:</span>
+                    <span class="summary-value">113 小局 (21.4%) <span class="league-avg">(平均21.4%)</span></span>
+                    <span class="summary-label">平均打点:</span>
+                    <span class="summary-value">6421点 <span class="league-avg">(平均6325点)</span></span>
+                </div>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>类型</th>
+                            <th>次数</th>
+                            <th>平均打点</th>
+                            <th>特殊统计</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="type-label">立直和了</td>
+                            <td>48 小局</td>
+                            <td class="points-value">7344点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 7小局 (14.6%) <span class="league-avg">(平均14.4%)</span> · 里宝: 14小局 (29.2%) <span class="league-avg">(平均31.0%)</span></td>
+                        </tr>
+                        <tr>
+                            <td class="type-label">副露和了</td>
+                            <td>44 小局</td>
+                            <td class="points-value">5768点 <span class="league-avg">(平均4988)</span></td>
+                            <td class="special-stats">-</td>
+                        </tr>
+                        <tr>
+                            <td class="type-label">默听和了</td>
+                            <td>21 小局</td>
+                            <td class="points-value">5681点 <span class="league-avg">(平均6511)</span></td>
+                            <td class="special-stats">有役门清</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h4>立直 & 副露</h4>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>类型</th>
+                            <th>次数/比率</th>
+                            <th>和了</th>
+                            <th>流局</th>
+                            <th>放铳</th>
+                            <th>横移动</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="type-label">立直</td>
+                            <td>112 小局 (21.2%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">42.9% <span class="league-avg">(平均46.2%)</span></td>
+                            <td class="rate-neutral">15.2%</td>
+                            <td class="rate-bad">19.6% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">22.3%</td>
+                        </tr>
+                        <tr>
+                            <td class="type-label">副露</td>
+                            <td>177 小局 (33.5%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">24.9% <span class="league-avg">(平均27.6%)</span></td>
+                            <td class="rate-neutral">18.1%</td>
+                            <td class="rate-bad">15.8% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">41.2%</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h4>放铳统计</h4>
+                <div class="summary-box">
+                    <span class="summary-label">放铳:</span>
+                    <span class="summary-value">87 小局 (16.4%) <span class="league-avg">(平均13.3%)</span></span>
+                    <span class="summary-label">平均失点:</span>
+                    <span class="summary-value negative">5051点 <span class="league-avg">(平均5475点)</span></span>
                 </div>
             </div>
 
@@ -2094,12 +2638,12 @@
             
                     <tr>
                         <td class="opponent-name"><a href="#player-santi" class="opponent-link">santi</a></td>
-                        <td>45</td>
-                        <td>60.0%</td>
+                        <td>46</td>
+                        <td>58.7%</td>
                         <td class="positive">+167300</td>
-                        <td class="negative">-130300</td>
-                        <td class="positive">+37000</td>
-                        <td class="positive">+596100</td>
+                        <td class="negative">-136100</td>
+                        <td class="positive">+31200</td>
+                        <td class="positive">+491200</td>
                     </tr>
                 
                     <tr>
@@ -2124,12 +2668,12 @@
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-姫野婭也" class="opponent-link">姫野婭也</a></td>
-                        <td>16</td>
-                        <td>37.5%</td>
+                        <td>17</td>
+                        <td>35.3%</td>
                         <td class="positive">+22600</td>
-                        <td class="negative">-60400</td>
-                        <td class="negative">-37800</td>
-                        <td class="negative">-172500</td>
+                        <td class="negative">-69700</td>
+                        <td class="negative">-47100</td>
+                        <td class="negative">-207200</td>
                     </tr>
                 
                     <tr>
@@ -2183,6 +2727,16 @@
                     </tr>
                 
                     <tr>
+                        <td class="opponent-name"><a href="#player-gumikurumi" class="opponent-link">gumikurumi</a></td>
+                        <td>1</td>
+                        <td>0.0%</td>
+                        <td class="positive">+0</td>
+                        <td class="negative">-8000</td>
+                        <td class="negative">-8000</td>
+                        <td class="negative">-63600</td>
+                    </tr>
+                
+                    <tr>
                         <td class="opponent-name"><a href="#player-澜猫猫" class="opponent-link">澜猫猫</a></td>
                         <td>1</td>
                         <td>100.0%</td>
@@ -2200,246 +2754,13 @@
             <div class="section">
                 <h4>手役统计 (前10名)</h4>
                 <ul class="yaku-list">
-                    <li>立直: 47次 (42.34%) <span class="league-avg">(平均46.95%)</span></li><li>役牌: 40次 (36.04%) <span class="league-avg">(平均40.9%)</span></li><li>平和: 28次 (25.23%) <span class="league-avg">(平均22.03%)</span></li><li>断幺九: 26次 (23.42%) <span class="league-avg">(平均18.44%)</span></li><li>门前清自摸和: 21次 (18.92%) <span class="league-avg">(平均23.72%)</span></li><li>一杯口: 9次 (8.11%) <span class="league-avg">(平均5.08%)</span></li><li>混一色: 6次 (5.41%) <span class="league-avg">(平均5.65%)</span></li><li>对对和: 4次 (3.6%) <span class="league-avg">(平均2.37%)</span></li><li>一气通贯: 3次 (2.7%) <span class="league-avg">(平均2.84%)</span></li><li>三色同顺: 3次 (2.7%) <span class="league-avg">(平均3.07%)</span></li>
+                    <li>立直: 48次 (42.48%) <span class="league-avg">(平均46.8%)</span></li><li>役牌: 40次 (35.4%) <span class="league-avg">(平均41.39%)</span></li><li>平和: 29次 (25.66%) <span class="league-avg">(平均21.82%)</span></li><li>断幺九: 27次 (23.89%) <span class="league-avg">(平均18.71%)</span></li><li>门前清自摸和: 22次 (19.47%) <span class="league-avg">(平均23.4%)</span></li><li>一杯口: 9次 (7.96%) <span class="league-avg">(平均5.32%)</span></li><li>混一色: 6次 (5.31%) <span class="league-avg">(平均5.9%)</span></li><li>对对和: 4次 (3.54%) <span class="league-avg">(平均2.59%)</span></li><li>一气通贯: 3次 (2.65%) <span class="league-avg">(平均2.69%)</span></li><li>三色同顺: 3次 (2.65%) <span class="league-avg">(平均3.0%)</span></li>
                 </ul>
             </div>
 
             <div class="section">
                 <h4>流局听牌</h4>
-                <p>流局: 78 次, 听牌 45 次 (57.7%) <span class="league-avg">(平均48.5%)</span></p>
-            </div>
-        </div>
-        
-        <div class="player-card" id="player-DreamKQ">
-            <h3>DreamKQ</h3>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-label">天凤R值</div>
-                    <div class="stat-value large">1448.05</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">总点数</div>
-                    <div class="stat-value">-294600</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">平均顺位</div>
-                    <div class="stat-value">2.64</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">对战数</div>
-                    <div class="stat-value">42 半庄</div>
-                </div>
-            </div>
-
-            <div class="section">
-                <h4>名次分布</h4>
-                <div class="rank-bars">
-                    <div class="rank-bar">
-                        <span class="rank-label">1位</span>
-                        <div class="bar-container">
-                            <div class="bar bar-1" style="width: 21.43%"></div>
-                            <span class="bar-text">9 次 (21.4%)</span>
-                        </div>
-                    </div>
-                    <div class="rank-bar">
-                        <span class="rank-label">2位</span>
-                        <div class="bar-container">
-                            <div class="bar bar-2" style="width: 19.05%"></div>
-                            <span class="bar-text">8 次 (19.1%)</span>
-                        </div>
-                    </div>
-                    <div class="rank-bar">
-                        <span class="rank-label">3位</span>
-                        <div class="bar-container">
-                            <div class="bar bar-3" style="width: 33.33%"></div>
-                            <span class="bar-text">14 次 (33.3%)</span>
-                        </div>
-                    </div>
-                    <div class="rank-bar">
-                        <span class="rank-label">4位</span>
-                        <div class="bar-container">
-                            <div class="bar bar-4" style="width: 26.19%"></div>
-                            <span class="bar-text">11 次 (26.2%)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section">
-                <h4>和了统计</h4>
-                <div class="summary-box">
-                    <span class="summary-label">总和了:</span>
-                    <span class="summary-value">98 小局 (19.6%) <span class="league-avg">(平均21.4%)</span></span>
-                    <span class="summary-label">平均打点:</span>
-                    <span class="summary-value">5921点 <span class="league-avg">(平均6310点)</span></span>
-                </div>
-                <table class="stats-table">
-                    <thead>
-                        <tr>
-                            <th>类型</th>
-                            <th>次数</th>
-                            <th>平均打点</th>
-                            <th>特殊统计</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="type-label">立直和了</td>
-                            <td>53 小局</td>
-                            <td class="points-value">6730点 <span class="league-avg">(平均7503)</span></td>
-                            <td class="special-stats">一发: 6小局 (11.3%) <span class="league-avg">(平均14.7%)</span> · 里宝: 14小局 (26.4%) <span class="league-avg">(平均30.7%)</span></td>
-                        </tr>
-                        <tr>
-                            <td class="type-label">副露和了</td>
-                            <td>31 小局</td>
-                            <td class="points-value">4571点 <span class="league-avg">(平均4958)</span></td>
-                            <td class="special-stats">-</td>
-                        </tr>
-                        <tr>
-                            <td class="type-label">默听和了</td>
-                            <td>14 小局</td>
-                            <td class="points-value">5850点 <span class="league-avg">(平均6475)</span></td>
-                            <td class="special-stats">有役门清</td>
-                        </tr>
-                        
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="section">
-                <h4>立直 & 副露</h4>
-                <table class="stats-table">
-                    <thead>
-                        <tr>
-                            <th>类型</th>
-                            <th>次数/比率</th>
-                            <th>和了</th>
-                            <th>流局</th>
-                            <th>放铳</th>
-                            <th>横移动</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="type-label">立直</td>
-                            <td>114 小局 (22.8%) <span class="league-avg">(平均21.6%)</span></td>
-                            <td class="rate-good">46.5% <span class="league-avg">(平均46.8%)</span></td>
-                            <td class="rate-neutral">14.9%</td>
-                            <td class="rate-bad">14.0% <span class="league-avg">(平均13.8%)</span></td>
-                            <td class="rate-neutral">24.6%</td>
-                        </tr>
-                        <tr>
-                            <td class="type-label">副露</td>
-                            <td>114 小局 (22.8%) <span class="league-avg">(平均31.3%)</span></td>
-                            <td class="rate-good">27.2% <span class="league-avg">(平均27.4%)</span></td>
-                            <td class="rate-neutral">8.8%</td>
-                            <td class="rate-bad">15.8% <span class="league-avg">(平均13.9%)</span></td>
-                            <td class="rate-neutral">48.2%</td>
-                        </tr>
-                        <tr>
-                            <td class="type-label">默听</td>
-                            <td>54 次</td>
-                            <td class="rate-good">16.7%</td>
-                            <td class="rate-neutral">5.6%</td>
-                            <td class="rate-bad">9.3%</td>
-                            <td class="rate-neutral">5.6%</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="section">
-                <h4>放铳统计</h4>
-                <div class="summary-box">
-                    <span class="summary-label">放铳:</span>
-                    <span class="summary-value">69 小局 (13.8%) <span class="league-avg">(平均13.2%)</span></span>
-                    <span class="summary-label">平均失点:</span>
-                    <span class="summary-value negative">5701点 <span class="league-avg">(平均5406点)</span></span>
-                </div>
-            </div>
-
-            <div class="section">
-                <h4>对战情况</h4>
-                
-            <table class="vs-table">
-                <thead>
-                    <tr>
-                        <th>对手</th>
-                        <th>对战数</th>
-                        <th>胜率</th>
-                        <th>和了获点</th>
-                        <th>放铳失点</th>
-                        <th>净和了放铳点数</th>
-                        <th>总得点差</th>
-                    </tr>
-                </thead>
-                <tbody>
-            
-                    <tr>
-                        <td class="opponent-name"><a href="#player-姫野婭也" class="opponent-link">姫野婭也</a></td>
-                        <td>39</td>
-                        <td>48.7%</td>
-                        <td class="positive">+100700</td>
-                        <td class="negative">-154200</td>
-                        <td class="negative">-53500</td>
-                        <td class="negative">-383100</td>
-                    </tr>
-                
-                    <tr>
-                        <td class="opponent-name"><a href="#player-南美雀后" class="opponent-link">南美雀后</a></td>
-                        <td>36</td>
-                        <td>47.2%</td>
-                        <td class="positive">+77400</td>
-                        <td class="negative">-79500</td>
-                        <td class="negative">-2100</td>
-                        <td class="positive">+150500</td>
-                    </tr>
-                
-                    <tr>
-                        <td class="opponent-name"><a href="#player-santi" class="opponent-link">santi</a></td>
-                        <td>34</td>
-                        <td>38.2%</td>
-                        <td class="positive">+95500</td>
-                        <td class="negative">-98500</td>
-                        <td class="negative">-3000</td>
-                        <td class="negative">-829000</td>
-                    </tr>
-                
-                    <tr>
-                        <td class="opponent-name"><a href="#player-小地鼠爱点炮" class="opponent-link">小地鼠爱点炮</a></td>
-                        <td>14</td>
-                        <td>50.0%</td>
-                        <td class="positive">+39400</td>
-                        <td class="negative">-56000</td>
-                        <td class="negative">-16600</td>
-                        <td class="negative">-74300</td>
-                    </tr>
-                
-                    <tr>
-                        <td class="opponent-name"><a href="#player-Samuel122" class="opponent-link">Samuel122</a></td>
-                        <td>3</td>
-                        <td>33.3%</td>
-                        <td class="positive">+0</td>
-                        <td class="negative">-5200</td>
-                        <td class="negative">-5200</td>
-                        <td class="negative">-42500</td>
-                    </tr>
-                
-                </tbody>
-            </table>
-            
-            </div>
-
-            <div class="section">
-                <h4>手役统计 (前10名)</h4>
-                <ul class="yaku-list">
-                    <li>立直: 53次 (54.08%) <span class="league-avg">(平均46.95%)</span></li><li>役牌: 31次 (31.63%) <span class="league-avg">(平均40.9%)</span></li><li>门前清自摸和: 28次 (28.57%) <span class="league-avg">(平均23.72%)</span></li><li>平和: 25次 (25.51%) <span class="league-avg">(平均22.03%)</span></li><li>断幺九: 15次 (15.31%) <span class="league-avg">(平均18.44%)</span></li><li>一杯口: 8次 (8.16%) <span class="league-avg">(平均5.08%)</span></li><li>三色同顺: 4次 (4.08%) <span class="league-avg">(平均3.07%)</span></li><li>七对子: 4次 (4.08%) <span class="league-avg">(平均3.08%)</span></li><li>混一色: 4次 (4.08%) <span class="league-avg">(平均5.65%)</span></li><li>混全带幺九: 3次 (3.06%) <span class="league-avg">(平均1.97%)</span></li>
-                </ul>
-            </div>
-
-            <div class="section">
-                <h4>流局听牌</h4>
-                <p>流局: 55 次, 听牌 32 次 (58.2%) <span class="league-avg">(平均48.5%)</span></p>
+                <p>流局: 79 次, 听牌 45 次 (57.0%) <span class="league-avg">(平均48.7%)</span></p>
             </div>
         </div>
         
@@ -2448,19 +2769,19 @@
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">天凤R值</div>
-                    <div class="stat-value large">1525.01</div>
+                    <div class="stat-value large">1524.96</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">总点数</div>
-                    <div class="stat-value">+37700</div>
+                    <div class="stat-value">+38500</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">平均顺位</div>
-                    <div class="stat-value">2.41</div>
+                    <div class="stat-value">2.42</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">对战数</div>
-                    <div class="stat-value">22 半庄</div>
+                    <div class="stat-value">24 半庄</div>
                 </div>
             </div>
 
@@ -2470,29 +2791,29 @@
                     <div class="rank-bar">
                         <span class="rank-label">1位</span>
                         <div class="bar-container">
-                            <div class="bar bar-1" style="width: 18.18%"></div>
-                            <span class="bar-text">4 次 (18.2%)</span>
+                            <div class="bar bar-1" style="width: 20.83%"></div>
+                            <span class="bar-text">5 次 (20.8%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">2位</span>
                         <div class="bar-container">
-                            <div class="bar bar-2" style="width: 40.91%"></div>
-                            <span class="bar-text">9 次 (40.9%)</span>
+                            <div class="bar bar-2" style="width: 37.5%"></div>
+                            <span class="bar-text">9 次 (37.5%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">3位</span>
                         <div class="bar-container">
-                            <div class="bar bar-3" style="width: 22.73%"></div>
-                            <span class="bar-text">5 次 (22.7%)</span>
+                            <div class="bar bar-3" style="width: 20.83%"></div>
+                            <span class="bar-text">5 次 (20.8%)</span>
                         </div>
                     </div>
                     <div class="rank-bar">
                         <span class="rank-label">4位</span>
                         <div class="bar-container">
-                            <div class="bar bar-4" style="width: 18.18%"></div>
-                            <span class="bar-text">4 次 (18.2%)</span>
+                            <div class="bar bar-4" style="width: 20.83%"></div>
+                            <span class="bar-text">5 次 (20.8%)</span>
                         </div>
                     </div>
                 </div>
@@ -2502,9 +2823,9 @@
                 <h4>和了统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">总和了:</span>
-                    <span class="summary-value">49 小局 (20.2%) <span class="league-avg">(平均21.4%)</span></span>
+                    <span class="summary-value">54 小局 (20.6%) <span class="league-avg">(平均21.4%)</span></span>
                     <span class="summary-label">平均打点:</span>
-                    <span class="summary-value">6643点 <span class="league-avg">(平均6310点)</span></span>
+                    <span class="summary-value">6494点 <span class="league-avg">(平均6325点)</span></span>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -2518,20 +2839,20 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直和了</td>
-                            <td>23 小局</td>
-                            <td class="points-value">7504点 <span class="league-avg">(平均7503)</span></td>
-                            <td class="special-stats">一发: 2小局 (8.7%) <span class="league-avg">(平均14.7%)</span> · 里宝: 8小局 (34.8%) <span class="league-avg">(平均30.7%)</span></td>
+                            <td>24 小局</td>
+                            <td class="points-value">7300点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 2小局 (8.3%) <span class="league-avg">(平均14.4%)</span> · 里宝: 8小局 (33.3%) <span class="league-avg">(平均31.0%)</span></td>
                         </tr>
                         <tr>
                             <td class="type-label">副露和了</td>
-                            <td>19 小局</td>
-                            <td class="points-value">6505点 <span class="league-avg">(平均4958)</span></td>
+                            <td>23 小局</td>
+                            <td class="points-value">6357点 <span class="league-avg">(平均4988)</span></td>
                             <td class="special-stats">-</td>
                         </tr>
                         <tr>
                             <td class="type-label">默听和了</td>
                             <td>5 小局</td>
-                            <td class="points-value">3720点 <span class="league-avg">(平均6475)</span></td>
+                            <td class="points-value">3720点 <span class="league-avg">(平均6511)</span></td>
                             <td class="special-stats">有役门清</td>
                         </tr>
                         <tr>
@@ -2560,28 +2881,21 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直</td>
-                            <td>45 小局 (18.5%) <span class="league-avg">(平均21.6%)</span></td>
-                            <td class="rate-good">51.1% <span class="league-avg">(平均46.8%)</span></td>
-                            <td class="rate-neutral">13.3%</td>
-                            <td class="rate-bad">15.6% <span class="league-avg">(平均13.8%)</span></td>
-                            <td class="rate-neutral">20.0%</td>
+                            <td>49 小局 (18.7%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">49.0% <span class="league-avg">(平均46.2%)</span></td>
+                            <td class="rate-neutral">12.2%</td>
+                            <td class="rate-bad">16.3% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">22.4%</td>
                         </tr>
                         <tr>
                             <td class="type-label">副露</td>
-                            <td>73 小局 (30.0%) <span class="league-avg">(平均31.3%)</span></td>
-                            <td class="rate-good">26.0% <span class="league-avg">(平均27.4%)</span></td>
-                            <td class="rate-neutral">20.6%</td>
-                            <td class="rate-bad">8.2% <span class="league-avg">(平均13.9%)</span></td>
-                            <td class="rate-neutral">45.2%</td>
+                            <td>80 小局 (30.5%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">28.8% <span class="league-avg">(平均27.6%)</span></td>
+                            <td class="rate-neutral">18.8%</td>
+                            <td class="rate-bad">8.8% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">43.8%</td>
                         </tr>
-                        <tr>
-                            <td class="type-label">默听</td>
-                            <td>32 次</td>
-                            <td class="rate-good">12.5%</td>
-                            <td class="rate-neutral">6.2%</td>
-                            <td class="rate-bad">12.5%</td>
-                            <td class="rate-neutral">3.1%</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -2590,9 +2904,9 @@
                 <h4>放铳统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">放铳:</span>
-                    <span class="summary-value">28 小局 (11.5%) <span class="league-avg">(平均13.2%)</span></span>
+                    <span class="summary-value">30 小局 (11.4%) <span class="league-avg">(平均13.3%)</span></span>
                     <span class="summary-label">平均失点:</span>
-                    <span class="summary-value negative">4839点 <span class="league-avg">(平均5406点)</span></span>
+                    <span class="summary-value negative">5060点 <span class="league-avg">(平均5475点)</span></span>
                 </div>
             </div>
 
@@ -2615,22 +2929,22 @@
             
                     <tr>
                         <td class="opponent-name"><a href="#player-santi" class="opponent-link">santi</a></td>
-                        <td>18</td>
-                        <td>44.4%</td>
-                        <td class="positive">+44500</td>
-                        <td class="negative">-40900</td>
+                        <td>20</td>
+                        <td>45.0%</td>
+                        <td class="positive">+52800</td>
+                        <td class="negative">-49200</td>
                         <td class="positive">+3600</td>
-                        <td class="negative">-182900</td>
+                        <td class="negative">-183000</td>
                     </tr>
                 
                     <tr>
                         <td class="opponent-name"><a href="#player-南美雀后" class="opponent-link">南美雀后</a></td>
-                        <td>17</td>
-                        <td>64.7%</td>
-                        <td class="positive">+64800</td>
+                        <td>19</td>
+                        <td>63.2%</td>
+                        <td class="positive">+70000</td>
                         <td class="negative">-26900</td>
-                        <td class="positive">+37900</td>
-                        <td class="positive">+455300</td>
+                        <td class="positive">+43100</td>
+                        <td class="positive">+527700</td>
                     </tr>
                 
                     <tr>
@@ -2654,6 +2968,16 @@
                     </tr>
                 
                     <tr>
+                        <td class="opponent-name"><a href="#player-DreamKQ" class="opponent-link">DreamKQ</a></td>
+                        <td>5</td>
+                        <td>60.0%</td>
+                        <td class="positive">+7800</td>
+                        <td class="negative">-8000</td>
+                        <td class="negative">-200</td>
+                        <td class="negative">-26600</td>
+                    </tr>
+                
+                    <tr>
                         <td class="opponent-name"><a href="#player-RinshanNomi" class="opponent-link">RinshanNomi</a></td>
                         <td>5</td>
                         <td>60.0%</td>
@@ -2661,16 +2985,6 @@
                         <td class="negative">-7100</td>
                         <td class="negative">-1600</td>
                         <td class="positive">+86400</td>
-                    </tr>
-                
-                    <tr>
-                        <td class="opponent-name"><a href="#player-DreamKQ" class="opponent-link">DreamKQ</a></td>
-                        <td>3</td>
-                        <td>66.7%</td>
-                        <td class="positive">+5200</td>
-                        <td class="negative">-0</td>
-                        <td class="positive">+5200</td>
-                        <td class="positive">+42500</td>
                     </tr>
                 
                     <tr>
@@ -2691,13 +3005,13 @@
             <div class="section">
                 <h4>手役统计 (前10名)</h4>
                 <ul class="yaku-list">
-                    <li>役牌: 26次 (53.06%) <span class="league-avg">(平均40.9%)</span></li><li>立直: 23次 (46.94%) <span class="league-avg">(平均46.95%)</span></li><li>门前清自摸和: 13次 (26.53%) <span class="league-avg">(平均23.72%)</span></li><li>平和: 11次 (22.45%) <span class="league-avg">(平均22.03%)</span></li><li>断幺九: 10次 (20.41%) <span class="league-avg">(平均18.44%)</span></li><li>混一色: 3次 (6.12%) <span class="league-avg">(平均5.65%)</span></li><li>一杯口: 2次 (4.08%) <span class="league-avg">(平均5.08%)</span></li><li>七对子: 2次 (4.08%) <span class="league-avg">(平均3.08%)</span></li><li>对对和: 2次 (4.08%) <span class="league-avg">(平均2.37%)</span></li><li>河底捞鱼: 1次 (2.04%) <span class="league-avg">(平均1.1%)</span></li>
+                    <li>役牌: 32次 (59.26%) <span class="league-avg">(平均41.39%)</span></li><li>立直: 24次 (44.44%) <span class="league-avg">(平均46.8%)</span></li><li>门前清自摸和: 13次 (24.07%) <span class="league-avg">(平均23.4%)</span></li><li>平和: 11次 (20.37%) <span class="league-avg">(平均21.82%)</span></li><li>断幺九: 10次 (18.52%) <span class="league-avg">(平均18.71%)</span></li><li>混一色: 4次 (7.41%) <span class="league-avg">(平均5.9%)</span></li><li>对对和: 3次 (5.56%) <span class="league-avg">(平均2.59%)</span></li><li>一杯口: 2次 (3.7%) <span class="league-avg">(平均5.32%)</span></li><li>七对子: 2次 (3.7%) <span class="league-avg">(平均3.07%)</span></li><li>河底捞鱼: 1次 (1.85%) <span class="league-avg">(平均1.02%)</span></li>
                 </ul>
             </div>
 
             <div class="section">
                 <h4>流局听牌</h4>
-                <p>流局: 46 次, 听牌 14 次 (30.4%) <span class="league-avg">(平均48.5%)</span></p>
+                <p>流局: 48 次, 听牌 14 次 (29.2%) <span class="league-avg">(平均48.7%)</span></p>
             </div>
         </div>
         
@@ -2706,7 +3020,7 @@
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">天凤R值</div>
-                    <div class="stat-value large">1556.50</div>
+                    <div class="stat-value large">1556.64</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">总点数</div>
@@ -2762,7 +3076,7 @@
                     <span class="summary-label">总和了:</span>
                     <span class="summary-value">38 小局 (20.1%) <span class="league-avg">(平均21.4%)</span></span>
                     <span class="summary-label">平均打点:</span>
-                    <span class="summary-value">6129点 <span class="league-avg">(平均6310点)</span></span>
+                    <span class="summary-value">6129点 <span class="league-avg">(平均6325点)</span></span>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -2777,19 +3091,19 @@
                         <tr>
                             <td class="type-label">立直和了</td>
                             <td>16 小局</td>
-                            <td class="points-value">7806点 <span class="league-avg">(平均7503)</span></td>
-                            <td class="special-stats">一发: 4小局 (25.0%) <span class="league-avg">(平均14.7%)</span> · 里宝: 5小局 (31.2%) <span class="league-avg">(平均30.7%)</span></td>
+                            <td class="points-value">7806点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 4小局 (25.0%) <span class="league-avg">(平均14.4%)</span> · 里宝: 5小局 (31.2%) <span class="league-avg">(平均31.0%)</span></td>
                         </tr>
                         <tr>
                             <td class="type-label">副露和了</td>
                             <td>17 小局</td>
-                            <td class="points-value">4124点 <span class="league-avg">(平均4958)</span></td>
+                            <td class="points-value">4124点 <span class="league-avg">(平均4988)</span></td>
                             <td class="special-stats">-</td>
                         </tr>
                         <tr>
                             <td class="type-label">默听和了</td>
                             <td>5 小局</td>
-                            <td class="points-value">7580点 <span class="league-avg">(平均6475)</span></td>
+                            <td class="points-value">7580点 <span class="league-avg">(平均6511)</span></td>
                             <td class="special-stats">有役门清</td>
                         </tr>
                         
@@ -2813,28 +3127,21 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直</td>
-                            <td>46 小局 (24.3%) <span class="league-avg">(平均21.6%)</span></td>
-                            <td class="rate-good">34.8% <span class="league-avg">(平均46.8%)</span></td>
+                            <td>46 小局 (24.3%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">34.8% <span class="league-avg">(平均46.2%)</span></td>
                             <td class="rate-neutral">15.2%</td>
-                            <td class="rate-bad">6.5% <span class="league-avg">(平均13.8%)</span></td>
+                            <td class="rate-bad">6.5% <span class="league-avg">(平均13.9%)</span></td>
                             <td class="rate-neutral">43.5%</td>
                         </tr>
                         <tr>
                             <td class="type-label">副露</td>
-                            <td>61 小局 (32.3%) <span class="league-avg">(平均31.3%)</span></td>
-                            <td class="rate-good">27.9% <span class="league-avg">(平均27.4%)</span></td>
+                            <td>61 小局 (32.3%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">27.9% <span class="league-avg">(平均27.6%)</span></td>
                             <td class="rate-neutral">22.9%</td>
                             <td class="rate-bad">13.1% <span class="league-avg">(平均13.9%)</span></td>
                             <td class="rate-neutral">36.1%</td>
                         </tr>
-                        <tr>
-                            <td class="type-label">默听</td>
-                            <td>21 次</td>
-                            <td class="rate-good">19.1%</td>
-                            <td class="rate-neutral">0.0%</td>
-                            <td class="rate-bad">4.8%</td>
-                            <td class="rate-neutral">0.0%</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -2843,9 +3150,9 @@
                 <h4>放铳统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">放铳:</span>
-                    <span class="summary-value">19 小局 (10.1%) <span class="league-avg">(平均13.2%)</span></span>
+                    <span class="summary-value">19 小局 (10.1%) <span class="league-avg">(平均13.3%)</span></span>
                     <span class="summary-label">平均失点:</span>
-                    <span class="summary-value negative">5626点 <span class="league-avg">(平均5406点)</span></span>
+                    <span class="summary-value negative">5626点 <span class="league-avg">(平均5475点)</span></span>
                 </div>
             </div>
 
@@ -2934,13 +3241,13 @@
             <div class="section">
                 <h4>手役统计 (前10名)</h4>
                 <ul class="yaku-list">
-                    <li>役牌: 20次 (52.63%) <span class="league-avg">(平均40.9%)</span></li><li>立直: 16次 (42.11%) <span class="league-avg">(平均46.95%)</span></li><li>平和: 8次 (21.05%) <span class="league-avg">(平均22.03%)</span></li><li>门前清自摸和: 6次 (15.79%) <span class="league-avg">(平均23.72%)</span></li><li>断幺九: 5次 (13.16%) <span class="league-avg">(平均18.44%)</span></li><li>混一色: 2次 (5.26%) <span class="league-avg">(平均5.65%)</span></li><li>七对子: 1次 (2.63%) <span class="league-avg">(平均3.08%)</span></li><li>三色同顺: 1次 (2.63%) <span class="league-avg">(平均3.07%)</span></li><li>一杯口: 1次 (2.63%) <span class="league-avg">(平均5.08%)</span></li><li>三暗刻: 1次 (2.63%) <span class="league-avg">(平均1.09%)</span></li>
+                    <li>役牌: 20次 (52.63%) <span class="league-avg">(平均41.39%)</span></li><li>立直: 16次 (42.11%) <span class="league-avg">(平均46.8%)</span></li><li>平和: 8次 (21.05%) <span class="league-avg">(平均21.82%)</span></li><li>门前清自摸和: 6次 (15.79%) <span class="league-avg">(平均23.4%)</span></li><li>断幺九: 5次 (13.16%) <span class="league-avg">(平均18.71%)</span></li><li>混一色: 2次 (5.26%) <span class="league-avg">(平均5.9%)</span></li><li>七对子: 1次 (2.63%) <span class="league-avg">(平均3.07%)</span></li><li>三色同顺: 1次 (2.63%) <span class="league-avg">(平均3.0%)</span></li><li>一杯口: 1次 (2.63%) <span class="league-avg">(平均5.32%)</span></li><li>三暗刻: 1次 (2.63%) <span class="league-avg">(平均1.09%)</span></li>
                 </ul>
             </div>
 
             <div class="section">
                 <h4>流局听牌</h4>
-                <p>流局: 29 次, 听牌 13 次 (44.8%) <span class="league-avg">(平均48.5%)</span></p>
+                <p>流局: 29 次, 听牌 13 次 (44.8%) <span class="league-avg">(平均48.7%)</span></p>
             </div>
         </div>
         
@@ -2949,7 +3256,7 @@
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">天凤R值</div>
-                    <div class="stat-value large">1454.19</div>
+                    <div class="stat-value large">1454.01</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">总点数</div>
@@ -3005,7 +3312,7 @@
                     <span class="summary-label">总和了:</span>
                     <span class="summary-value">8 小局 (16.7%) <span class="league-avg">(平均21.4%)</span></span>
                     <span class="summary-label">平均打点:</span>
-                    <span class="summary-value">5538点 <span class="league-avg">(平均6310点)</span></span>
+                    <span class="summary-value">5538点 <span class="league-avg">(平均6325点)</span></span>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -3020,19 +3327,19 @@
                         <tr>
                             <td class="type-label">立直和了</td>
                             <td>4 小局</td>
-                            <td class="points-value">6925点 <span class="league-avg">(平均7503)</span></td>
-                            <td class="special-stats">一发: 1小局 (25.0%) <span class="league-avg">(平均14.7%)</span> · 里宝: 1小局 (25.0%) <span class="league-avg">(平均30.7%)</span></td>
+                            <td class="points-value">6925点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 1小局 (25.0%) <span class="league-avg">(平均14.4%)</span> · 里宝: 1小局 (25.0%) <span class="league-avg">(平均31.0%)</span></td>
                         </tr>
                         <tr>
                             <td class="type-label">副露和了</td>
                             <td>3 小局</td>
-                            <td class="points-value">4667点 <span class="league-avg">(平均4958)</span></td>
+                            <td class="points-value">4667点 <span class="league-avg">(平均4988)</span></td>
                             <td class="special-stats">-</td>
                         </tr>
                         <tr>
                             <td class="type-label">默听和了</td>
                             <td>1 小局</td>
-                            <td class="points-value">2600点 <span class="league-avg">(平均6475)</span></td>
+                            <td class="points-value">2600点 <span class="league-avg">(平均6511)</span></td>
                             <td class="special-stats">有役门清</td>
                         </tr>
                         
@@ -3056,28 +3363,21 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直</td>
-                            <td>11 小局 (22.9%) <span class="league-avg">(平均21.6%)</span></td>
-                            <td class="rate-good">36.4% <span class="league-avg">(平均46.8%)</span></td>
+                            <td>11 小局 (22.9%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">36.4% <span class="league-avg">(平均46.2%)</span></td>
                             <td class="rate-neutral">27.3%</td>
-                            <td class="rate-bad">9.1% <span class="league-avg">(平均13.8%)</span></td>
+                            <td class="rate-bad">9.1% <span class="league-avg">(平均13.9%)</span></td>
                             <td class="rate-neutral">27.3%</td>
                         </tr>
                         <tr>
                             <td class="type-label">副露</td>
-                            <td>5 小局 (10.4%) <span class="league-avg">(平均31.3%)</span></td>
-                            <td class="rate-good">60.0% <span class="league-avg">(平均27.4%)</span></td>
+                            <td>5 小局 (10.4%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">60.0% <span class="league-avg">(平均27.6%)</span></td>
                             <td class="rate-neutral">0.0%</td>
                             <td class="rate-bad">20.0% <span class="league-avg">(平均13.9%)</span></td>
                             <td class="rate-neutral">20.0%</td>
                         </tr>
-                        <tr>
-                            <td class="type-label">默听</td>
-                            <td>4 次</td>
-                            <td class="rate-good">25.0%</td>
-                            <td class="rate-neutral">0.0%</td>
-                            <td class="rate-bad">0.0%</td>
-                            <td class="rate-neutral">0.0%</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -3086,9 +3386,9 @@
                 <h4>放铳统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">放铳:</span>
-                    <span class="summary-value">14 小局 (29.2%) <span class="league-avg">(平均13.2%)</span></span>
+                    <span class="summary-value">14 小局 (29.2%) <span class="league-avg">(平均13.3%)</span></span>
                     <span class="summary-label">平均失点:</span>
-                    <span class="summary-value negative">4086点 <span class="league-avg">(平均5406点)</span></span>
+                    <span class="summary-value negative">4086点 <span class="league-avg">(平均5475点)</span></span>
                 </div>
             </div>
 
@@ -3147,13 +3447,13 @@
             <div class="section">
                 <h4>手役统计 (前10名)</h4>
                 <ul class="yaku-list">
-                    <li>役牌: 4次 (50.0%) <span class="league-avg">(平均40.9%)</span></li><li>立直: 4次 (50.0%) <span class="league-avg">(平均46.95%)</span></li><li>平和: 3次 (37.5%) <span class="league-avg">(平均22.03%)</span></li><li>三色同顺: 2次 (25.0%) <span class="league-avg">(平均3.07%)</span></li><li>门前清自摸和: 1次 (12.5%) <span class="league-avg">(平均23.72%)</span></li><li>断幺九: 1次 (12.5%) <span class="league-avg">(平均18.44%)</span></li><li>Fully Outside Hand: 1次 (12.5%) <span class="league-avg">(平均0.8%)</span></li>
+                    <li>役牌: 4次 (50.0%) <span class="league-avg">(平均41.39%)</span></li><li>立直: 4次 (50.0%) <span class="league-avg">(平均46.8%)</span></li><li>平和: 3次 (37.5%) <span class="league-avg">(平均21.82%)</span></li><li>三色同顺: 2次 (25.0%) <span class="league-avg">(平均3.0%)</span></li><li>门前清自摸和: 1次 (12.5%) <span class="league-avg">(平均23.4%)</span></li><li>断幺九: 1次 (12.5%) <span class="league-avg">(平均18.71%)</span></li><li>Fully Outside Hand: 1次 (12.5%) <span class="league-avg">(平均0.73%)</span></li>
                 </ul>
             </div>
 
             <div class="section">
                 <h4>流局听牌</h4>
-                <p>流局: 5 次, 听牌 5 次 (100.0%) <span class="league-avg">(平均48.5%)</span></p>
+                <p>流局: 5 次, 听牌 5 次 (100.0%) <span class="league-avg">(平均48.7%)</span></p>
             </div>
         </div>
         
@@ -3162,7 +3462,7 @@
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">天凤R值</div>
-                    <div class="stat-value large">1493.65</div>
+                    <div class="stat-value large">1493.94</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">总点数</div>
@@ -3218,7 +3518,7 @@
                     <span class="summary-label">总和了:</span>
                     <span class="summary-value">16 小局 (28.1%) <span class="league-avg">(平均21.4%)</span></span>
                     <span class="summary-label">平均打点:</span>
-                    <span class="summary-value">5069点 <span class="league-avg">(平均6310点)</span></span>
+                    <span class="summary-value">5069点 <span class="league-avg">(平均6325点)</span></span>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -3233,19 +3533,19 @@
                         <tr>
                             <td class="type-label">立直和了</td>
                             <td>9 小局</td>
-                            <td class="points-value">5944点 <span class="league-avg">(平均7503)</span></td>
-                            <td class="special-stats">一发: 1小局 (11.1%) <span class="league-avg">(平均14.7%)</span> · 里宝: 2小局 (22.2%) <span class="league-avg">(平均30.7%)</span></td>
+                            <td class="points-value">5944点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 1小局 (11.1%) <span class="league-avg">(平均14.4%)</span> · 里宝: 2小局 (22.2%) <span class="league-avg">(平均31.0%)</span></td>
                         </tr>
                         <tr>
                             <td class="type-label">副露和了</td>
                             <td>5 小局</td>
-                            <td class="points-value">3540点 <span class="league-avg">(平均4958)</span></td>
+                            <td class="points-value">3540点 <span class="league-avg">(平均4988)</span></td>
                             <td class="special-stats">-</td>
                         </tr>
                         <tr>
                             <td class="type-label">默听和了</td>
                             <td>2 小局</td>
-                            <td class="points-value">4950点 <span class="league-avg">(平均6475)</span></td>
+                            <td class="points-value">4950点 <span class="league-avg">(平均6511)</span></td>
                             <td class="special-stats">有役门清</td>
                         </tr>
                         
@@ -3269,28 +3569,21 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直</td>
-                            <td>15 小局 (26.3%) <span class="league-avg">(平均21.6%)</span></td>
-                            <td class="rate-good">60.0% <span class="league-avg">(平均46.8%)</span></td>
+                            <td>15 小局 (26.3%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">60.0% <span class="league-avg">(平均46.2%)</span></td>
                             <td class="rate-neutral">6.7%</td>
-                            <td class="rate-bad">0.0% <span class="league-avg">(平均13.8%)</span></td>
+                            <td class="rate-bad">0.0% <span class="league-avg">(平均13.9%)</span></td>
                             <td class="rate-neutral">33.3%</td>
                         </tr>
                         <tr>
                             <td class="type-label">副露</td>
-                            <td>14 小局 (24.6%) <span class="league-avg">(平均31.3%)</span></td>
-                            <td class="rate-good">35.7% <span class="league-avg">(平均27.4%)</span></td>
+                            <td>14 小局 (24.6%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">35.7% <span class="league-avg">(平均27.6%)</span></td>
                             <td class="rate-neutral">0.0%</td>
                             <td class="rate-bad">35.7% <span class="league-avg">(平均13.9%)</span></td>
                             <td class="rate-neutral">28.6%</td>
                         </tr>
-                        <tr>
-                            <td class="type-label">默听</td>
-                            <td>6 次</td>
-                            <td class="rate-good">33.3%</td>
-                            <td class="rate-neutral">0.0%</td>
-                            <td class="rate-bad">16.7%</td>
-                            <td class="rate-neutral">0.0%</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -3299,9 +3592,9 @@
                 <h4>放铳统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">放铳:</span>
-                    <span class="summary-value">12 小局 (21.1%) <span class="league-avg">(平均13.2%)</span></span>
+                    <span class="summary-value">12 小局 (21.1%) <span class="league-avg">(平均13.3%)</span></span>
                     <span class="summary-label">平均失点:</span>
-                    <span class="summary-value negative">6650点 <span class="league-avg">(平均5406点)</span></span>
+                    <span class="summary-value negative">6650点 <span class="league-avg">(平均5475点)</span></span>
                 </div>
             </div>
 
@@ -3370,13 +3663,13 @@
             <div class="section">
                 <h4>手役统计 (前10名)</h4>
                 <ul class="yaku-list">
-                    <li>立直: 9次 (56.25%) <span class="league-avg">(平均46.95%)</span></li><li>一杯口: 4次 (25.0%) <span class="league-avg">(平均5.08%)</span></li><li>役牌: 4次 (25.0%) <span class="league-avg">(平均40.9%)</span></li><li>平和: 4次 (25.0%) <span class="league-avg">(平均22.03%)</span></li><li>门前清自摸和: 3次 (18.75%) <span class="league-avg">(平均23.72%)</span></li><li>断幺九: 2次 (12.5%) <span class="league-avg">(平均18.44%)</span></li><li>混一色: 2次 (12.5%) <span class="league-avg">(平均5.65%)</span></li>
+                    <li>立直: 9次 (56.25%) <span class="league-avg">(平均46.8%)</span></li><li>一杯口: 4次 (25.0%) <span class="league-avg">(平均5.32%)</span></li><li>役牌: 4次 (25.0%) <span class="league-avg">(平均41.39%)</span></li><li>平和: 4次 (25.0%) <span class="league-avg">(平均21.82%)</span></li><li>门前清自摸和: 3次 (18.75%) <span class="league-avg">(平均23.4%)</span></li><li>断幺九: 2次 (12.5%) <span class="league-avg">(平均18.71%)</span></li><li>混一色: 2次 (12.5%) <span class="league-avg">(平均5.9%)</span></li>
                 </ul>
             </div>
 
             <div class="section">
                 <h4>流局听牌</h4>
-                <p>流局: 5 次, 听牌 1 次 (20.0%) <span class="league-avg">(平均48.5%)</span></p>
+                <p>流局: 5 次, 听牌 1 次 (20.0%) <span class="league-avg">(平均48.7%)</span></p>
             </div>
         </div>
         
@@ -3385,7 +3678,7 @@
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">天凤R值</div>
-                    <div class="stat-value large">1442.55</div>
+                    <div class="stat-value large">1442.84</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">总点数</div>
@@ -3441,7 +3734,7 @@
                     <span class="summary-label">总和了:</span>
                     <span class="summary-value">3 小局 (13.0%) <span class="league-avg">(平均21.4%)</span></span>
                     <span class="summary-label">平均打点:</span>
-                    <span class="summary-value">4833点 <span class="league-avg">(平均6310点)</span></span>
+                    <span class="summary-value">4833点 <span class="league-avg">(平均6325点)</span></span>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -3456,13 +3749,13 @@
                         <tr>
                             <td class="type-label">立直和了</td>
                             <td>3 小局</td>
-                            <td class="points-value">4833点 <span class="league-avg">(平均7503)</span></td>
-                            <td class="special-stats">一发: 1小局 (33.3%) <span class="league-avg">(平均14.7%)</span> · 里宝: 1小局 (33.3%) <span class="league-avg">(平均30.7%)</span></td>
+                            <td class="points-value">4833点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 1小局 (33.3%) <span class="league-avg">(平均14.4%)</span> · 里宝: 1小局 (33.3%) <span class="league-avg">(平均31.0%)</span></td>
                         </tr>
                         <tr>
                             <td class="type-label">副露和了</td>
                             <td>0 小局</td>
-                            <td class="points-value">0点 <span class="league-avg">(平均4958)</span></td>
+                            <td class="points-value">0点 <span class="league-avg">(平均4988)</span></td>
                             <td class="special-stats">-</td>
                         </tr>
                         
@@ -3487,28 +3780,21 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直</td>
-                            <td>8 小局 (34.8%) <span class="league-avg">(平均21.6%)</span></td>
-                            <td class="rate-good">37.5% <span class="league-avg">(平均46.8%)</span></td>
+                            <td>8 小局 (34.8%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">37.5% <span class="league-avg">(平均46.2%)</span></td>
                             <td class="rate-neutral">37.5%</td>
-                            <td class="rate-bad">12.5% <span class="league-avg">(平均13.8%)</span></td>
+                            <td class="rate-bad">12.5% <span class="league-avg">(平均13.9%)</span></td>
                             <td class="rate-neutral">12.5%</td>
                         </tr>
                         <tr>
                             <td class="type-label">副露</td>
-                            <td>6 小局 (26.1%) <span class="league-avg">(平均31.3%)</span></td>
-                            <td class="rate-good">0.0% <span class="league-avg">(平均27.4%)</span></td>
+                            <td>6 小局 (26.1%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">0.0% <span class="league-avg">(平均27.6%)</span></td>
                             <td class="rate-neutral">0.0%</td>
                             <td class="rate-bad">33.3% <span class="league-avg">(平均13.9%)</span></td>
                             <td class="rate-neutral">66.7%</td>
                         </tr>
-                        <tr>
-                            <td class="type-label">默听</td>
-                            <td>1 次</td>
-                            <td class="rate-good">0.0%</td>
-                            <td class="rate-neutral">0.0%</td>
-                            <td class="rate-bad">0.0%</td>
-                            <td class="rate-neutral">0.0%</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -3517,9 +3803,9 @@
                 <h4>放铳统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">放铳:</span>
-                    <span class="summary-value">4 小局 (17.4%) <span class="league-avg">(平均13.2%)</span></span>
+                    <span class="summary-value">4 小局 (17.4%) <span class="league-avg">(平均13.3%)</span></span>
                     <span class="summary-label">平均失点:</span>
-                    <span class="summary-value negative">7000点 <span class="league-avg">(平均5406点)</span></span>
+                    <span class="summary-value negative">7000点 <span class="league-avg">(平均5475点)</span></span>
                 </div>
             </div>
 
@@ -3578,13 +3864,214 @@
             <div class="section">
                 <h4>手役统计 (前10名)</h4>
                 <ul class="yaku-list">
-                    <li>立直: 3次 (100.0%) <span class="league-avg">(平均46.95%)</span></li><li>平和: 1次 (33.33%) <span class="league-avg">(平均22.03%)</span></li>
+                    <li>立直: 3次 (100.0%) <span class="league-avg">(平均46.8%)</span></li><li>平和: 1次 (33.33%) <span class="league-avg">(平均21.82%)</span></li>
                 </ul>
             </div>
 
             <div class="section">
                 <h4>流局听牌</h4>
-                <p>流局: 4 次, 听牌 3 次 (75.0%) <span class="league-avg">(平均48.5%)</span></p>
+                <p>流局: 4 次, 听牌 3 次 (75.0%) <span class="league-avg">(平均48.7%)</span></p>
+            </div>
+        </div>
+        
+        <div class="player-card" id="player-gumikurumi">
+            <h3>gumikurumi</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">天凤R值</div>
+                    <div class="stat-value large">1510.72</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">总点数</div>
+                    <div class="stat-value">+12800</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">平均顺位</div>
+                    <div class="stat-value">2.00</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">对战数</div>
+                    <div class="stat-value">1 半庄</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>名次分布</h4>
+                <div class="rank-bars">
+                    <div class="rank-bar">
+                        <span class="rank-label">1位</span>
+                        <div class="bar-container">
+                            <div class="bar bar-1" style="width: 0.0%"></div>
+                            <span class="bar-text">0 次 (0.0%)</span>
+                        </div>
+                    </div>
+                    <div class="rank-bar">
+                        <span class="rank-label">2位</span>
+                        <div class="bar-container">
+                            <div class="bar bar-2" style="width: 100.0%"></div>
+                            <span class="bar-text">1 次 (100.0%)</span>
+                        </div>
+                    </div>
+                    <div class="rank-bar">
+                        <span class="rank-label">3位</span>
+                        <div class="bar-container">
+                            <div class="bar bar-3" style="width: 0.0%"></div>
+                            <span class="bar-text">0 次 (0.0%)</span>
+                        </div>
+                    </div>
+                    <div class="rank-bar">
+                        <span class="rank-label">4位</span>
+                        <div class="bar-container">
+                            <div class="bar bar-4" style="width: 0.0%"></div>
+                            <span class="bar-text">0 次 (0.0%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>和了统计</h4>
+                <div class="summary-box">
+                    <span class="summary-label">总和了:</span>
+                    <span class="summary-value">2 小局 (18.2%) <span class="league-avg">(平均21.4%)</span></span>
+                    <span class="summary-label">平均打点:</span>
+                    <span class="summary-value">8150点 <span class="league-avg">(平均6325点)</span></span>
+                </div>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>类型</th>
+                            <th>次数</th>
+                            <th>平均打点</th>
+                            <th>特殊统计</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="type-label">立直和了</td>
+                            <td>2 小局</td>
+                            <td class="points-value">8150点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 0小局 (0.0%) <span class="league-avg">(平均14.4%)</span> · 里宝: 1小局 (50.0%) <span class="league-avg">(平均31.0%)</span></td>
+                        </tr>
+                        <tr>
+                            <td class="type-label">副露和了</td>
+                            <td>0 小局</td>
+                            <td class="points-value">0点 <span class="league-avg">(平均4988)</span></td>
+                            <td class="special-stats">-</td>
+                        </tr>
+                        
+                        
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h4>立直 & 副露</h4>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>类型</th>
+                            <th>次数/比率</th>
+                            <th>和了</th>
+                            <th>流局</th>
+                            <th>放铳</th>
+                            <th>横移动</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="type-label">立直</td>
+                            <td>3 小局 (27.3%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">66.7% <span class="league-avg">(平均46.2%)</span></td>
+                            <td class="rate-neutral">0.0%</td>
+                            <td class="rate-bad">0.0% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">33.3%</td>
+                        </tr>
+                        <tr>
+                            <td class="type-label">副露</td>
+                            <td>1 小局 (9.1%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">0.0% <span class="league-avg">(平均27.6%)</span></td>
+                            <td class="rate-neutral">0.0%</td>
+                            <td class="rate-bad">0.0% <span class="league-avg">(平均13.9%)</span></td>
+                            <td class="rate-neutral">100.0%</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h4>放铳统计</h4>
+                <div class="summary-box">
+                    <span class="summary-label">放铳:</span>
+                    <span class="summary-value">1 小局 (9.1%) <span class="league-avg">(平均13.3%)</span></span>
+                    <span class="summary-label">平均失点:</span>
+                    <span class="summary-value negative">3900点 <span class="league-avg">(平均5475点)</span></span>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>对战情况</h4>
+                
+            <table class="vs-table">
+                <thead>
+                    <tr>
+                        <th>对手</th>
+                        <th>对战数</th>
+                        <th>胜率</th>
+                        <th>和了获点</th>
+                        <th>放铳失点</th>
+                        <th>净和了放铳点数</th>
+                        <th>总得点差</th>
+                    </tr>
+                </thead>
+                <tbody>
+            
+                    <tr>
+                        <td class="opponent-name"><a href="#player-RinshanNomi" class="opponent-link">RinshanNomi</a></td>
+                        <td>1</td>
+                        <td>100.0%</td>
+                        <td class="positive">+8000</td>
+                        <td class="negative">-0</td>
+                        <td class="positive">+8000</td>
+                        <td class="positive">+63600</td>
+                    </tr>
+                
+                    <tr>
+                        <td class="opponent-name"><a href="#player-姫野婭也" class="opponent-link">姫野婭也</a></td>
+                        <td>1</td>
+                        <td>100.0%</td>
+                        <td class="positive">+0</td>
+                        <td class="negative">-0</td>
+                        <td class="neutral">+0</td>
+                        <td class="positive">+28900</td>
+                    </tr>
+                
+                    <tr>
+                        <td class="opponent-name"><a href="#player-santi" class="opponent-link">santi</a></td>
+                        <td>1</td>
+                        <td>0.0%</td>
+                        <td class="positive">+0</td>
+                        <td class="negative">-3900</td>
+                        <td class="negative">-3900</td>
+                        <td class="negative">-41300</td>
+                    </tr>
+                
+                </tbody>
+            </table>
+            
+            </div>
+
+            <div class="section">
+                <h4>手役统计 (前10名)</h4>
+                <ul class="yaku-list">
+                    <li>立直: 2次 (100.0%) <span class="league-avg">(平均46.8%)</span></li><li>门前清自摸和: 1次 (50.0%) <span class="league-avg">(平均23.4%)</span></li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h4>流局听牌</h4>
+                <p>流局: 1 次, 听牌 0 次 (0.0%) <span class="league-avg">(平均48.7%)</span></p>
             </div>
         </div>
         
@@ -3593,7 +4080,7 @@
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-label">天凤R值</div>
-                    <div class="stat-value large">1490.73</div>
+                    <div class="stat-value large">1490.87</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">总点数</div>
@@ -3649,7 +4136,7 @@
                     <span class="summary-label">总和了:</span>
                     <span class="summary-value">1 小局 (8.3%) <span class="league-avg">(平均21.4%)</span></span>
                     <span class="summary-label">平均打点:</span>
-                    <span class="summary-value">2900点 <span class="league-avg">(平均6310点)</span></span>
+                    <span class="summary-value">2900点 <span class="league-avg">(平均6325点)</span></span>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -3664,13 +4151,13 @@
                         <tr>
                             <td class="type-label">立直和了</td>
                             <td>1 小局</td>
-                            <td class="points-value">2900点 <span class="league-avg">(平均7503)</span></td>
-                            <td class="special-stats">一发: 0小局 (0.0%) <span class="league-avg">(平均14.7%)</span> · 里宝: 1小局 (100.0%) <span class="league-avg">(平均30.7%)</span></td>
+                            <td class="points-value">2900点 <span class="league-avg">(平均7508)</span></td>
+                            <td class="special-stats">一发: 0小局 (0.0%) <span class="league-avg">(平均14.4%)</span> · 里宝: 1小局 (100.0%) <span class="league-avg">(平均31.0%)</span></td>
                         </tr>
                         <tr>
                             <td class="type-label">副露和了</td>
                             <td>0 小局</td>
-                            <td class="points-value">0点 <span class="league-avg">(平均4958)</span></td>
+                            <td class="points-value">0点 <span class="league-avg">(平均4988)</span></td>
                             <td class="special-stats">-</td>
                         </tr>
                         
@@ -3695,28 +4182,21 @@
                     <tbody>
                         <tr>
                             <td class="type-label">立直</td>
-                            <td>5 小局 (41.7%) <span class="league-avg">(平均21.6%)</span></td>
-                            <td class="rate-good">20.0% <span class="league-avg">(平均46.8%)</span></td>
+                            <td>5 小局 (41.7%) <span class="league-avg">(平均21.9%)</span></td>
+                            <td class="rate-good">20.0% <span class="league-avg">(平均46.2%)</span></td>
                             <td class="rate-neutral">20.0%</td>
-                            <td class="rate-bad">20.0% <span class="league-avg">(平均13.8%)</span></td>
+                            <td class="rate-bad">20.0% <span class="league-avg">(平均13.9%)</span></td>
                             <td class="rate-neutral">40.0%</td>
                         </tr>
                         <tr>
                             <td class="type-label">副露</td>
-                            <td>0 小局 (0.0%) <span class="league-avg">(平均31.3%)</span></td>
-                            <td class="rate-good">0.0% <span class="league-avg">(平均27.4%)</span></td>
+                            <td>0 小局 (0.0%) <span class="league-avg">(平均31.6%)</span></td>
+                            <td class="rate-good">0.0% <span class="league-avg">(平均27.6%)</span></td>
                             <td class="rate-neutral">0.0%</td>
                             <td class="rate-bad">0.0% <span class="league-avg">(平均13.9%)</span></td>
                             <td class="rate-neutral">0.0%</td>
                         </tr>
-                        <tr>
-                            <td class="type-label">默听</td>
-                            <td>2 次</td>
-                            <td class="rate-good">0.0%</td>
-                            <td class="rate-neutral">0.0%</td>
-                            <td class="rate-bad">0.0%</td>
-                            <td class="rate-neutral">50.0%</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -3725,9 +4205,9 @@
                 <h4>放铳统计</h4>
                 <div class="summary-box">
                     <span class="summary-label">放铳:</span>
-                    <span class="summary-value">1 小局 (8.3%) <span class="league-avg">(平均13.2%)</span></span>
+                    <span class="summary-value">1 小局 (8.3%) <span class="league-avg">(平均13.3%)</span></span>
                     <span class="summary-label">平均失点:</span>
-                    <span class="summary-value negative">3900点 <span class="league-avg">(平均5406点)</span></span>
+                    <span class="summary-value negative">3900点 <span class="league-avg">(平均5475点)</span></span>
                 </div>
             </div>
 
@@ -3786,13 +4266,13 @@
             <div class="section">
                 <h4>手役统计 (前10名)</h4>
                 <ul class="yaku-list">
-                    <li>立直: 1次 (100.0%) <span class="league-avg">(平均46.95%)</span></li>
+                    <li>立直: 1次 (100.0%) <span class="league-avg">(平均46.8%)</span></li>
                 </ul>
             </div>
 
             <div class="section">
                 <h4>流局听牌</h4>
-                <p>流局: 1 次, 听牌 1 次 (100.0%) <span class="league-avg">(平均48.5%)</span></p>
+                <p>流局: 1 次, 听牌 1 次 (100.0%) <span class="league-avg">(平均48.7%)</span></p>
             </div>
         </div>
         

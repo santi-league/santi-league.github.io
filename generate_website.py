@@ -97,6 +97,11 @@ TRANSLATIONS = {
         'yakuman': '役满',
         'sanbaiman': '三倍满',
         'view_replay': '查看牌谱',
+        'recent_games': '最近牌谱',
+        'game_date': '日期',
+        'participants': '参与玩家',
+        'results': '结果',
+        'final_rank': '最终名次',
     },
     'en': {
         'title': 'Mahjong Soul Stats - Santi League',
@@ -174,6 +179,11 @@ TRANSLATIONS = {
         'yakuman': 'Yakuman',
         'sanbaiman': 'Sanbaiman',
         'view_replay': 'View Replay',
+        'recent_games': 'Recent Games',
+        'game_date': 'Date',
+        'participants': 'Players',
+        'results': 'Results',
+        'final_rank': 'Final Ranking',
     }
 }
 
@@ -197,6 +207,66 @@ def extract_latest_date(files):
         latest_date = max(dates)
         return latest_date.strftime("%Y年%m月%d日")
     return None
+
+
+def extract_recent_games(files, results, count=5):
+    """
+    提取最近的N个牌谱信息
+
+    返回格式: [
+        {
+            'date': '2025年1月15日',
+            'players': ['玩家1', '玩家2', '玩家3', '玩家4'],
+            'ranks': [1, 2, 3, 4],  # 对应每个玩家的名次
+            'scores': [30000, 25000, 20000, 15000]  # 对应每个玩家的最终点数
+        },
+        ...
+    ]
+    """
+    # 创建文件和结果的映射
+    file_result_pairs = []
+    for fp, result in zip(files, results):
+        filename = os.path.basename(fp)
+        # 匹配格式：月_日_年
+        match = re.match(r'(\d+)_(\d+)_(\d+)', filename)
+        if match:
+            month, day, year = match.groups()
+            try:
+                date_obj = datetime(int(year), int(month), int(day))
+                file_result_pairs.append((date_obj, fp, result))
+            except ValueError:
+                continue
+
+    # 按日期降序排序
+    file_result_pairs.sort(key=lambda x: x[0], reverse=True)
+
+    # 提取最近的N个牌谱
+    recent_games = []
+    for date_obj, fp, result in file_result_pairs[:count]:
+        summary = result.get('summary', [])
+
+        # 提取玩家信息
+        players = []
+        ranks = []
+        scores = []
+
+        # 按名次排序
+        sorted_summary = sorted(summary, key=lambda x: x.get('rank', 99))
+
+        for player_data in sorted_summary:
+            players.append(player_data.get('name', '未知'))
+            ranks.append(player_data.get('rank', 0))
+            scores.append(player_data.get('final_points', 0))
+
+        recent_games.append({
+            'date': date_obj.strftime("%Y年%m月%d日"),
+            'date_en': date_obj.strftime("%Y-%m-%d"),
+            'players': players,
+            'ranks': ranks,
+            'scores': scores
+        })
+
+    return recent_games
 
 
 def generate_index_html(lang='zh'):
@@ -359,7 +429,7 @@ def generate_index_html(lang='zh'):
     return html
 
 
-def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='zh', honor_games=None):
+def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='zh', honor_games=None, recent_games=None):
     """生成统计页面"""
     t = TRANSLATIONS[lang]
     lang_code = 'zh-CN' if lang == 'zh' else 'en'
@@ -383,6 +453,52 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
 
     # 日期信息
     date_info = f"<p class='date-info'>{t['data_updated']}: {latest_date}</p>" if latest_date else ""
+
+    # 最近牌谱部分
+    recent_section = ""
+    if recent_games and len(recent_games) > 0:
+        recent_cards = ""
+        for game in recent_games:
+            date_str = game['date'] if lang == 'zh' else game['date_en']
+
+            # 生成玩家和结果列表
+            player_rows = ""
+            for i, (player, rank, score) in enumerate(zip(game['players'], game['ranks'], game['scores'])):
+                rank_class = f"rank-{rank}"
+                player_rows += f"""
+                <tr class="{rank_class}">
+                    <td class="rank-cell">{rank}</td>
+                    <td class="player-cell">{player}</td>
+                    <td class="score-cell">{score}</td>
+                </tr>
+                """
+
+            recent_cards += f"""
+            <div class="recent-game-card">
+                <div class="game-date">{date_str}</div>
+                <table class="game-results-table">
+                    <thead>
+                        <tr>
+                            <th>{t['final_rank']}</th>
+                            <th>{t['player']}</th>
+                            <th>{t['total_score']}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {player_rows}
+                    </tbody>
+                </table>
+            </div>
+            """
+
+        recent_section = f"""
+        <div class="recent-games-section">
+            <h2>{t['recent_games']}</h2>
+            <div class="recent-games-grid">
+                {recent_cards}
+            </div>
+        </div>
+        """
 
     # 荣誉牌谱部分
     honor_section = ""
@@ -1108,6 +1224,113 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
             font-size: 16px;
         }}
 
+        /* 最近牌谱样式 - 紧凑版 */
+        .recent-games-section {{
+            margin-bottom: 30px;
+        }}
+
+        .recent-games-section h2 {{
+            margin: 0 0 15px 0;
+            color: #667eea;
+            font-size: 24px;
+        }}
+
+        .recent-games-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }}
+
+        .recent-game-card {{
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            border-top: 3px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }}
+
+        .recent-game-card:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+        }}
+
+        .game-date {{
+            font-size: 13px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }}
+
+        .game-results-table {{
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }}
+
+        .game-results-table th {{
+            background: #f8f9fa;
+            padding: 5px 3px;
+            text-align: center;
+            font-weight: 600;
+            color: #555;
+            font-size: 11px;
+            border-bottom: 1px solid #e0e0e0;
+        }}
+
+        .game-results-table td {{
+            padding: 6px 3px;
+            text-align: center;
+            border-bottom: 1px solid #f5f5f5;
+        }}
+
+        .game-results-table tbody tr:last-child td {{
+            border-bottom: none;
+        }}
+
+        .game-results-table .rank-1 {{
+            background: linear-gradient(90deg, #fffbf0 0%, #fff 100%);
+        }}
+
+        .game-results-table .rank-1 .rank-cell {{
+            color: #ffc107;
+            font-weight: bold;
+            font-size: 14px;
+        }}
+
+        .game-results-table .rank-2 .rank-cell {{
+            color: #666;
+            font-weight: 600;
+        }}
+
+        .game-results-table .rank-3 .rank-cell {{
+            color: #999;
+        }}
+
+        .game-results-table .rank-4 .rank-cell {{
+            color: #ccc;
+        }}
+
+        .game-results-table .player-cell {{
+            font-weight: 500;
+            color: #333;
+            font-size: 11px;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }}
+
+        .game-results-table .score-cell {{
+            color: #667eea;
+            font-weight: 500;
+            font-size: 11px;
+        }}
+
         /* 荣誉牌谱样式 */
         .honor-games-section {{
             margin-bottom: 40px;
@@ -1249,6 +1472,10 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
                 gap: 8px;
             }}
 
+            .recent-games-grid {{
+                grid-template-columns: 1fr;
+            }}
+
             .honor-games-grid {{
                 grid-template-columns: 1fr;
             }}
@@ -1264,6 +1491,7 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
     </div>
 
     <div class="container">
+        {recent_section}
         {honor_section}
 
         <div class="summary-table">
@@ -1346,16 +1574,19 @@ def main():
         # 提取最新日期
         latest_date = extract_latest_date(files)
 
+        # 提取最近5个牌谱（注意：files需要排序，因为results是按sorted(files)处理的）
+        recent_games = extract_recent_games(sorted(files), results, count=5)
+
         stats = calculate_player_stats(results, round_counts)
 
         # 生成中文版
-        m_league_html_zh = generate_stats_html("M-League 数据统计", dict(stats), "m-league", latest_date, lang='zh', honor_games=honor_games)
+        m_league_html_zh = generate_stats_html("M-League 数据统计", dict(stats), "m-league", latest_date, lang='zh', honor_games=honor_games, recent_games=recent_games)
         with open("docs/m-league.html", "w", encoding="utf-8") as f:
             f.write(m_league_html_zh)
         print(f"✓ 已生成 docs/m-league.html (中文, 处理了 {len(results)} 个文件)", file=sys.stderr)
 
         # 生成英文版
-        m_league_html_en = generate_stats_html("M-League Statistics", dict(stats), "m-league", latest_date, lang='en', honor_games=honor_games)
+        m_league_html_en = generate_stats_html("M-League Statistics", dict(stats), "m-league", latest_date, lang='en', honor_games=honor_games, recent_games=recent_games)
         with open("docs/m-league-en.html", "w", encoding="utf-8") as f:
             f.write(m_league_html_en)
         print(f"✓ 已生成 docs/m-league-en.html (英文, 处理了 {len(results)} 个文件)", file=sys.stderr)

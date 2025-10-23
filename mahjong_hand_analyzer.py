@@ -477,9 +477,9 @@ class HandTracker:
                 self.hand.remove(discard_tile)
             self.hand.sort()
 
-        # 每次摸打后检查默听状态
-        if len(self.hand) == 13:
-            self._check_dama_state()
+        # 每次摸打后检查默听状态（注释掉以提高效率，不计算向听数）
+        # if len(self.hand) == 13:
+        #     self._check_dama_state()
 
         self._record_snapshot(
             "action_pair",
