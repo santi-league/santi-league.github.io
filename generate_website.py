@@ -227,22 +227,27 @@ def extract_recent_games(files, results, count=5):
     file_result_pairs = []
     for fp, result in zip(files, results):
         filename = os.path.basename(fp)
-        # 匹配格式：月_日_年
+        # 匹配格式：月_日_年 或 月_日_年 (数字)
         match = re.match(r'(\d+)_(\d+)_(\d+)', filename)
+        # 提取括号里的数字（如果有）
+        number_match = re.search(r'\((\d+)\)', filename)
+        file_number = int(number_match.group(1)) if number_match else 0
+
         if match:
             month, day, year = match.groups()
             try:
                 date_obj = datetime(int(year), int(month), int(day))
-                file_result_pairs.append((date_obj, fp, result))
+                # 使用 (日期, 文件编号) 作为排序键
+                file_result_pairs.append((date_obj, file_number, fp, result))
             except ValueError:
                 continue
 
-    # 按日期降序排序
-    file_result_pairs.sort(key=lambda x: x[0], reverse=True)
+    # 按日期降序、同日期按文件编号降序排序
+    file_result_pairs.sort(key=lambda x: (x[0], x[1]), reverse=True)
 
     # 提取最近的N个牌谱
     recent_games = []
-    for date_obj, fp, result in file_result_pairs[:count]:
+    for date_obj, file_number, fp, result in file_result_pairs[:count]:
         summary = result.get('summary', [])
 
         # 提取玩家信息
