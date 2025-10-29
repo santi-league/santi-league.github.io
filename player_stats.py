@@ -121,21 +121,34 @@ except ImportError as e:
     raise
 
 
-def calculate_tenhou_r_value(rank: int, games_played: int, player_r: float, table_avg_r: float) -> float:
+def calculate_tenhou_r_value(rank: int, games_played: int, player_r: float, table_avg_r: float, final_points: int) -> float:
     """
-    计算天凤R值变动
+    计算天凤R值变动（M-League规则）
 
     参数:
     - rank: 名次 (1-4)
     - games_played: 已进行的游戏数
     - player_r: 玩家当前R值
     - table_avg_r: 桌平均R值
+    - final_points: 最终素点
 
     返回: R值变动量
+
+    计算公式：
+    R值变动 = 试合数补正 × ((Uma + 素点差)/1000 + (桌平均R - 自己R)/40)
     """
-    # 对战结果（段位戦4人打ち）
-    rank_points = {1: 30, 2: 10, 3: -10, 4: -30}
-    result = rank_points.get(rank, 0)
+    # M-League Uma（单位：点）
+    uma_points = {1: 45000, 2: 5000, 3: -15000, 4: -35000}
+    uma = uma_points.get(rank, 0)
+
+    # 素点差（单位：点）
+    score_diff = final_points - 25000
+
+    # 合计点数变化（转换为千点单位）
+    total_change = (uma + score_diff) / 1000.0
+
+    # 桌平均R补正：(桌平均R - 自己的R) / 40
+    r_correction = (table_avg_r - player_r) / 40.0
 
     # 试合数补正
     if games_played < 400:
@@ -143,16 +156,8 @@ def calculate_tenhou_r_value(rank: int, games_played: int, player_r: float, tabl
     else:
         games_correction = 0.2
 
-    # 补正值：(桌平均R - 自己的R) / 40
-    # 桌平均R如果低于1500则按1500计算
-    table_avg_r_corrected = max(table_avg_r, 1500)
-    correction_value = (table_avg_r_corrected - player_r) / 40
-
-    # スケーリング係数（段位戦）
-    scaling = 1.0
-
-    # R值变动 = 试合数补正 × (对战结果 + 补正值) × スケーリング係数
-    r_change = games_correction * (result + correction_value) * scaling
+    # R值变动 = 试合数补正 × (点数变化 + R值补正)
+    r_change = games_correction * (total_change + r_correction)
 
     # 小数第3位以下切り上げ（向上取整到小数点后2位）
     import math
@@ -269,6 +274,11 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
                 continue
 
             pd = player_data[name]
+
+            # 天凤R值计算：先获取进行这局游戏前的游戏数
+            games_before = pd["games"]
+
+            # 然后再累加统计数据
             pd["games"] += 1
             pd["total_rounds"] += rounds_in_game
             pd["furo_hands"] += player_stat.get("furo_hands", 0)
@@ -311,10 +321,9 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
             elif rank == 4:
                 pd["rank_4"] += 1
 
-            # 天凤R值计算
-            games_before = pd["games"]  # 这是进行这局游戏前的游戏数
+            # 使用之前获取的 games_before 计算R值
             current_r = player_r_values[name]
-            r_change = calculate_tenhou_r_value(rank, games_before, current_r, table_avg_r)
+            r_change = calculate_tenhou_r_value(rank, games_before, current_r, table_avg_r, final_points)
             player_r_values[name] += r_change
             pd["current_r"] = player_r_values[name]
 

@@ -42,7 +42,7 @@ TRANSLATIONS = {
         'riichi_rate': '立直率',
         'furo_rate': '副露率',
         'detailed_stats': '详细统计',
-        'tenhou_r': '天凤R值',
+        'tenhou_r': 'R值',
         'rank_distribution': '名次分布',
         'rank_1': '1位',
         'rank_2': '2位',
@@ -97,11 +97,19 @@ TRANSLATIONS = {
         'yakuman': '役满',
         'sanbaiman': '三倍满',
         'view_replay': '查看牌谱',
-        'recent_games': '最近牌谱',
+        'recent_games': '最新记录的牌谱数据',
         'game_date': '日期',
         'participants': '参与玩家',
         'results': '结果',
         'final_rank': '最终名次',
+        'r_before': '局前R',
+        'games_count': '场数',
+        'score_change_pt': '点数变化(pt)',
+        'r_correction': 'R补正',
+        'games_coef': '场数系数',
+        'r_change': 'R变动',
+        'r_after': '局后R',
+        'table_avg_r': '桌平均R',
     },
     'en': {
         'title': 'Mahjong Soul Stats - Santi League',
@@ -124,7 +132,7 @@ TRANSLATIONS = {
         'riichi_rate': 'Riichi Rate',
         'furo_rate': 'Furo Rate',
         'detailed_stats': 'Detailed Statistics',
-        'tenhou_r': 'Tenhou R',
+        'tenhou_r': 'R Value',
         'rank_distribution': 'Rank Distribution',
         'rank_1': '1st',
         'rank_2': '2nd',
@@ -179,13 +187,46 @@ TRANSLATIONS = {
         'yakuman': 'Yakuman',
         'sanbaiman': 'Sanbaiman',
         'view_replay': 'View Replay',
-        'recent_games': 'Recent Games',
+        'recent_games': 'Latest Recorded Game Data',
         'game_date': 'Date',
         'participants': 'Players',
         'results': 'Results',
         'final_rank': 'Final Ranking',
+        'r_before': 'R Before',
+        'games_count': 'Games',
+        'score_change_pt': 'Score Δ(pt)',
+        'r_correction': 'R Corr.',
+        'games_coef': 'Games Coef.',
+        'r_change': 'R Δ',
+        'r_after': 'R After',
+        'table_avg_r': 'Table Avg R',
     }
 }
+
+
+def sort_files_by_date(files):
+    """
+    按日期和文件编号排序文件
+    返回按时间顺序排序的文件列表（从旧到新）
+    """
+    file_with_dates = []
+    for fp in files:
+        filename = os.path.basename(fp)
+        match = re.match(r'(\d+)_(\d+)_(\d+)', filename)
+        number_match = re.search(r'\((\d+)\)', filename)
+        file_number = int(number_match.group(1)) if number_match else 0
+
+        if match:
+            month, day, year = match.groups()
+            try:
+                date_obj = datetime(int(year), int(month), int(day))
+                file_with_dates.append((date_obj, file_number, fp))
+            except ValueError:
+                continue
+
+    # 按日期和文件编号排序
+    file_with_dates.sort(key=lambda x: (x[0], x[1]))
+    return [fp for _, _, fp in file_with_dates]
 
 
 def extract_latest_date(files):
@@ -209,27 +250,41 @@ def extract_latest_date(files):
     return None
 
 
-def extract_recent_games(files, results, count=5):
+def extract_recent_games(files, results, count=5, all_results=None):
     """
-    提取最近的N个牌谱信息
+    提取最近的N个牌谱信息，包含R值计算详情
 
     返回格式: [
         {
             'date': '2025年1月15日',
-            'players': ['玩家1', '玩家2', '玩家3', '玩家4'],
-            'ranks': [1, 2, 3, 4],  # 对应每个玩家的名次
-            'scores': [30000, 25000, 20000, 15000]  # 对应每个玩家的最终点数
+            'players_detail': [
+                {
+                    'name': '玩家名',
+                    'rank': 1,
+                    'final_points': 30000,
+                    'r_before': 1500.0,
+                    'games_before': 10,
+                    'score_change': 50.0,  # (uma + 素点差) / 1000
+                    'r_correction': 0.0,   # (桌平均R - 玩家R) / 40
+                    'games_correction': 0.8,  # 试合数补正系数
+                    'r_change': 40.0,
+                    'r_after': 1540.0
+                },
+                ...
+            ],
+            'table_avg_r': 1500.0
         },
         ...
     ]
     """
-    # 创建文件和结果的映射
+    from collections import defaultdict
+    from player_stats import calculate_tenhou_r_value
+
+    # 创建文件和结果的映射，按时间顺序排序
     file_result_pairs = []
     for fp, result in zip(files, results):
         filename = os.path.basename(fp)
-        # 匹配格式：月_日_年 或 月_日_年 (数字)
         match = re.match(r'(\d+)_(\d+)_(\d+)', filename)
-        # 提取括号里的数字（如果有）
         number_match = re.search(r'\((\d+)\)', filename)
         file_number = int(number_match.group(1)) if number_match else 0
 
@@ -237,41 +292,88 @@ def extract_recent_games(files, results, count=5):
             month, day, year = match.groups()
             try:
                 date_obj = datetime(int(year), int(month), int(day))
-                # 使用 (日期, 文件编号) 作为排序键
                 file_result_pairs.append((date_obj, file_number, fp, result))
             except ValueError:
                 continue
 
-    # 按日期降序、同日期按文件编号降序排序
-    file_result_pairs.sort(key=lambda x: (x[0], x[1]), reverse=True)
+    # 按时间升序排序（从旧到新）
+    file_result_pairs.sort(key=lambda x: (x[0], x[1]))
 
-    # 提取最近的N个牌谱
-    recent_games = []
-    for date_obj, file_number, fp, result in file_result_pairs[:count]:
+    # 追踪所有玩家的R值和场数
+    player_r_values = defaultdict(lambda: 1500.0)
+    player_games = defaultdict(int)
+
+    # 计算所有游戏的R值（为了得到最近几场的R值状态）
+    all_game_details = []
+
+    for date_obj, file_number, fp, result in file_result_pairs:
         summary = result.get('summary', [])
 
-        # 提取玩家信息
-        players = []
-        ranks = []
-        scores = []
+        # 计算这局的桌平均R值
+        table_players = [p.get('name', '') for p in summary if p.get('name')]
+        table_avg_r = sum(player_r_values[name] for name in table_players) / len(table_players) if table_players else 1500.0
+
+        # 计算每个玩家的R值变化
+        players_detail = []
+        for player_stat in summary:
+            name = player_stat.get('name', '')
+            if not name:
+                continue
+
+            rank = player_stat.get('rank', 4)
+            final_points = player_stat.get('final_points', 25000)
+            games_before = player_games[name]
+            r_before = player_r_values[name]
+
+            # 计算点数变化
+            uma_points = {1: 45000, 2: 5000, 3: -15000, 4: -35000}
+            uma = uma_points.get(rank, 0)
+            score_diff = final_points - 25000
+            score_change = (uma + score_diff) / 1000.0
+
+            # 计算R值补正
+            r_correction = (table_avg_r - r_before) / 40.0
+
+            # 计算试合数补正
+            if games_before < 400:
+                games_correction = 1 - games_before * 0.002
+            else:
+                games_correction = 0.2
+
+            # 计算R值变动
+            r_change = calculate_tenhou_r_value(rank, games_before, r_before, table_avg_r, final_points)
+            r_after = r_before + r_change
+
+            players_detail.append({
+                'name': name,
+                'rank': rank,
+                'final_points': final_points,
+                'r_before': round(r_before, 2),
+                'games_before': games_before,
+                'score_change': round(score_change, 1),
+                'r_correction': round(r_correction, 2),
+                'games_correction': round(games_correction, 3),
+                'r_change': round(r_change, 2),
+                'r_after': round(r_after, 2)
+            })
+
+            # 更新玩家R值和场数
+            player_r_values[name] = r_after
+            player_games[name] += 1
 
         # 按名次排序
-        sorted_summary = sorted(summary, key=lambda x: x.get('rank', 99))
+        players_detail.sort(key=lambda x: x['rank'])
 
-        for player_data in sorted_summary:
-            players.append(player_data.get('name', '未知'))
-            ranks.append(player_data.get('rank', 0))
-            scores.append(player_data.get('final_points', 0))
-
-        recent_games.append({
+        all_game_details.append({
             'date': date_obj.strftime("%Y年%m月%d日"),
             'date_en': date_obj.strftime("%Y-%m-%d"),
-            'players': players,
-            'ranks': ranks,
-            'scores': scores
+            'players_detail': players_detail,
+            'table_avg_r': round(table_avg_r, 2)
         })
 
-    return recent_games
+    # 返回最近的N场，反转顺序让最新的在前面
+    recent = all_game_details[-count:] if len(all_game_details) >= count else all_game_details
+    return list(reversed(recent))
 
 
 def generate_index_html(lang='zh'):
@@ -459,48 +561,96 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
     # 日期信息
     date_info = f"<p class='date-info'>{t['data_updated']}: {latest_date}</p>" if latest_date else ""
 
-    # 最近牌谱部分
+    # 最近牌谱部分 - 横向表格
     recent_section = ""
     if recent_games and len(recent_games) > 0:
-        recent_cards = ""
-        for game in recent_games:
+        table_rows = ""
+        for game_idx, game in enumerate(recent_games, 1):
             date_str = game['date'] if lang == 'zh' else game['date_en']
+            table_avg_r = game.get('table_avg_r', 0)
 
-            # 生成玩家和结果列表
-            player_rows = ""
-            for i, (player, rank, score) in enumerate(zip(game['players'], game['ranks'], game['scores'])):
-                rank_class = f"rank-{rank}"
-                player_rows += f"""
-                <tr class="{rank_class}">
-                    <td class="rank-cell">{rank}</td>
-                    <td class="player-cell">{player}</td>
-                    <td class="score-cell">{score}</td>
-                </tr>
+            # 每一局占一行，包含日期、桌平均R和4个玩家的数据
+            players_data = game.get('players_detail', [])
+
+            # 构建玩家数据单元格
+            player_cells = ""
+            for p in players_data:
+                rank_class = f"rank-{p['rank']}"
+                player_cells += f"""
+                    <td class="player-name {rank_class}">{p['name']}</td>
+                    <td class="r-value">{p['r_before']}</td>
+                    <td class="games-count">{p['games_before']}</td>
+                    <td class="score-change">{p['score_change']:+.1f}</td>
+                    <td class="r-correction">{p['r_correction']:+.2f}</td>
+                    <td class="games-coef">{p['games_correction']:.3f}</td>
+                    <td class="r-change">{p['r_change']:+.2f}</td>
+                    <td class="r-value">{p['r_after']}</td>
                 """
 
-            recent_cards += f"""
-            <div class="recent-game-card">
-                <div class="game-date">{date_str}</div>
-                <table class="game-results-table">
-                    <thead>
-                        <tr>
-                            <th>{t['final_rank']}</th>
-                            <th>{t['player']}</th>
-                            <th>{t['total_score']}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {player_rows}
-                    </tbody>
-                </table>
-            </div>
+            table_rows += f"""
+                <tr>
+                    <td class="game-date">{date_str}</td>
+                    <td class="table-avg-r">{table_avg_r:.2f}</td>
+                    {player_cells}
+                </tr>
             """
 
         recent_section = f"""
         <div class="recent-games-section">
             <h2>{t['recent_games']}</h2>
-            <div class="recent-games-grid">
-                {recent_cards}
+            <div class="table-scroll">
+                <table class="recent-games-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">{t['game_date']}</th>
+                            <th rowspan="2">{t['table_avg_r']}</th>
+                            <th colspan="8">{t['player']}1</th>
+                            <th colspan="8">{t['player']}2</th>
+                            <th colspan="8">{t['player']}3</th>
+                            <th colspan="8">{t['player']}4</th>
+                        </tr>
+                        <tr>
+                            <th>{t['player']}</th>
+                            <th>{t['r_before']}</th>
+                            <th>{t['games_count']}</th>
+                            <th>{t['score_change_pt']}</th>
+                            <th>{t['r_correction']}</th>
+                            <th>{t['games_coef']}</th>
+                            <th>{t['r_change']}</th>
+                            <th>{t['r_after']}</th>
+
+                            <th>{t['player']}</th>
+                            <th>{t['r_before']}</th>
+                            <th>{t['games_count']}</th>
+                            <th>{t['score_change_pt']}</th>
+                            <th>{t['r_correction']}</th>
+                            <th>{t['games_coef']}</th>
+                            <th>{t['r_change']}</th>
+                            <th>{t['r_after']}</th>
+
+                            <th>{t['player']}</th>
+                            <th>{t['r_before']}</th>
+                            <th>{t['games_count']}</th>
+                            <th>{t['score_change_pt']}</th>
+                            <th>{t['r_correction']}</th>
+                            <th>{t['games_coef']}</th>
+                            <th>{t['r_change']}</th>
+                            <th>{t['r_after']}</th>
+
+                            <th>{t['player']}</th>
+                            <th>{t['r_before']}</th>
+                            <th>{t['games_count']}</th>
+                            <th>{t['score_change_pt']}</th>
+                            <th>{t['r_correction']}</th>
+                            <th>{t['games_coef']}</th>
+                            <th>{t['r_change']}</th>
+                            <th>{t['r_after']}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {table_rows}
+                    </tbody>
+                </table>
             </div>
         </div>
         """
@@ -1229,7 +1379,7 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
             font-size: 16px;
         }}
 
-        /* 最近牌谱样式 - 紧凑版 */
+        /* 最近牌谱样式 - 横向表格 */
         .recent-games-section {{
             margin-bottom: 30px;
         }}
@@ -1240,100 +1390,116 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
             font-size: 24px;
         }}
 
-        .recent-games-grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 12px;
+        .table-scroll {{
+            overflow-x: auto;
             margin-bottom: 20px;
         }}
 
-        .recent-game-card {{
-            background: white;
-            border-radius: 8px;
-            padding: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            border-top: 3px solid #667eea;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }}
-
-        .recent-game-card:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
-        }}
-
-        .game-date {{
-            font-size: 13px;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 10px;
-            text-align: center;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #f0f0f0;
-        }}
-
-        .game-results-table {{
+        .recent-games-table {{
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 11px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
         }}
 
-        .game-results-table th {{
-            background: #f8f9fa;
-            padding: 5px 3px;
+        .recent-games-table thead {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }}
+
+        .recent-games-table th {{
+            padding: 8px 5px;
             text-align: center;
             font-weight: 600;
-            color: #555;
-            font-size: 11px;
-            border-bottom: 1px solid #e0e0e0;
-        }}
-
-        .game-results-table td {{
-            padding: 6px 3px;
-            text-align: center;
-            border-bottom: 1px solid #f5f5f5;
-        }}
-
-        .game-results-table tbody tr:last-child td {{
-            border-bottom: none;
-        }}
-
-        .game-results-table .rank-1 {{
-            background: linear-gradient(90deg, #fffbf0 0%, #fff 100%);
-        }}
-
-        .game-results-table .rank-1 .rank-cell {{
-            color: #ffc107;
-            font-weight: bold;
-            font-size: 14px;
-        }}
-
-        .game-results-table .rank-2 .rank-cell {{
-            color: #666;
-            font-weight: 600;
-        }}
-
-        .game-results-table .rank-3 .rank-cell {{
-            color: #999;
-        }}
-
-        .game-results-table .rank-4 .rank-cell {{
-            color: #ccc;
-        }}
-
-        .game-results-table .player-cell {{
-            font-weight: 500;
-            color: #333;
-            font-size: 11px;
-            max-width: 80px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
             white-space: nowrap;
         }}
 
-        .game-results-table .score-cell {{
+        .recent-games-table tbody tr {{
+            transition: background-color 0.2s;
+        }}
+
+        .recent-games-table tbody tr:nth-child(even) {{
+            background: #f8f9fa;
+        }}
+
+        .recent-games-table tbody tr:hover {{
+            background: #e3f2fd;
+        }}
+
+        .recent-games-table td {{
+            padding: 6px 4px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            font-size: 10px;
+            white-space: nowrap;
+        }}
+
+        .recent-games-table .game-date {{
+            font-weight: bold;
+            color: #667eea;
+            font-size: 11px;
+        }}
+
+        .recent-games-table .table-avg-r {{
+            font-weight: 600;
+            color: #764ba2;
+        }}
+
+        .recent-games-table .player-name {{
+            font-weight: 500;
+            color: #333;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }}
+
+        .recent-games-table .player-name.rank-1 {{
+            color: #ffc107;
+            font-weight: bold;
+        }}
+
+        .recent-games-table .player-name.rank-2 {{
+            color: #666;
+        }}
+
+        .recent-games-table .player-name.rank-3 {{
+            color: #999;
+        }}
+
+        .recent-games-table .player-name.rank-4 {{
+            color: #ccc;
+        }}
+
+        .recent-games-table .r-value {{
             color: #667eea;
             font-weight: 500;
-            font-size: 11px;
+        }}
+
+        .recent-games-table .games-count {{
+            color: #888;
+        }}
+
+        .recent-games-table .score-change {{
+            font-weight: 500;
+        }}
+
+        .recent-games-table .r-correction {{
+            color: #764ba2;
+        }}
+
+        .recent-games-table .games-coef {{
+            color: #888;
+            font-size: 9px;
+        }}
+
+        .recent-games-table .r-change {{
+            font-weight: bold;
         }}
 
         /* 荣誉牌谱样式 */
@@ -1477,8 +1643,18 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
                 gap: 8px;
             }}
 
-            .recent-games-grid {{
-                grid-template-columns: 1fr;
+            .recent-games-table {{
+                font-size: 9px;
+            }}
+
+            .recent-games-table th {{
+                padding: 6px 3px;
+                font-size: 8px;
+            }}
+
+            .recent-games-table td {{
+                padding: 4px 2px;
+                font-size: 9px;
             }}
 
             .honor-games-grid {{
@@ -1564,9 +1740,12 @@ def main():
     files = scan_files(m_league_folder, "*.json", recursive=True)
 
     if files:
+        # 按日期正确排序文件
+        sorted_files = sort_files_by_date(files)
+
         results = []
         round_counts = []
-        for fp in sorted(files):
+        for fp in sorted_files:
             try:
                 with open(fp, "r", encoding="utf-8") as f:
                     data = json.load(f)
@@ -1579,8 +1758,8 @@ def main():
         # 提取最新日期
         latest_date = extract_latest_date(files)
 
-        # 提取最近5个牌谱（注意：files需要排序，因为results是按sorted(files)处理的）
-        recent_games = extract_recent_games(sorted(files), results, count=5)
+        # 提取最近5个牌谱（使用按日期排序的文件）
+        recent_games = extract_recent_games(sorted_files, results, count=5)
 
         stats = calculate_player_stats(results, round_counts)
 
