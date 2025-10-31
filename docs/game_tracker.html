@@ -1,0 +1,2433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计分工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .language-switcher a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f1ff;
+            color: #4b50c5;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .language-switcher a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .language-switcher a.active {
+            background: #667eea;
+            color: white;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input, select, button {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .top-right-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+
+        .language-switcher,
+        .rule-switch {
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .rule-btn-compact {
+            padding: 8px 16px;
+            background: white;
+            border: 2px solid #ddd;
+            color: #666;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .rule-btn-compact:hover:not(:disabled) {
+            background: #f0f0f0;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .rule-btn-compact.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .rule-btn-compact:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .scores-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .player-score {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 3px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .player-score.dealer {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border-color: #f39c12;
+            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+        }
+
+        .player-score input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #667eea;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1em;
+            text-align: center;
+            padding: 5px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .player-score.dealer input {
+            border-bottom-color: #f39c12;
+            color: #d35400;
+        }
+
+        .player-score input:focus {
+            outline: none;
+            border-bottom-color: #5568d3;
+        }
+
+        .player-score input::placeholder {
+            color: #999;
+        }
+
+        .player-score .score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .record-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .history {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item .details {
+            flex: 1;
+        }
+
+        .history-item button {
+            background: #dc3545;
+            padding: 5px 15px;
+            font-size: 14px;
+        }
+
+        .history-item button:hover {
+            background: #c82333;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error {
+            color: #dc3545;
+            font-weight: 600;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: 600;
+            padding: 10px;
+            background: #d4edda;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .dealer-badge {
+            background: #ffc107;
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .yaku-tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 5px 5px 5px 0;
+            font-size: 0.9em;
+        }
+
+        .yaku-tag button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 5px;
+            padding: 0;
+            font-size: 1.1em;
+        }
+
+        .yaku-tag button:hover {
+            color: #dc3545;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .yaku-selector {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .yaku-selector input {
+            flex: 1;
+        }
+
+        .yaku-selector button {
+            padding: 10px 20px;
+            white-space: nowrap;
+        }
+
+        .selected-yaku-list {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-right-panel">
+        <div class="language-switcher">
+            <a href="game_tracker.html?lang=zh" data-lang="zh">🇨🇳 中文</a>
+            <a href="game_tracker.html?lang=en" data-lang="en">🇺🇸 English</a>
+        </div>
+        <div class="rule-switch">
+            <button class="rule-btn-compact active" data-rule="mleague" title="M-League (25000点)">M-League</button>
+            <button class="rule-btn-compact" data-rule="wrc" title="WRC (30000点)">WRC</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 data-i18n="title_main">🀄 麻将点数计算器</h1>
+
+        <!-- 点数显示 -->
+        <div class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h2 data-i18n="section_current_scores" style="margin: 0;">当前点数</h2>
+                <div id="game-info-compact" style="font-size: 14px; color: #667eea; font-weight: 600;">
+                    <span id="current-round">东1局</span>
+                    <span id="honba-display" style="margin-left: 15px;">0本场</span>
+                    <span style="margin-left: 15px;" data-i18n="label_riichi_sticks_prefix">供托</span>: <span id="riichi-sticks">0</span><span data-i18n="label_riichi_sticks_suffix">本</span>
+                </div>
+            </div>
+            <div class="scores-display" id="scores-display"></div>
+            <div id="game-end-notice" style="display: none; margin-top: 20px; padding: 20px; background: #ffc107; border-radius: 10px; text-align: center;">
+                <h3 data-i18n="game_end_title" style="color: #333; margin-bottom: 15px; font-size: 1.5em;">🏆 对局结束 🏆</h3>
+                <div id="final-results"></div>
+            </div>
+        </div>
+
+        <!-- 记录和牌 -->
+        <div class="section">
+            <h2 data-i18n="section_record_win">记录和牌</h2>
+            <div class="record-form">
+                <div class="input-group">
+                    <label data-i18n="label_winner">和牌者</label>
+                    <select id="winner"></select>
+                </div>
+                <div class="input-group">
+                    <label data-i18n="label_loser">点炮者（自摸选择"自摸"）</label>
+                    <select id="loser">
+                        <option value="tsumo" data-i18n-option="option_tsumo">自摸</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-i18n="label_choose_yaku">选择役种</label>
+                <div class="yaku-selector">
+                    <div class="input-group" style="flex: 1; margin: 0;">
+                        <input type="text" id="yaku-search" list="yaku-datalist" placeholder="输入搜索或从列表选择..." data-i18n-placeholder="placeholder_yaku_search">
+                        <datalist id="yaku-datalist"></datalist>
+                    </div>
+                    <button onclick="addYaku()" style="background: #28a745;" data-i18n="button_add_yaku">添加</button>
+                </div>
+                <div class="selected-yaku-list" id="selected-yaku-list">
+                    <div style="color: #999;" data-i18n="selected_yaku_placeholder">请选择役种...</div>
+                </div>
+            </div>
+            <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                <div class="input-group">
+                    <label data-i18n="label_dora">宝牌</label>
+                    <input type="number" id="dora-count" value="0" min="0" max="20" style="text-align: center;">
+                </div>
+                <div class="input-group">
+                    <label data-i18n="label_aka_dora">赤宝牌</label>
+                    <input type="number" id="aka-dora-count" value="0" min="0" max="3" style="text-align: center;">
+                </div>
+                <div class="input-group">
+                    <label data-i18n="label_ura_dora">里宝牌</label>
+                    <input type="number" id="ura-dora-count" value="0" min="0" max="20" style="text-align: center;">
+                </div>
+            </div>
+            <div class="record-form" style="margin-top: 15px;">
+                <div class="input-group">
+                    <label data-i18n="label_fu">符数</label>
+                    <select id="fu">
+                        <option value="20" data-i18n-option="fu_value">20符</option>
+                        <option value="25" data-i18n-option="fu_value">25符（七对子）</option>
+                        <option value="30" data-i18n-option="fu_value" selected>30符</option>
+                        <option value="40" data-i18n-option="fu_value">40符</option>
+                        <option value="50" data-i18n-option="fu_value">50符</option>
+                        <option value="60" data-i18n-option="fu_value">60符</option>
+                        <option value="70" data-i18n-option="fu_value">70符</option>
+                        <option value="80" data-i18n-option="fu_value">80符</option>
+                        <option value="90" data-i18n-option="fu_value">90符</option>
+                        <option value="100" data-i18n-option="fu_value">100符</option>
+                        <option value="110" data-i18n-option="fu_value">110符</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <div class="checkbox-group" style="align-items: center; height: 100%; padding-top: 25px;">
+                        <input type="checkbox" id="menzen" checked>
+                        <label for="menzen" data-i18n="label_menzen">门清</label>
+                    </div>
+                </div>
+            </div>
+            <div id="yaku-preview" style="margin-top: 15px; padding: 15px; background: white; border-radius: 5px; display: none;">
+                <div style="font-weight: 600; margin-bottom: 10px;" data-i18n="preview_title">计算预览：</div>
+                <div id="yaku-recognized" style="color: #28a745; margin-bottom: 5px;"></div>
+                <div id="yaku-unrecognized" style="color: #dc3545; margin-bottom: 5px;"></div>
+                <div id="yaku-han" style="font-weight: bold; font-size: 1.1em; margin-bottom: 5px;"></div>
+                <div id="yaku-points" style="font-weight: bold; font-size: 1.2em; color: #667eea;"></div>
+            </div>
+            <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 5px;">
+                <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-i18n="label_riichi_status">立直情况（勾选立直的玩家）</label>
+                <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="riichi-0">
+                        <label for="riichi-0" id="riichi-label-0">玩家1</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="riichi-1">
+                        <label for="riichi-1" id="riichi-label-1">玩家2</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="riichi-2">
+                        <label for="riichi-2" id="riichi-label-2">玩家3</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="riichi-3">
+                        <label for="riichi-3" id="riichi-label-3">玩家4</label>
+                    </div>
+                </div>
+            </div>
+            <button onclick="recordWin()" style="width: 100%; margin-top: 15px;" data-i18n="button_record_win">记录和牌</button>
+            <div id="message"></div>
+        </div>
+
+        <!-- 记录流局 -->
+        <div class="section">
+            <h2 data-i18n="section_record_ryuukyoku">记录流局</h2>
+            <div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 5px;">
+                <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-i18n="label_tenpai_players">听牌玩家（勾选听牌的玩家）</label>
+                <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="tenpai-0">
+                        <label for="tenpai-0" id="tenpai-label-0">玩家1</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="tenpai-1">
+                        <label for="tenpai-1" id="tenpai-label-1">玩家2</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="tenpai-2">
+                        <label for="tenpai-2" id="tenpai-label-2">玩家3</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="tenpai-3">
+                        <label for="tenpai-3" id="tenpai-label-3">玩家4</label>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 5px;">
+                <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-i18n="label_riichi_status">立直情况（勾选立直的玩家）</label>
+                <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="ryuukyoku-riichi-0">
+                        <label for="ryuukyoku-riichi-0" id="ryuukyoku-riichi-label-0">玩家1</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="ryuukyoku-riichi-1">
+                        <label for="ryuukyoku-riichi-1" id="ryuukyoku-riichi-label-1">玩家2</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="ryuukyoku-riichi-2">
+                        <label for="ryuukyoku-riichi-2" id="ryuukyoku-riichi-label-2">玩家3</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="ryuukyoku-riichi-3">
+                        <label for="ryuukyoku-riichi-3" id="ryuukyoku-riichi-label-3">玩家4</label>
+                    </div>
+                </div>
+            </div>
+            <button onclick="recordRyuukyoku()" style="width: 100%; background: #28a745;" data-i18n="button_record_ryuukyoku">记录流局</button>
+            <div id="ryuukyoku-message"></div>
+        </div>
+
+        <!-- 对局历史 -->
+        <div class="section">
+            <h2 data-i18n="section_history">对局历史</h2>
+            <button onclick="clearHistory()" style="margin-bottom: 15px; background: #dc3545;" data-i18n="button_clear_history">清空历史</button>
+            <div class="history" id="history"></div>
+        </div>
+
+        <!-- 对局JSON摘要 -->
+        <div class="section">
+            <h2 data-i18n="section_json">对局数据（JSON）</h2>
+            <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <pre id="game-summary-json" style="flex: 1; min-height: 160px; max-height: 240px; background: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 5px; overflow: auto; white-space: pre; font-size: 0.8em; line-height: 1.35;"></pre>
+                <button id="copy-game-summary" style="min-width: 120px; height: 40px;" data-i18n="button_copy">复制数据</button>
+            </div>
+            <div id="copy-status" style="margin-top: 6px; font-size: 0.85em; color: #28a745;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 役种数据库
+        const params = new URLSearchParams(window.location.search);
+        const LANGUAGE = (params.get('lang') || '').toLowerCase() === 'en' ? 'en' : 'zh';
+
+        const yakuDatabase = {
+            // 1番役
+            '立直': 1, 'riichi': 1, 'リーチ': 1,
+            '一发': 1, 'ippatsu': 1, 'イッパツ': 1,
+            '门前清自摸和': 1, '门清': 1, 'tsumo': 1, 'ツモ': 1,
+            '平和': 1, 'pinfu': 1, 'ピンフ': 1,
+            '断幺九': 1, '断幺': 1, 'tanyao': 1, 'タンヤオ': 1,
+            '一杯口': 1, 'iipeiko': 1, 'イーペーコー': 1,
+            '岭上开花': 1, '岭上': 1, 'rinshan': 1, 'リンシャン': 1,
+            '枪杠': 1, 'chankan': 1, 'チャンカン': 1,
+            '海底摸月': 1, '海底': 1, 'haitei': 1, 'ハイテイ': 1,
+            '河底捞鱼': 1, '河底': 1, 'houtei': 1, 'ホウテイ': 1,
+            '役牌白': 1, '白': 1, 'haku': 1, 'ハク': 1,
+            '役牌发': 1, '发': 1, 'hatsu': 1, 'ハツ': 1,
+            '役牌中': 1, '中': 1, 'chun': 1, 'チュン': 1,
+            '自风东': 1, '东': 1, 'ton': 1, 'トン': 1,
+            '自风南': 1, '南': 1, 'nan': 1, 'ナン': 1,
+            '自风西': 1, '西': 1, 'sha': 1, 'シャー': 1,
+            '自风北': 1, '北': 1, 'pei': 1, 'ペー': 1,
+            '场风东': 1, '场东': 1,
+            '场风南': 1, '场南': 1,
+            '场风西': 1, '场西': 1,
+            '场风北': 1, '场北': 1,
+
+            // 2番役
+            '三色同顺': 2, '三色': 2, 'sanshoku': 2, 'サンショク': 2,
+            '一气通贯': 2, '一通': 2, 'ikkitsuukan': 2, 'イッツー': 2,
+            '混全带幺九': 2, '混全': 2, 'chanta': 2, 'チャンタ': 2,
+            '七对子': 2, '七对': 2, 'chiitoitsu': 2, 'チートイツ': 2,
+            '对对和': 2, '对对': 2, 'toitoi': 2, 'トイトイ': 2,
+            '三暗刻': 2, 'sanankou': 2, 'サンアンコー': 2,
+            '三杠子': 2, 'sankantsu': 2, 'サンカンツ': 2,
+            '小三元': 2, 'shousangen': 2, 'ショウサンゲン': 2,
+            '混老头': 2, 'honroutou': 2, 'ホンロウトウ': 2,
+            '双立直': 2, '双立': 2, 'daburu riichi': 2, 'ダブルリーチ': 2, 'w立直': 2,
+
+            // 3番役
+            '混一色': 3, '混一': 3, 'honitsu': 3, 'ホンイツ': 3,
+            '纯全带幺九': 3, '纯全': 3, 'junchan': 3, 'ジュンチャン': 3,
+            '二杯口': 3, 'ryanpeikou': 3, 'リャンペーコー': 3,
+
+            // 6番役
+            '清一色': 6, '清一': 6, 'chinitsu': 6, 'チンイツ': 6,
+
+            // 役满 (13番)
+            '天和': 13, 'tenhou': 13, 'テンホウ': 13,
+            '地和': 13, 'chiihou': 13, 'チーホウ': 13,
+            '大三元': 13, 'daisangen': 13, 'ダイサンゲン': 13,
+            '四暗刻': 13, 'suuankou': 13, 'スーアンコー': 13,
+            '字一色': 13, 'tsuuiisou': 13, 'ツーイーソー': 13,
+            '绿一色': 13, 'ryuuiisou': 13, 'リューイーソー': 13,
+            '清老头': 13, 'chinroutou': 13, 'チンロウトウ': 13,
+            '九莲宝灯': 13, 'chuuren': 13, 'チュウレン': 13,
+            '四杠子': 13, 'suukantsu': 13, 'スーカンツ': 13,
+            '国士无双': 13, '国士': 13, 'kokushi': 13, 'コクシ': 13,
+            '大四喜': 13, 'daisuushi': 13, 'ダイスーシー': 13,
+            '小四喜': 13, 'shousuushi': 13, 'ショウスーシー': 13,
+
+            // 双倍役满 (26番)
+            '四暗刻单骑': 26, 'suuankou tanki': 26,
+            '国士无双十三面': 26, '国士十三面': 26, 'kokushi 13': 26,
+            '纯正九莲宝灯': 26, '纯正九莲': 26, 'chuuren 9': 26,
+            '大四喜': 26, 'daisuushi': 26
+        };
+
+        // 副露时番数会减少的役种
+        const fuuroReducedYaku = {
+            '三色同顺': -1, '三色': -1, 'sanshoku': -1, 'サンショク': -1,
+            '一气通贯': -1, '一通': -1, 'ikkitsuukan': -1, 'イッツー': -1,
+            '混全带幺九': -1, '混全': -1, 'chanta': -1, 'チャンタ': -1,
+            '纯全带幺九': -1, '纯全': -1, 'junchan': -1, 'ジュンチャン': -1,
+            '混一色': -1, '混一': -1, 'honitsu': -1, 'ホンイツ': -1,
+            '清一色': -1, '清一': -1, 'chinitsu': -1, 'チンイツ': -1
+        };
+
+        const I18N = {
+            zh: {
+                document_title: '计分工具',
+                title_main: '🧮 计分工具',
+                section_current_scores: '当前点数',
+                label_riichi_sticks_prefix: '供托',
+                label_riichi_sticks_suffix: '本',
+                game_end_title: '🏆 对局结束 🏆',
+                section_record_win: '记录和牌',
+                label_winner: '和牌者',
+                label_loser: '点炮者（自摸选择"自摸"）',
+                option_tsumo: '自摸',
+                label_choose_yaku: '选择役种',
+                placeholder_yaku_search: '输入搜索或从列表选择...',
+                button_add_yaku: '添加',
+                selected_yaku_placeholder: '请选择役种...',
+                label_dora: '宝牌',
+                label_aka_dora: '赤宝牌',
+                label_ura_dora: '里宝牌',
+                label_fu: '符数',
+                option_fu: '{value}符',
+                option_fu_25: '25符（七对子）',
+                label_menzen: '门清',
+                preview_title: '计算预览：',
+                label_riichi_status: '立直情况（勾选立直的玩家）',
+                label_tenpai_players: '听牌玩家（勾选听牌的玩家）',
+                button_record_win: '记录和牌',
+                button_record_ryuukyoku: '记录流局',
+                section_record_ryuukyoku: '记录流局',
+                section_history: '对局历史',
+                button_clear_history: '清空历史',
+                history_empty: '暂无对局记录',
+                undo_button: '撤销',
+                section_json: '对局数据（JSON）',
+                button_copy: '复制数据',
+                table_rank: '排名',
+                table_player: '玩家',
+                table_final_score: '最终点数',
+                table_raw_score: '素点差',
+                table_uma: '马点',
+                table_riichi: '供托',
+                table_total: '总得点',
+                rank_suffix: '位',
+                round_suffix: '局',
+                dealer_positions: ['东家', '南家', '西家', '北家'],
+                player_placeholder: '玩家{index}',
+                copy_none: '没有可复制的数据',
+                copy_failed: '复制失败：',
+                copy_auto: 'JSON 数据已自动复制',
+                copy_success: '已复制到剪贴板',
+                copy_exec_failed: '无法复制到剪贴板',
+                msg_enter_yaku: '请输入或选择役种',
+                msg_unrecognized_yaku: '未识别的役种: {name}',
+                msg_duplicate_yaku: '该役种已添加',
+                msg_same_player: '和牌者和点炮者不能是同一人！',
+                msg_select_yaku_required: '请选择役种！',
+                msg_game_end: '对局结束！',
+                msg_record_success: '记录成功！',
+                msg_ryuukyoku_success: '流局记录成功！',
+                msg_ryuukyoku_success_end: '流局记录成功！对局结束！',
+                msg_no_history: '没有可撤销的记录',
+                msg_undo_success: '已撤销上一局',
+                msg_clear_confirm: '确定要清空所有历史记录吗？',
+                msg_history_cleared: '已清空历史',
+                msg_switch_rule_disabled: '对局进行中无法切换规则，请先清空历史记录',
+                round_names: ['东', '南', '西', '北'],
+                honba_suffix: '本场',
+                dealer_label: '庄家',
+                ron_text: '点炮',
+                tsumo_text: '自摸',
+                total_han: '总番数',
+                han_unit: '番',
+                fu_unit: '符',
+                dealer_tsumo_points: '庄家自摸: {points}点 All (每人支付{points}点)',
+                nondealer_tsumo_points: '闲家自摸: 闲家各{small}点, 庄家{big}点 (共{total}点)',
+                dealer_ron_points: '庄家点炮: {points}点',
+                nondealer_ron_points: '闲家点炮: {points}点',
+                extra_points_header: '额外: ',
+                extra_honba: '本场+{points}点',
+                extra_riichi: '立直棒+{points}点',
+                menzen_suffix_open: ' (副露)',
+                riichi_players_label: '立直',
+                yaku_label: '役',
+                dora_label_format: {
+                    yaku: '役{han}番',
+                    dora: '宝牌{count}番',
+                    aka: '赤{count}番',
+                    ura: '里{count}番'
+                },
+                history_ryuukyoku: '流局',
+                history_continue: '连庄',
+                history_change: '轮庄',
+                history_tenpai_prefix: '听牌: ',
+                history_all_tenpai: '全员听牌',
+                history_all_noten: '全员未听牌',
+                history_winner_summary: '{winner} 和牌 ({han}番{fu}符{dealer})',
+                history_dealer_suffix: ' 庄家',
+                history_loser_summary: '{loser} · {points}',
+                history_tsumo_summary: '自摸 · {points}',
+                history_extra_separator: ' · ',
+                summary_note_ron: '荣和',
+                summary_note_tsumo: '自摸',
+                json_copy_button: '复制数据',
+                history_score_changes: '点数变化'
+            },
+            en: {
+                document_title: 'Game Tracker',
+                title_main: '🧮 Game Tracker',
+                section_current_scores: 'Current Scores',
+                label_riichi_sticks_prefix: 'Riichi Sticks',
+                label_riichi_sticks_suffix: '',
+                game_end_title: '🏆 Game Finished 🏆',
+                section_record_win: 'Record Winning Hand',
+                label_winner: 'Winner',
+                label_loser: 'Loser (select "Tsumo" for self-draw)',
+                option_tsumo: 'tsumo',
+                label_choose_yaku: 'Select Yaku',
+                placeholder_yaku_search: 'Type to search or choose from list...',
+                button_add_yaku: 'Add',
+                selected_yaku_placeholder: 'Please select yaku...',
+                label_dora: 'Dora',
+                label_aka_dora: 'Red Dora',
+                label_ura_dora: 'Ura Dora',
+                label_fu: 'Fu',
+                option_fu: '{value} Fu',
+                option_fu_25: '25 Fu (Seven Pairs)',
+                label_menzen: 'Closed',
+                preview_title: 'Preview',
+                label_riichi_status: 'Riichi Status (check riichi players)',
+                label_tenpai_players: 'Tenpai Players (check players who are tenpai)',
+                button_record_win: 'Record Win',
+                button_record_ryuukyoku: 'Record Draw',
+                section_record_ryuukyoku: 'Record Draw',
+                section_history: 'Game History',
+                button_clear_history: 'Clear History',
+                history_empty: 'No records yet',
+                undo_button: 'Undo',
+                section_json: 'Game Data (JSON)',
+                button_copy: 'Copy Data',
+                table_rank: 'Rank',
+                table_player: 'Player',
+                table_final_score: 'Final Score',
+                table_raw_score: 'Raw Score',
+                table_uma: 'Uma',
+                table_riichi: 'Riichi Bonus',
+                table_total: 'Total',
+                rank_suffix: '',
+                round_suffix: '',
+                dealer_positions: ['East Seat', 'South Seat', 'West Seat', 'North Seat'],
+                player_placeholder: 'Player {index}',
+                copy_none: 'No data to copy',
+                copy_failed: 'Copy failed: ',
+                copy_auto: 'JSON copied automatically',
+                copy_success: 'Copied to clipboard',
+                copy_exec_failed: 'Unable to copy to clipboard',
+                msg_enter_yaku: 'Please enter or select a yaku',
+                msg_unrecognized_yaku: 'Unrecognized yaku: {name}',
+                msg_duplicate_yaku: 'This yaku has already been added',
+                msg_same_player: 'Winner and loser cannot be the same player.',
+                msg_select_yaku_required: 'Please select at least one yaku.',
+                msg_game_end: 'Game finished!',
+                msg_record_success: 'Record saved!',
+                msg_ryuukyoku_success: 'Draw recorded!',
+                msg_ryuukyoku_success_end: 'Draw recorded! Game finished!',
+                msg_no_history: 'No records to undo',
+                msg_undo_success: 'Last record undone',
+                msg_clear_confirm: 'Clear all records?',
+                msg_history_cleared: 'History cleared',
+                msg_switch_rule_disabled: 'Cannot switch rules during a game. Please clear the history first.',
+                round_names: ['East', 'South', 'West', 'North'],
+                honba_suffix: ' honba',
+                dealer_label: 'Dealer',
+                ron_text: 'Ron',
+                tsumo_text: 'Self-draw',
+                total_han: 'Total Han',
+                han_unit: ' han',
+                fu_unit: ' fu',
+                dealer_tsumo_points: 'Dealer self-draw: {points} pts each',
+                nondealer_tsumo_points: 'Non-dealer self-draw: others {small} pts, dealer {big} pts (total {total} pts)',
+                dealer_ron_points: 'Dealer ron: {points} pts',
+                nondealer_ron_points: 'Non-dealer ron: {points} pts',
+                extra_points_header: 'Extra: ',
+                extra_honba: 'Honba +{points} pts',
+                extra_riichi: 'Riichi sticks +{points} pts',
+                menzen_suffix_open: ' (Open)',
+                riichi_players_label: 'Riichi',
+                yaku_label: 'Yaku',
+                dora_label_format: {
+                    yaku: 'Yaku {han} han',
+                    dora: 'Dora {count} han',
+                    aka: 'Red {count} han',
+                    ura: 'Ura {count} han'
+                },
+                history_ryuukyoku: 'Draw',
+                history_continue: 'Dealer holds',
+                history_change: 'Dealer passes',
+                history_tenpai_prefix: 'Tenpai: ',
+                history_all_tenpai: 'All tenpai',
+                history_all_noten: 'No one tenpai',
+                history_winner_summary: '{winner} wins ({han} han {fu} fu{dealer})',
+                history_dealer_suffix: ' Dealer',
+                history_loser_summary: '{loser}: {points}',
+                history_tsumo_summary: 'Self-draw: {points}',
+                history_extra_separator: ' · ',
+                summary_note_ron: 'Ron',
+                summary_note_tsumo: 'Self-draw',
+                json_copy_button: 'Copy Data',
+                history_score_changes: 'Score Changes'
+            }
+        };
+
+        function t(key, params = {}) {
+            const langTable = I18N[LANGUAGE] || {};
+            const fallbackTable = I18N.zh || {};
+            let template = langTable[key];
+            if (template === undefined) {
+                template = fallbackTable[key];
+            }
+            if (typeof template === 'object') {
+                return template;
+            }
+            if (typeof template !== 'string') {
+                return key;
+            }
+            return template.replace(/\{(\w+)\}/g, (_, k) => {
+                return params[k] !== undefined ? params[k] : `{${k}}`;
+            });
+        }
+
+        function applyTranslations() {
+            document.title = t('document_title');
+            document.documentElement.lang = LANGUAGE === 'en' ? 'en' : 'zh-CN';
+
+            document.querySelectorAll('.language-switcher a').forEach(link => {
+                const linkLang = link.dataset.lang;
+                if (linkLang) {
+                    link.classList.toggle('active', linkLang === LANGUAGE);
+                }
+            });
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (!key) return;
+                const value = t(key);
+                if (value !== undefined) {
+                    el.innerHTML = value;
+                }
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (!key) return;
+                const value = t(key);
+                if (value !== undefined) {
+                    el.setAttribute('placeholder', value);
+                }
+            });
+
+            document.querySelectorAll('[data-i18n-option]').forEach(option => {
+                const value = option.getAttribute('data-i18n-option');
+                if (!value) return;
+                if (value === 'fu_value') {
+                    const fu = option.value;
+                    option.textContent = fu === '25'
+                        ? t('option_fu_25')
+                        : t('option_fu', { value: fu });
+                } else {
+                    option.textContent = t(value);
+                }
+            });
+
+            const copyBtn = document.getElementById('copy-game-summary');
+            if (copyBtn) {
+                copyBtn.textContent = t('button_copy');
+            }
+
+            const gameEndTitle = document.querySelector('#game-end-notice h3');
+            if (gameEndTitle) {
+                gameEndTitle.innerHTML = t('game_end_title');
+            }
+        }
+
+        function getDefaultPlayerName(index) {
+            return t('player_placeholder', { index: index + 1 });
+        }
+
+        function getRiichiKeyword() {
+            return LANGUAGE === 'en' ? 'riichi' : '立直';
+        }
+        // 计算役种总番数
+        function calculateHanFromYaku(yakuText, isMenzen = true, doraCount = 0, akaDoraCount = 0, uraDoraCount = 0) {
+            if (!yakuText || yakuText.trim() === '') {
+                return {
+                    totalHan: doraCount + akaDoraCount + uraDoraCount,
+                    yakuHan: 0,
+                    recognizedYaku: [],
+                    unrecognizedYaku: [],
+                    doraCount,
+                    akaDoraCount,
+                    uraDoraCount
+                };
+            }
+
+            const yakuList = yakuText.trim().split(/\s+/);
+            let yakuHan = 0;
+            const recognizedYaku = [];
+            const unrecognizedYaku = [];
+
+            yakuList.forEach(yaku => {
+                const yakuLower = yaku.toLowerCase();
+                let han = 0;
+
+                if (yakuDatabase[yakuLower] !== undefined) {
+                    han = yakuDatabase[yakuLower];
+                    recognizedYaku.push(yaku);
+                } else if (yakuDatabase[yaku] !== undefined) {
+                    han = yakuDatabase[yaku];
+                    recognizedYaku.push(yaku);
+                } else {
+                    unrecognizedYaku.push(yaku);
+                    return;
+                }
+
+                // 如果不是门清，检查是否需要减少番数
+                if (!isMenzen) {
+                    if (fuuroReducedYaku[yakuLower] !== undefined) {
+                        han += fuuroReducedYaku[yakuLower];
+                    } else if (fuuroReducedYaku[yaku] !== undefined) {
+                        han += fuuroReducedYaku[yaku];
+                    }
+                }
+
+                yakuHan += han;
+            });
+
+            const totalHan = yakuHan + doraCount + akaDoraCount + uraDoraCount;
+
+            return { totalHan, yakuHan, recognizedYaku, unrecognizedYaku, doraCount, akaDoraCount, uraDoraCount };
+        }
+
+        // 获取初始点数
+        function getInitialScore(rule) {
+            return rule === 'wrc' ? 30000 : 25000;
+        }
+
+        // 游戏状态
+        let gameState = {
+            players: ['', '', '', ''],
+            scores: [25000, 25000, 25000, 25000],
+            rule: 'mleague',
+            round: 0,  // 当前局数 (0-based, 0=东1, 1=东2, ..., 4=南1, etc.)
+            dealer: 0, // 当前庄家位置 (0-3)
+            honba: 0,  // 本场数（连庄次数）
+            riichiSticks: 0, // 立直棒数量
+            history: [],
+            gameEnded: false // 对局是否结束
+        };
+
+        // 检查对局是否结束（南4局结束）
+        function checkGameEnd(isDealer, dealerWon) {
+            // 南4局 = round 7（0=东1, 1=东2, 2=东3, 3=东4, 4=南1, 5=南2, 6=南3, 7=南4）
+            if (gameState.round === 7) {
+                // 如果不是庄家和牌/听牌，对局结束
+                if (!isDealer || !dealerWon) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 计算最终结算
+        function calculateFinalResults() {
+            const initialScore = getInitialScore(gameState.rule);
+
+            // 计算排名
+            const playerResults = gameState.players.map((name, index) => ({
+                index,
+                name: name || getDefaultPlayerName(index),
+                finalScore: gameState.scores[index],
+                rawScore: gameState.scores[index] - initialScore // 素点差
+            }));
+
+            // 按分数排序
+            playerResults.sort((a, b) => b.finalScore - a.finalScore);
+
+            // 分配排名（处理同分情况）
+            let currentRank = 1;
+            for (let i = 0; i < playerResults.length; i++) {
+                if (i > 0 && playerResults[i].finalScore < playerResults[i-1].finalScore) {
+                    currentRank = i + 1;
+                }
+                playerResults[i].rank = currentRank;
+            }
+
+            // 一位获得所有立直棒
+            const riichiBonus = gameState.riichiSticks * 1000;
+
+            // 计算马点
+            const umaPoints = gameState.rule === 'mleague'
+                ? [45000, 5000, -15000, -35000]  // M-League
+                : [30000, 10000, -10000, -30000]; // WRC
+
+            playerResults.forEach((player, index) => {
+                player.uma = umaPoints[index];
+                player.riichiBonus = (index === 0) ? riichiBonus : 0; // 一位获得立直棒
+                player.totalScore = player.rawScore + player.uma + player.riichiBonus;
+            });
+
+            return playerResults;
+        }
+
+        // 当前选择的役种
+        let selectedYaku = [];
+        let lastCopiedSummary = '';
+        let copyStatusTimeout = null;
+
+        // 获取所有役种的名称列表（用于datalist）
+        function getAllYakuNames() {
+            const yakuNames = new Set();
+            for (const key in yakuDatabase) {
+                yakuNames.add(key);
+            }
+
+            // 分类：中文、日文、罗马音
+            const chineseNames = [];
+            const japaneseNames = [];
+            const romajiNames = [];
+
+            Array.from(yakuNames).forEach(name => {
+                const firstChar = name.charCodeAt(0);
+                // 中文范围：0x4E00-0x9FFF
+                if (firstChar >= 0x4E00 && firstChar <= 0x9FFF) {
+                    chineseNames.push(name);
+                }
+                // 日文假名范围：0x3040-0x30FF
+                else if (firstChar >= 0x3040 && firstChar <= 0x30FF) {
+                    japaneseNames.push(name);
+                }
+                // 罗马音（英文字母）
+                else {
+                    romajiNames.push(name);
+                }
+            });
+
+            // 分别排序后合并：中文 -> 罗马音 -> 日文
+            chineseNames.sort();
+            romajiNames.sort();
+            japaneseNames.sort();
+
+            if (LANGUAGE === 'en') {
+                return [...romajiNames, ...chineseNames, ...japaneseNames];
+            }
+            return [...chineseNames, ...romajiNames, ...japaneseNames];
+        }
+
+        // 填充役种datalist
+        function populateYakuDatalist() {
+            const datalist = document.getElementById('yaku-datalist');
+            const yakuNames = getAllYakuNames();
+
+            datalist.innerHTML = '';
+            yakuNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                datalist.appendChild(option);
+            });
+        }
+
+        // 检查是否是立直相关役种
+        function isRiichiYaku(yakuName) {
+            const riichiYaku = [
+                '立直', 'riichi', 'リーチ',
+                '双立直', '双立', 'daburu riichi', 'ダブルリーチ', 'w立直'
+            ];
+            return riichiYaku.some(y => yakuName.toLowerCase() === y.toLowerCase() || yakuName === y);
+        }
+
+        // 检查是否是需要立直的役种
+        function needsRiichi(yakuName) {
+            const needsRiichiYaku = [
+                '一发', 'ippatsu', 'イッパツ',
+                '门前清自摸和', '门清', 'tsumo', 'ツモ'
+            ];
+            return needsRiichiYaku.some(y => yakuName.toLowerCase() === y.toLowerCase() || yakuName === y);
+        }
+
+        // 检查是否是七对子
+        function isSevenPairsYaku(yakuName) {
+            const normalized = yakuName.trim();
+            const lower = normalized.toLowerCase();
+            const variants = ['七对子', '七对', 'chiitoitsu', 'チートイツ'];
+            return variants.some(variant => normalized === variant || lower === variant.toLowerCase());
+        }
+
+        // 根据当前役种更新门清和符数锁定状态
+        function updateLocks() {
+            const menzenCheckbox = document.getElementById('menzen');
+            const fuSelect = document.getElementById('fu');
+            if (!menzenCheckbox || !fuSelect) return;
+
+            const hasRiichi = selectedYaku.some(y => isRiichiYaku(y));
+            const hasNeedsRiichi = selectedYaku.some(y => needsRiichi(y));
+            const hasSevenPairs = selectedYaku.some(y => isSevenPairsYaku(y));
+
+            if (hasSevenPairs) {
+                fuSelect.value = '25';
+                fuSelect.disabled = true;
+            } else {
+                fuSelect.disabled = false;
+            }
+
+            if (hasRiichi || hasNeedsRiichi || hasSevenPairs) {
+                menzenCheckbox.checked = true;
+                menzenCheckbox.disabled = true;
+            } else {
+                menzenCheckbox.disabled = false;
+            }
+
+            if (hasRiichi || hasNeedsRiichi) {
+                const winnerInput = document.getElementById('winner');
+                if (winnerInput) {
+                    const winnerId = parseInt(winnerInput.value);
+                    if (!Number.isNaN(winnerId)) {
+                        const riichiCheckbox = document.getElementById(`riichi-${winnerId}`);
+                        if (riichiCheckbox) {
+                            riichiCheckbox.checked = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 添加役种
+        function addYaku() {
+            const input = document.getElementById('yaku-search');
+            const yakuName = input.value.trim();
+
+            if (!yakuName) {
+                showMessage(t('msg_enter_yaku'), 'error');
+                return;
+            }
+
+            // 检查是否在数据库中
+            const yakuLower = yakuName.toLowerCase();
+            if (yakuDatabase[yakuLower] === undefined && yakuDatabase[yakuName] === undefined) {
+                showMessage(t('msg_unrecognized_yaku', { name: yakuName }), 'error');
+                return;
+            }
+
+            // 检查是否已经添加
+            if (selectedYaku.includes(yakuName)) {
+                showMessage(t('msg_duplicate_yaku'), 'error');
+                return;
+            }
+
+            selectedYaku.push(yakuName);
+
+            // 如果添加的是一发或门清自摸，自动添加立直
+            if (needsRiichi(yakuName)) {
+                const hasRiichi = selectedYaku.some(y => isRiichiYaku(y));
+                if (!hasRiichi) {
+                    selectedYaku.push(getRiichiKeyword());
+                }
+            }
+
+            updateLocks();
+            input.value = '';
+            updateSelectedYakuDisplay();
+            updateYakuPreview();
+        }
+
+        // 移除役种
+        function removeYaku(yakuName) {
+            const index = selectedYaku.indexOf(yakuName);
+            if (index > -1) {
+                selectedYaku.splice(index, 1);
+
+                updateLocks();
+                updateSelectedYakuDisplay();
+                updateYakuPreview();
+            }
+        }
+
+        // 更新已选择役种的显示
+        function updateSelectedYakuDisplay() {
+            const container = document.getElementById('selected-yaku-list');
+
+            if (selectedYaku.length === 0) {
+                container.innerHTML = `<div style="color: #999;">${t('selected_yaku_placeholder')}</div>`;
+                return;
+            }
+
+            const isMenzen = document.getElementById('menzen') ? document.getElementById('menzen').checked : true;
+
+            container.innerHTML = selectedYaku.map(yaku => {
+                let han = yakuDatabase[yaku] || yakuDatabase[yaku.toLowerCase()] || 0;
+
+                // 如果不是门清，检查是否需要减少番数
+                if (!isMenzen) {
+                    const yakuLower = yaku.toLowerCase();
+                    if (fuuroReducedYaku[yakuLower] !== undefined) {
+                        han += fuuroReducedYaku[yakuLower];
+                    } else if (fuuroReducedYaku[yaku] !== undefined) {
+                        han += fuuroReducedYaku[yaku];
+                    }
+                }
+
+                return `
+                    <span class="yaku-tag">
+                        ${yaku} (${han}${t('han_unit')})
+                        <button onclick="removeYaku('${yaku.replace(/'/g, "\\'")}')">×</button>
+                    </span>
+                `;
+            }).join('');
+        }
+
+        // 初始化
+        function init() {
+            applyTranslations();
+            loadState();
+            populateYakuDatalist();
+            updateDisplay();
+            setupEventListeners();
+            setupYakuInputListener();
+        }
+
+        // 更新役种预览
+        function updateYakuPreview() {
+            const fu = parseInt(document.getElementById('fu').value);
+            const winnerId = parseInt(document.getElementById('winner').value) || 0;
+            const loserValue = document.getElementById('loser').value;
+            const menzenCheckbox = document.getElementById('menzen');
+            let isMenzen = menzenCheckbox.checked;
+            const isDealer = winnerId === gameState.dealer;
+            const isTsumo = loserValue === 'tsumo';
+
+            // 获取宝牌数量
+            const doraCount = parseInt(document.getElementById('dora-count').value) || 0;
+            const akaDoraCount = parseInt(document.getElementById('aka-dora-count').value) || 0;
+            const uraDoraCount = parseInt(document.getElementById('ura-dora-count').value) || 0;
+
+            // 里宝存在时自动添加立直（若尚未添加）
+            if (uraDoraCount > 0 && !selectedYaku.some(y => isRiichiYaku(y))) {
+                selectedYaku.push(getRiichiKeyword());
+                updateLocks();
+                updateSelectedYakuDisplay();
+                isMenzen = menzenCheckbox.checked;
+            }
+
+            if (selectedYaku.length === 0 && doraCount === 0 && akaDoraCount === 0 && uraDoraCount === 0) {
+                document.getElementById('yaku-preview').style.display = 'none';
+                return;
+            }
+
+            const yakuText = selectedYaku.join(' ');
+            const result = calculateHanFromYaku(yakuText, isMenzen, doraCount, akaDoraCount, uraDoraCount);
+            const previewDiv = document.getElementById('yaku-preview');
+            previewDiv.style.display = 'block';
+
+            // 隐藏识别/未识别文本（因为用户是从列表选择的）
+            document.getElementById('yaku-recognized').textContent = '';
+            document.getElementById('yaku-unrecognized').textContent = '';
+
+            // 显示总番数
+            const menzenText = isMenzen ? '' : t('menzen_suffix_open');
+            let hanText = `${t('total_han')}: ${result.totalHan}${t('han_unit')}${menzenText}`;
+
+            // 显示宝牌详情
+            const doraDetails = [];
+            if (result.yakuHan > 0) doraDetails.push(LANGUAGE === 'en'
+                ? `Yaku ${result.yakuHan}${t('han_unit')}`
+                : `役${result.yakuHan}番`);
+            if (doraCount > 0) doraDetails.push(LANGUAGE === 'en'
+                ? `Dora ${doraCount}${t('han_unit')}`
+                : `宝牌${doraCount}番`);
+            if (akaDoraCount > 0) doraDetails.push(LANGUAGE === 'en'
+                ? `Red ${akaDoraCount}${t('han_unit')}`
+                : `赤${akaDoraCount}番`);
+            if (uraDoraCount > 0) doraDetails.push(LANGUAGE === 'en'
+                ? `Ura ${uraDoraCount}${t('han_unit')}`
+                : `里${uraDoraCount}番`);
+
+            if (doraDetails.length > 0) {
+                hanText += ` (${doraDetails.join(' + ')})`;
+            }
+
+            document.getElementById('yaku-han').textContent = hanText;
+
+            // 计算点数
+            const points = calculatePoints(result.totalHan, fu, isDealer, isTsumo, gameState.rule);
+            let pointsText = '';
+            if (isTsumo) {
+                if (isDealer) {
+                    pointsText = t('dealer_tsumo_points', { points: points[0] });
+                } else {
+                    pointsText = t('nondealer_tsumo_points', { small: points[0], big: points[1], total: points[0]*2 + points[1] });
+                }
+            } else {
+                pointsText = isDealer
+                    ? t('dealer_ron_points', { points })
+                    : t('nondealer_ron_points', { points });
+            }
+
+            // 添加本场和立直棒信息
+            const honbaPoints = gameState.honba * 300;
+            const riichiPoints = gameState.riichiSticks * 1000;
+            if (honbaPoints > 0 || riichiPoints > 0) {
+                pointsText += `\n${t('extra_points_header')}`;
+                if (honbaPoints > 0) pointsText += `${t('extra_honba', { points: honbaPoints })} `;
+                if (riichiPoints > 0) pointsText += t('extra_riichi', { points: riichiPoints });
+            }
+
+            document.getElementById('yaku-points').textContent = pointsText;
+            document.getElementById('yaku-points').style.whiteSpace = 'pre-line';
+        }
+
+        // 设置役种输入监听器
+        function setupYakuInputListener() {
+            const yakuSearch = document.getElementById('yaku-search');
+            const fuSelect = document.getElementById('fu');
+            const winnerSelect = document.getElementById('winner');
+            const loserSelect = document.getElementById('loser');
+            const menzenCheckbox = document.getElementById('menzen');
+            const doraCount = document.getElementById('dora-count');
+            const akaDoraCount = document.getElementById('aka-dora-count');
+            const uraDoraCount = document.getElementById('ura-dora-count');
+
+            // 支持Enter键添加
+            yakuSearch.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addYaku();
+                }
+            });
+
+            // 当选择改变时更新预览
+            fuSelect.addEventListener('change', updateYakuPreview);
+            winnerSelect.addEventListener('change', () => {
+                updateLocks();
+                updateYakuPreview();
+            });
+            loserSelect.addEventListener('change', updateYakuPreview);
+            menzenCheckbox.addEventListener('change', () => {
+                updateSelectedYakuDisplay(); // 更新役种标签的番数
+                updateYakuPreview();
+            });
+
+            // 宝牌数量改变时更新预览
+            doraCount.addEventListener('input', updateYakuPreview);
+            akaDoraCount.addEventListener('input', updateYakuPreview);
+            uraDoraCount.addEventListener('input', updateYakuPreview);
+        }
+
+        // 更新玩家名字
+        function updatePlayerName(index, name) {
+            gameState.players[index] = name;
+            saveState();
+            updateDisplay();
+        }
+
+        // 设置事件监听
+        function setupEventListeners() {
+            // 规则选择
+            document.querySelectorAll('.rule-btn-compact').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // 如果有历史记录，禁止切换规则
+                    if (gameState.history.length > 0) {
+                        showMessage(t('msg_switch_rule_disabled'), 'error');
+                        return;
+                    }
+
+                    const newRule = e.target.dataset.rule;
+
+                    // 如果切换规则，更新初始点数
+                    if (gameState.rule !== newRule) {
+                        const initialScore = getInitialScore(newRule);
+                        gameState.scores = [initialScore, initialScore, initialScore, initialScore];
+                    }
+
+                    document.querySelectorAll('.rule-btn-compact').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    gameState.rule = newRule;
+                    saveState();
+                    updateDisplay();
+                });
+            });
+
+            // 流局界面：立直自动勾选听牌
+            for (let i = 0; i < 4; i++) {
+                const riichiCheckbox = document.getElementById(`ryuukyoku-riichi-${i}`);
+                const tenpaiCheckbox = document.getElementById(`tenpai-${i}`);
+                if (!riichiCheckbox || !tenpaiCheckbox) continue;
+                riichiCheckbox.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        tenpaiCheckbox.checked = true;
+                    }
+                });
+            }
+
+            const copyBtn = document.getElementById('copy-game-summary');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => copyGameSummary(false));
+            }
+        }
+
+        // 显示最终结算
+        function showFinalResults() {
+            const results = calculateFinalResults();
+            const finalResultsDiv = document.getElementById('final-results');
+
+            let html = '<table style="width: 100%; border-collapse: collapse; background: white; border-radius: 5px; overflow: hidden;">';
+            html += '<thead><tr style="background: #667eea; color: white;">';
+            html += `<th style="padding: 10px;">${t('table_rank')}</th>`;
+            html += `<th style="padding: 10px;">${t('table_player')}</th>`;
+            html += `<th style="padding: 10px;">${t('table_final_score')}</th>`;
+            html += `<th style="padding: 10px;">${t('table_raw_score')}</th>`;
+            html += `<th style="padding: 10px;">${t('table_uma')}</th>`;
+            html += `<th style="padding: 10px;">${t('table_riichi')}</th>`;
+            html += `<th style="padding: 10px;">${t('table_total')}</th>`;
+            html += '</tr></thead><tbody>';
+
+            results.forEach((player, index) => {
+                const rankEmoji = ['🥇', '🥈', '🥉', '4️⃣'][index] || '';
+                const rowColor = index % 2 === 0 ? '#f8f9fa' : 'white';
+                html += `<tr style="background: ${rowColor}; text-align: center;">`;
+                html += `<td style="padding: 10px; font-size: 1.2em;">${rankEmoji} ${player.rank}${t('rank_suffix')}</td>`;
+                html += `<td style="padding: 10px; font-weight: bold;">${player.name}</td>`;
+                html += `<td style="padding: 10px;">${player.finalScore.toLocaleString()}</td>`;
+                html += `<td style="padding: 10px; color: ${player.rawScore >= 0 ? '#28a745' : '#dc3545'};">${player.rawScore >= 0 ? '+' : ''}${player.rawScore.toLocaleString()}</td>`;
+                html += `<td style="padding: 10px; color: ${player.uma >= 0 ? '#28a745' : '#dc3545'};">${player.uma >= 0 ? '+' : ''}${player.uma.toLocaleString()}</td>`;
+                html += `<td style="padding: 10px; color: ${player.riichiBonus > 0 ? '#28a745' : '#666'};">${player.riichiBonus > 0 ? '+' : ''}${player.riichiBonus.toLocaleString()}</td>`;
+                html += `<td style="padding: 10px; font-weight: bold; font-size: 1.1em; color: ${player.totalScore >= 0 ? '#28a745' : '#dc3545'};">${player.totalScore >= 0 ? '+' : ''}${player.totalScore.toLocaleString()}</td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            finalResultsDiv.innerHTML = html;
+            document.getElementById('game-end-notice').style.display = 'block';
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            // 更新局数显示
+            const roundNames = t('round_names');
+            const roundIndex = Math.floor(gameState.round / 4);
+            const subRound = (gameState.round % 4) + 1;
+            let roundName;
+            if (LANGUAGE === 'en') {
+                roundName = `${roundNames[roundIndex % 4]} ${subRound}`;
+            } else {
+                roundName = `${roundNames[roundIndex % 4]}${subRound}${t('round_suffix')}`;
+            }
+            document.getElementById('current-round').textContent = roundName;
+
+            // 更新本场数显示（对局结束后不显示）
+            const honbaElement = document.getElementById('honba-display');
+            if (gameState.gameEnded) {
+                honbaElement.style.display = 'none';
+            } else {
+                honbaElement.style.display = 'inline';
+                honbaElement.textContent = `${gameState.honba}${t('honba_suffix')}`;
+            }
+
+            // 更新立直棒显示
+            document.getElementById('riichi-sticks').textContent = `${gameState.riichiSticks}`;
+
+            // 更新点数显示
+            const scoresDiv = document.getElementById('scores-display');
+            scoresDiv.innerHTML = '';
+            const positions = t('dealer_positions');
+            gameState.players.forEach((name, i) => {
+                const isDealer = i === gameState.dealer;
+                const dealerClass = isDealer ? 'dealer' : '';
+                const dealerBadge = isDealer ? ' 🀄' : '';
+                scoresDiv.innerHTML += `
+                    <div class="player-score ${dealerClass}">
+                        <input type="text"
+                               id="player-name-${i}"
+                               value="${name}"
+                               placeholder="${positions[i] || getDefaultPlayerName(i)}"
+                               onchange="updatePlayerName(${i}, this.value)"
+                               ${gameState.gameEnded ? 'disabled' : ''}>
+                        <div class="score">${gameState.scores[i].toLocaleString()}${dealerBadge}</div>
+                    </div>
+                `;
+            });
+
+            // 检查对局是否结束
+            if (gameState.gameEnded) {
+                showFinalResults();
+            } else {
+                document.getElementById('game-end-notice').style.display = 'none';
+            }
+
+            // 更新立直和听牌选项的标签
+            for (let i = 0; i < 4; i++) {
+                const playerName = gameState.players[i] || getDefaultPlayerName(i);
+                document.getElementById(`riichi-label-${i}`).textContent = playerName;
+                document.getElementById(`tenpai-label-${i}`).textContent = playerName;
+                document.getElementById(`ryuukyoku-riichi-label-${i}`).textContent = playerName;
+            }
+
+            // 根据历史记录是否存在，禁用或启用规则按钮
+            const hasHistory = gameState.history.length > 0;
+            document.querySelectorAll('.rule-btn-compact').forEach(btn => {
+                btn.disabled = hasHistory || gameState.gameEnded;
+            });
+
+            // 更新下拉选项
+            updateSelects();
+
+            // 更新历史记录
+            updateHistory();
+
+            // 对局结束后封锁所有输入和按钮
+            if (gameState.gameEnded) {
+                // 禁用和牌相关的所有输入
+                document.getElementById('winner').disabled = true;
+                document.getElementById('loser').disabled = true;
+                document.getElementById('fu').disabled = true;
+                document.getElementById('menzen').disabled = true;
+                document.getElementById('yaku-search').disabled = true;
+                document.querySelector('.yaku-selector button').disabled = true;
+                document.getElementById('dora-count').disabled = true;
+                document.getElementById('aka-dora-count').disabled = true;
+                document.getElementById('ura-dora-count').disabled = true;
+                document.querySelector('button[onclick="recordWin()"]').disabled = true;
+
+                // 禁用流局相关的所有输入
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById(`tenpai-${i}`).disabled = true;
+                    document.getElementById(`ryuukyoku-riichi-${i}`).disabled = true;
+                    document.getElementById(`riichi-${i}`).disabled = true;
+                }
+                document.querySelector('button[onclick="recordRyuukyoku()"]').disabled = true;
+            } else {
+                // 启用所有输入
+                document.getElementById('winner').disabled = false;
+                document.getElementById('loser').disabled = false;
+                document.getElementById('fu').disabled = false;
+                document.getElementById('menzen').disabled = false;
+                document.getElementById('yaku-search').disabled = false;
+                document.querySelector('.yaku-selector button').disabled = false;
+                document.getElementById('dora-count').disabled = false;
+                document.getElementById('aka-dora-count').disabled = false;
+                document.getElementById('ura-dora-count').disabled = false;
+                document.querySelector('button[onclick="recordWin()"]').disabled = false;
+
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById(`tenpai-${i}`).disabled = false;
+                    document.getElementById(`ryuukyoku-riichi-${i}`).disabled = false;
+                    document.getElementById(`riichi-${i}`).disabled = false;
+                }
+                document.querySelector('button[onclick="recordRyuukyoku()"]').disabled = false;
+            }
+
+            if (!gameState.gameEnded) {
+                updateLocks();
+            }
+
+            updateGameSummary();
+        }
+
+        // 更新下拉选项
+        function updateSelects() {
+            const winnerSelect = document.getElementById('winner');
+            const loserSelect = document.getElementById('loser');
+
+            winnerSelect.innerHTML = '';
+            loserSelect.innerHTML = `<option value="tsumo">${t('option_tsumo')}</option>`;
+
+            gameState.players.forEach((name, i) => {
+                const playerName = name || getDefaultPlayerName(i);
+                winnerSelect.innerHTML += `<option value="${i}">${playerName}</option>`;
+                loserSelect.innerHTML += `<option value="${i}">${playerName}</option>`;
+            });
+        }
+
+        // 计算点数
+        function calculatePoints(han, fu, isDealer, isTsumo, rule) {
+            // 役满及以上
+            if (han >= 13) {
+                return isDealer
+                    ? (isTsumo ? [16000, 16000, 16000] : 48000)
+                    : (isTsumo ? [8000, 16000, 8000] : 32000);
+            }
+            if (han >= 11) {
+                return isDealer
+                    ? (isTsumo ? [12000, 12000, 12000] : 36000)
+                    : (isTsumo ? [6000, 12000, 6000] : 24000);
+            }
+            if (han >= 8) {
+                return isDealer
+                    ? (isTsumo ? [8000, 8000, 8000] : 24000)
+                    : (isTsumo ? [4000, 8000, 4000] : 16000);
+            }
+            if (han >= 6) {
+                return isDealer
+                    ? (isTsumo ? [6000, 6000, 6000] : 18000)
+                    : (isTsumo ? [3000, 6000, 3000] : 12000);
+            }
+
+            // 计算基本点
+            let basePoints = fu * Math.pow(2, 2 + han);
+
+            // 满贯判定（WRC和M-League规则不同）
+            if (rule === 'wrc') {
+                // WRC规则：只有5番及以上，或4番40符+，或3番70符+才是满贯
+                if (han >= 5 || (han >= 4 && fu >= 40) || (han >= 3 && fu >= 70)) {
+                    return isDealer
+                        ? (isTsumo ? [4000, 4000, 4000] : 12000)
+                        : (isTsumo ? [2000, 4000, 2000] : 8000);
+                }
+            } else {
+                // M-League规则：4番30符也按满贯计算
+                if (han >= 5 || (han >= 4 && fu >= 30) || (han >= 3 && fu >= 70)) {
+                    return isDealer
+                        ? (isTsumo ? [4000, 4000, 4000] : 12000)
+                        : (isTsumo ? [2000, 4000, 2000] : 8000);
+                }
+            }
+
+            // 普通计算
+            if (isTsumo) {
+                if (isDealer) {
+                    const payment = Math.ceil(basePoints * 2 / 100) * 100;
+                    return [payment, payment, payment];
+                } else {
+                    const dealerPayment = Math.ceil(basePoints * 2 / 100) * 100;
+                    const otherPayment = Math.ceil(basePoints / 100) * 100;
+                    return [otherPayment, dealerPayment, otherPayment];
+                }
+            } else {
+                if (isDealer) {
+                    return Math.ceil(basePoints * 6 / 100) * 100;
+                } else {
+                    return Math.ceil(basePoints * 4 / 100) * 100;
+                }
+            }
+        }
+
+        // 记录和牌
+        function recordWin() {
+            const winnerId = parseInt(document.getElementById('winner').value);
+            const loserValue = document.getElementById('loser').value;
+            const fu = parseInt(document.getElementById('fu').value);
+            const isMenzen = document.getElementById('menzen').checked;
+            const isDealer = winnerId === gameState.dealer;  // 自动判断是否庄家
+            const isTsumo = loserValue === 'tsumo';
+            const loserId = isTsumo ? -1 : parseInt(loserValue);
+            const doraCount = parseInt(document.getElementById('dora-count').value) || 0;
+            const akaDoraCount = parseInt(document.getElementById('aka-dora-count').value) || 0;
+            const uraDoraCount = parseInt(document.getElementById('ura-dora-count').value) || 0;
+
+            // 验证
+            if (!isTsumo && winnerId === loserId) {
+                showMessage(t('msg_same_player'), 'error');
+                return;
+            }
+
+            // 验证役种
+            if (selectedYaku.length === 0) {
+                showMessage(t('msg_select_yaku_required'), 'error');
+                return;
+            }
+
+            // 计算番数
+            const yakuText = selectedYaku.join(' ');
+            const yakuResult = calculateHanFromYaku(
+                yakuText,
+                isMenzen,
+                doraCount,
+                akaDoraCount,
+                uraDoraCount
+            );
+            const han = yakuResult.totalHan;
+
+            // 获取立直情况
+            const riichiPlayers = [];
+            for (let i = 0; i < 4; i++) {
+                if (document.getElementById(`riichi-${i}`).checked) {
+                    riichiPlayers.push(i);
+                }
+            }
+
+            // 计算基本点数
+            const points = calculatePoints(han, fu, isDealer, isTsumo, gameState.rule);
+            const newScores = [...gameState.scores];
+
+            // 计算本场棒点数
+            const honbaPoints = gameState.honba * 300;
+
+            if (isTsumo) {
+                // 自摸
+                const [pay0, pay1, pay2] = points;
+                newScores.forEach((score, i) => {
+                    if (i !== winnerId) {
+                        if (i === 0) {
+                            newScores[i] -= pay1;
+                            newScores[winnerId] += pay1;
+                        } else {
+                            const payment = isDealer ? pay0 : (winnerId === 0 ? pay1 : pay0);
+                            newScores[i] -= payment;
+                            newScores[winnerId] += payment;
+                        }
+                    }
+                });
+                // 自摸时，本场棒由其他三家平分支付
+                const honbaPerPlayer = Math.floor(honbaPoints / 3);
+                newScores.forEach((score, i) => {
+                    if (i !== winnerId) {
+                        newScores[i] -= honbaPerPlayer;
+                        newScores[winnerId] += honbaPerPlayer;
+                    }
+                });
+            } else {
+                // 点炮
+                newScores[loserId] -= points;
+                newScores[winnerId] += points;
+                // 点炮时，本场棒由点炮者支付
+                newScores[loserId] -= honbaPoints;
+                newScores[winnerId] += honbaPoints;
+            }
+
+            // 扣除立直玩家的1000点
+            riichiPlayers.forEach(playerId => {
+                newScores[playerId] -= 1000;
+            });
+
+            // 立直棒由和牌者收取（包括之前积累的立直棒 + 本局新增的立直棒）
+            const totalRiichiSticks = gameState.riichiSticks + riichiPlayers.length;
+            const totalRiichiPoints = totalRiichiSticks * 1000;
+            newScores[winnerId] += totalRiichiPoints;
+
+            // 记录历史
+            const record = {
+                type: 'win',
+                winnerId,
+                loserId,
+                isTsumo,
+                han,
+                fu,
+                yaku: yakuResult.recognizedYaku.join(' '),
+                yakuHan: yakuResult.yakuHan,
+                doraCount: yakuResult.doraCount,
+                akaDoraCount: yakuResult.akaDoraCount,
+                uraDoraCount: yakuResult.uraDoraCount,
+                isMenzen,
+                isDealer,
+                points,
+                riichiPlayers: [...riichiPlayers],
+                honbaPoints,
+                riichiPoints: totalRiichiPoints,
+                scoreBefore: [...gameState.scores],
+                scoreAfter: [...newScores],
+                roundBefore: gameState.round,
+                dealerBefore: gameState.dealer,
+                honbaBefore: gameState.honba,
+                riichiSticksBefore: gameState.riichiSticks,
+                timestamp: Date.now()
+            };
+
+            gameState.history.push(record);
+            gameState.scores = newScores;
+
+            // 更新立直棒数量（和牌后所有立直棒被和牌者拿走，清零）
+            gameState.riichiSticks = 0;
+
+            // 检查对局是否结束
+            if (checkGameEnd(isDealer, true)) {
+                gameState.gameEnded = true;
+            }
+
+            // 更新庄家和局数
+            if (isDealer) {
+                // 庄家和牌，连庄：局数不变，本场+1
+                gameState.honba++;
+            } else {
+                // 庄家没和牌，轮庄：庄家轮换，局数+1，本场归0
+                gameState.dealer = (gameState.dealer + 1) % 4;
+                gameState.round++;
+                gameState.honba = 0;
+            }
+
+            // 清除复选框和役种选择
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`riichi-${i}`).checked = false;
+            }
+            selectedYaku = [];
+            updateSelectedYakuDisplay();
+            document.getElementById('yaku-preview').style.display = 'none';
+            document.getElementById('menzen').checked = true; // 重置为门清
+            document.getElementById('menzen').disabled = false; // 解锁门清复选框
+            document.getElementById('dora-count').value = 0;
+            document.getElementById('aka-dora-count').value = 0;
+            document.getElementById('ura-dora-count').value = 0;
+            updateLocks();
+
+            saveState();
+            updateDisplay();
+            updateYakuPreview();
+
+            if (gameState.gameEnded) {
+                showMessage(t('msg_game_end'), 'success');
+            } else {
+                showMessage(t('msg_record_success'), 'success');
+            }
+        }
+
+        // 记录流局
+        function recordRyuukyoku() {
+            // 获取听牌玩家
+            const tenpaiPlayers = [];
+            for (let i = 0; i < 4; i++) {
+                if (document.getElementById(`tenpai-${i}`).checked) {
+                    tenpaiPlayers.push(i);
+                }
+            }
+
+            // 获取立直玩家
+            const riichiPlayers = [];
+            for (let i = 0; i < 4; i++) {
+                if (document.getElementById(`ryuukyoku-riichi-${i}`).checked) {
+                    riichiPlayers.push(i);
+                }
+            }
+
+            const tenpaiCount = tenpaiPlayers.length;
+            const newScores = [...gameState.scores];
+
+            // 计算听牌费
+            // 0人听牌或4人听牌：不移动点数
+            // 1人听牌：其他3人各给1000点
+            // 2人听牌：未听牌的2人各给1500点
+            // 3人听牌：未听牌的1人给3000点
+            if (tenpaiCount === 1) {
+                const tenpaiPlayer = tenpaiPlayers[0];
+                for (let i = 0; i < 4; i++) {
+                    if (i !== tenpaiPlayer) {
+                        newScores[i] -= 1000;
+                        newScores[tenpaiPlayer] += 1000;
+                    }
+                }
+            } else if (tenpaiCount === 2) {
+                for (let i = 0; i < 4; i++) {
+                    if (tenpaiPlayers.includes(i)) {
+                        newScores[i] += 1500;
+                    } else {
+                        newScores[i] -= 1500;
+                    }
+                }
+            } else if (tenpaiCount === 3) {
+                for (let i = 0; i < 4; i++) {
+                    if (tenpaiPlayers.includes(i)) {
+                        newScores[i] += 1000;
+                    } else {
+                        newScores[i] -= 3000;
+                    }
+                }
+            }
+
+            // 扣除立直玩家的1000点
+            riichiPlayers.forEach(playerId => {
+                newScores[playerId] -= 1000;
+            });
+
+            // 判断是否连庄
+            const dealerTenpai = tenpaiPlayers.includes(gameState.dealer);
+
+            // 记录历史
+            const record = {
+                type: 'ryuukyoku',
+                tenpaiPlayers: [...tenpaiPlayers],
+                riichiPlayers: [...riichiPlayers],
+                dealerTenpai,
+                scoreBefore: [...gameState.scores],
+                scoreAfter: [...newScores],
+                roundBefore: gameState.round,
+                dealerBefore: gameState.dealer,
+                honbaBefore: gameState.honba,
+                riichiSticksBefore: gameState.riichiSticks,
+                timestamp: Date.now()
+            };
+
+            gameState.history.push(record);
+            gameState.scores = newScores;
+
+            // 更新立直棒（流局后立直棒留在桌上，并增加本局新增的立直棒）
+            gameState.riichiSticks += riichiPlayers.length;
+
+            // 检查对局是否结束
+            if (checkGameEnd(true, dealerTenpai)) {
+                gameState.gameEnded = true;
+            }
+
+            // 流局时本场数总是+1
+            gameState.honba++;
+
+            // 更新庄家和局数
+            if (dealerTenpai) {
+                // 庄家听牌，连庄：局数不变
+            } else {
+                // 庄家未听牌，轮庄：庄家轮换，局数+1
+                gameState.dealer = (gameState.dealer + 1) % 4;
+                gameState.round++;
+            }
+
+            // 清除复选框
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`tenpai-${i}`).checked = false;
+                document.getElementById(`ryuukyoku-riichi-${i}`).checked = false;
+            }
+
+            saveState();
+            updateDisplay();
+
+            if (gameState.gameEnded) {
+                showMessage(t('msg_ryuukyoku_success_end'), 'success', 'ryuukyoku-message');
+            } else {
+                showMessage(t('msg_ryuukyoku_success'), 'success', 'ryuukyoku-message');
+            }
+        }
+
+        // 撤销上一局
+        function undoLast() {
+            if (gameState.history.length === 0) {
+                showMessage(t('msg_no_history'), 'error');
+                return;
+            }
+
+            const lastRecord = gameState.history.pop();
+            gameState.scores = lastRecord.scoreBefore;
+            gameState.round = lastRecord.roundBefore;
+            gameState.dealer = lastRecord.dealerBefore;
+            gameState.honba = lastRecord.honbaBefore;
+            gameState.riichiSticks = lastRecord.riichiSticksBefore;
+            gameState.gameEnded = false; // 撤销后对局继续
+
+            saveState();
+            updateDisplay();
+            showMessage(t('msg_undo_success'), 'success');
+        }
+
+        // 清空历史
+        function clearHistory() {
+            if (!confirm(t('msg_clear_confirm'))) return;
+
+            const initialScore = getInitialScore(gameState.rule);
+            gameState.scores = [initialScore, initialScore, initialScore, initialScore];
+            gameState.history = [];
+            gameState.round = 0;
+            gameState.dealer = 0;
+            gameState.honba = 0;
+            gameState.riichiSticks = 0;
+            gameState.gameEnded = false;
+
+            saveState();
+            updateDisplay();
+            showMessage(t('msg_history_cleared'), 'success');
+        }
+
+        // 获取局数显示文本
+        function getRoundText(round, honba) {
+            const roundNames = t('round_names');
+            const roundIndex = Math.floor(round / 4);
+            const subRound = (round % 4) + 1;
+            let roundName;
+            if (LANGUAGE === 'en') {
+                roundName = `${roundNames[roundIndex % 4]} ${subRound}`;
+            } else {
+                roundName = `${roundNames[roundIndex % 4]}${subRound}${t('round_suffix')}`;
+            }
+            if (honba > 0) {
+                if (LANGUAGE === 'en') {
+                    return `${roundName} · ${honba}${t('honba_suffix')}`;
+                }
+                return `${roundName}${honba}${t('honba_suffix')}`;
+            }
+            return roundName;
+        }
+
+        function formatScoreDelta(before, after) {
+            const delta = after - before;
+            const formattedDelta = delta > 0 ? `+${delta.toLocaleString()}` : delta.toLocaleString();
+            return `${before.toLocaleString()} → ${after.toLocaleString()} (${formattedDelta})`;
+        }
+
+        function renderScoreChanges(record, players) {
+            if (!record.scoreBefore || !record.scoreAfter) return '';
+            const rows = record.scoreBefore.map((score, i) => {
+                const after = record.scoreAfter[i];
+                const delta = after - score;
+                const color = delta > 0 ? '#28a745' : (delta < 0 ? '#dc3545' : '#666');
+                const playerName = players[i] || getDefaultPlayerName(i);
+                return `<div style="display: flex; justify-content: space-between; gap: 12px;">
+                    <span>${playerName}</span>
+                    <span style="color: ${color}; font-weight: 600;">${formatScoreDelta(score, after)}</span>
+                </div>`;
+            }).join('');
+            return `<div style="padding: 8px 12px; background: rgba(102, 126, 234, 0.08); border-radius: 6px; min-width: 210px;">
+                <div style="font-weight: 600; margin-bottom: 6px; color: #667eea;">${t('history_score_changes')}</div>
+                ${rows}
+            </div>`;
+        }
+
+        // 更新历史显示
+        function updateHistory() {
+            const historyDiv = document.getElementById('history');
+            historyDiv.innerHTML = '';
+
+            if (gameState.history.length === 0) {
+                historyDiv.innerHTML = `<p style="text-align: center; color: #999;">${t('history_empty')}</p>`;
+                return;
+            }
+
+            gameState.history.slice().reverse().forEach((record, index) => {
+                const actualIndex = gameState.history.length - 1 - index;
+
+                // 获取局数和本场数
+                const roundText = getRoundText(record.roundBefore, record.honbaBefore);
+                const playersSnapshot = record.scoreBefore
+                    ? record.scoreBefore.map((_, idx) => gameState.players[idx] || getDefaultPlayerName(idx))
+                    : [];
+
+                let detailsHtml = '';
+
+                if (record.type === 'ryuukyoku') {
+                    // 流局记录
+                    const nameSeparator = LANGUAGE === 'en' ? ', ' : '、';
+                    const tenpaiNames = (record.tenpaiPlayers || []).map(id =>
+                        gameState.players[id] || getDefaultPlayerName(id)
+                    ).join(nameSeparator);
+                    let tenpaiText;
+                    if (record.tenpaiPlayers.length === 0) {
+                        tenpaiText = t('history_all_noten');
+                    } else if (record.tenpaiPlayers.length === 4) {
+                        tenpaiText = t('history_all_tenpai');
+                    } else {
+                        tenpaiText = `${t('history_tenpai_prefix')}${tenpaiNames}`;
+                    }
+
+                    let riichiText = '';
+                    if (record.riichiPlayers && record.riichiPlayers.length > 0) {
+                        const riichiNames = record.riichiPlayers.map(id => gameState.players[id] || getDefaultPlayerName(id)).join(nameSeparator);
+                        riichiText = `<br>${t('riichi_players_label')}: ${riichiNames}`;
+                    }
+
+                    const dealerStatus = record.dealerTenpai ? t('history_continue') : t('history_change');
+                    const scoreChanges = renderScoreChanges(record, playersSnapshot);
+
+                    detailsHtml = `
+                        <div style="color: #667eea; font-weight: bold; margin-bottom: 5px; display:flex; gap:12px; align-items:flex-start; flex-wrap: wrap;">
+                            <div style="min-width:200px;">
+                                ${roundText}
+                                <br>
+                                <strong>${t('history_ryuukyoku')}</strong> (${dealerStatus})
+                                <br>
+                                ${tenpaiText}${riichiText}
+                            </div>
+                            ${scoreChanges}
+                        </div>
+                    `;
+                } else {
+                    // 和牌记录
+                    const winnerName = gameState.players[record.winnerId] || getDefaultPlayerName(record.winnerId);
+                    const loserName = record.isTsumo
+                        ? t('tsumo_text')
+                        : (gameState.players[record.loserId] || getDefaultPlayerName(record.loserId));
+                    let pointsStr;
+                    if (record.isTsumo) {
+                        pointsStr = record.points.join('/');
+                    } else {
+                        pointsStr = `${t('ron_text')} ${record.points}${LANGUAGE === 'en' ? ' pts' : '点'}`;
+                    }
+
+                    // 显示役种、门清状态以及宝牌信息
+                    const yakuSegments = [];
+                    if (record.yaku) {
+                        const menzenStatus = record.isMenzen === false ? (LANGUAGE === 'en' ? 'Open ' : '副露 ') : '';
+                        yakuSegments.push(`${menzenStatus}${record.yaku}`);
+                    }
+                    const doraSegments = [];
+                    if (record.doraCount) doraSegments.push(LANGUAGE === 'en'
+                        ? `Dora ${record.doraCount}${t('han_unit')}`
+                        : `宝牌${record.doraCount}番`);
+                    if (record.akaDoraCount) doraSegments.push(LANGUAGE === 'en'
+                        ? `Red ${record.akaDoraCount}${t('han_unit')}`
+                        : `赤${record.akaDoraCount}番`);
+                    if (record.uraDoraCount) doraSegments.push(LANGUAGE === 'en'
+                        ? `Ura ${record.uraDoraCount}${t('han_unit')}`
+                        : `里${record.uraDoraCount}番`);
+                    if (doraSegments.length > 0) {
+                        yakuSegments.push(doraSegments.join(' + '));
+                    }
+                    const yakuText = yakuSegments.length > 0
+                        ? `<br><small style="color: #28a745;">${t('yaku_label')}: ${yakuSegments.join(' · ')}</small>`
+                        : '';
+
+                    const extraInfo = [];
+                    if (record.honbaPoints > 0) extraInfo.push(t('extra_honba', { points: record.honbaPoints }));
+                    if (record.riichiPoints > 0) extraInfo.push(t('extra_riichi', { points: record.riichiPoints }));
+                    if (record.riichiPlayers && record.riichiPlayers.length > 0) {
+                        const riichiNames = record.riichiPlayers.map(id => gameState.players[id] || getDefaultPlayerName(id)).join(nameSeparator);
+                        extraInfo.push(`${t('riichi_players_label')}: ${riichiNames}`);
+                    }
+                    const extraText = extraInfo.length > 0 ? `<br><small>${extraInfo.join(t('history_extra_separator'))}</small>` : '';
+
+                    const dealerSuffix = record.isDealer ? t('history_dealer_suffix') : '';
+                    const summaryText = t('history_winner_summary', {
+                        winner: winnerName,
+                        han: record.han,
+                        fu: record.fu,
+                        dealer: dealerSuffix
+                    });
+                    const loserSummary = record.isTsumo
+                        ? t('history_tsumo_summary', { points: pointsStr })
+                        : t('history_loser_summary', { loser: loserName, points: pointsStr });
+
+                    const scoreChanges = renderScoreChanges(record, playersSnapshot);
+
+                    detailsHtml = `
+                        <div style="color: #667eea; font-weight: bold; margin-bottom: 5px; display:flex; gap:12px; align-items:flex-start; flex-wrap: wrap;">
+                            <div style="min-width:200px;">
+                                ${roundText}
+                                <br>
+                                <strong>${summaryText}</strong>
+                                ${yakuText}
+                                <br>
+                                ${loserSummary}${extraText}
+                            </div>
+                            ${scoreChanges}
+                        </div>
+                    `;
+                }
+
+                // 只有最新的一条记录(index === 0)才显示撤销按钮
+                const undoButton = index === 0
+                    ? `<button onclick="undoLast()">${t('undo_button')}</button>`
+                    : '';
+
+                historyDiv.innerHTML += `
+                    <div class="history-item">
+                        <div class="details">
+                            ${detailsHtml}
+                        </div>
+                        ${undoButton}
+                    </div>
+                `;
+            });
+        }
+
+        function setCopyStatus(message, isError = false) {
+            const statusEl = document.getElementById('copy-status');
+            if (!statusEl) return;
+            statusEl.textContent = message;
+            statusEl.style.color = isError ? '#dc3545' : '#28a745';
+            if (copyStatusTimeout) {
+                clearTimeout(copyStatusTimeout);
+            }
+            copyStatusTimeout = setTimeout(() => {
+                statusEl.textContent = '';
+            }, 3000);
+        }
+
+        async function copyTextToClipboard(text) {
+            if (!text) {
+                setCopyStatus(t('copy_none'), true);
+                return false;
+            }
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    if (!successful) {
+                        throw new Error(t('copy_exec_failed'));
+                    }
+                }
+                return true;
+            } catch (err) {
+                console.error('Clipboard copy failed', err);
+                setCopyStatus(t('copy_failed') + err.message, true);
+                return false;
+            }
+        }
+
+        async function copyGameSummary(auto = false) {
+            const summaryElement = document.getElementById('game-summary-json');
+            if (!summaryElement) return;
+            const text = summaryElement.textContent.trim();
+            if (!text) {
+                if (!auto) setCopyStatus(t('copy_none'), true);
+                return;
+            }
+            if (auto && text === lastCopiedSummary) {
+                return;
+            }
+            const ok = await copyTextToClipboard(text);
+            if (ok) {
+                lastCopiedSummary = text;
+                setCopyStatus(auto ? t('copy_auto') : t('copy_success'));
+            }
+        }
+
+        function generateGameSummary() {
+            const players = gameState.players.map((name, i) => name || getDefaultPlayerName(i));
+            const initialScore = getInitialScore(gameState.rule);
+            const rounds = gameState.history.map((record, index) => {
+                const roundNumber = record.roundBefore !== undefined ? record.roundBefore : gameState.round;
+                const honbaBefore = record.honbaBefore !== undefined ? record.honbaBefore : 0;
+                const riichiSticksBefore = record.riichiSticksBefore !== undefined ? record.riichiSticksBefore : 0;
+                const dealerIndex = record.dealerBefore !== undefined ? record.dealerBefore : gameState.dealer;
+                const roundName = getRoundText(roundNumber, honbaBefore);
+                const riichiPlayers = (record.riichiPlayers || []).map(id => players[id]);
+                const scoreBeforeArr = record.scoreBefore || gameState.scores;
+                const scoreAfterArr = record.scoreAfter || scoreBeforeArr;
+                const base = {
+                    index: index + 1,
+                    type: record.type,
+                    round: {
+                        number: roundNumber,
+                        name: roundName,
+                        honba: honbaBefore,
+                        riichiSticks: riichiSticksBefore,
+                        dealer: players[dealerIndex]
+                    },
+                    scores: scoreBeforeArr.map((before, i) => {
+                        const after = scoreAfterArr[i] !== undefined ? scoreAfterArr[i] : before;
+                        return {
+                            player: players[i],
+                            before,
+                            after,
+                            delta: after - before
+                        };
+                    })
+                };
+
+                if (record.type === 'win') {
+                    const yakuList = record.yaku ? record.yaku.split(/\s+/).filter(Boolean) : [];
+                    const loserNameText = record.isTsumo
+                        ? '自摸'
+                        : (players[record.loserId] || getDefaultPlayerName(record.loserId || 0));
+                    base.result = {
+                        winner: players[record.winnerId],
+                        loser: loserNameText,
+                        isTsumo: record.isTsumo,
+                        isDealer: record.isDealer,
+                        isMenzen: record.isMenzen !== false,
+                        han: record.han,
+                        fu: record.fu,
+                        yaku: yakuList,
+                        yakuHan: record.yakuHan,
+                        dora: {
+                            dora: record.doraCount,
+                            aka: record.akaDoraCount,
+                            ura: record.uraDoraCount
+                        },
+                        points: record.isTsumo
+                            ? { type: 'tsumo', payments: record.points }
+                            : { type: 'ron', payment: record.points },
+                        honbaBonus: record.honbaPoints,
+                        riichiBonus: record.riichiPoints,
+                        riichiPlayers
+                    };
+                    base.result.note = record.isTsumo ? t('summary_note_tsumo') : t('summary_note_ron');
+                } else {
+                    const tenpaiPlayers = (record.tenpaiPlayers || []).map(id => players[id]);
+                    base.result = {
+                        tenpaiPlayers,
+                        riichiPlayers,
+                        dealerTenpai: record.dealerTenpai
+                    };
+                }
+
+                const riichiAfter = record.type === 'win'
+                    ? 0
+                    : riichiSticksBefore + (record.riichiPlayers ? record.riichiPlayers.length : 0);
+                base.round.riichiSticksAfter = riichiAfter;
+                base.round.honbaAfter = record.type === 'win'
+                    ? ((record.isDealer ? honbaBefore + 1 : 0))
+                    : honbaBefore + 1;
+
+                return base;
+            });
+
+            const summary = {
+                rule: gameState.rule,
+                players,
+                initialScore,
+                gameEnded: gameState.gameEnded,
+                currentRound: getRoundText(gameState.round, gameState.honba),
+                dealer: players[gameState.dealer],
+                honba: gameState.honba,
+                riichiSticks: gameState.riichiSticks,
+                scores: gameState.scores.map((score, i) => ({
+                    player: players[i],
+                    score
+                })),
+                rounds
+            };
+
+            if (gameState.gameEnded && gameState.history.length > 0) {
+                summary.finalResults = calculateFinalResults().map(result => ({
+                    playerIndex: result.index,
+                    rank: result.rank,
+                    player: result.name,
+                    finalScore: result.finalScore,
+                    rawScore: result.rawScore,
+                    uma: result.uma,
+                    riichiBonus: result.riichiBonus,
+                    totalScore: result.totalScore
+                }));
+            }
+
+            return summary;
+        }
+
+        function updateGameSummary() {
+            const summaryElement = document.getElementById('game-summary-json');
+            if (!summaryElement) return;
+            try {
+                const summary = generateGameSummary();
+                summaryElement.textContent = JSON.stringify(summary, null, 2);
+                if (gameState.history.length > 0) {
+                    copyGameSummary(true);
+                }
+            } catch (error) {
+                console.error('Failed to generate game summary', error);
+                summaryElement.textContent = `// 无法生成对局摘要: ${error.message}`;
+            }
+        }
+
+        // 显示消息
+        function showMessage(msg, type, targetId = 'message') {
+            const messageDiv = document.getElementById(targetId);
+            messageDiv.className = type;
+            messageDiv.textContent = msg;
+            setTimeout(() => {
+                messageDiv.textContent = '';
+                messageDiv.className = '';
+            }, 3000);
+        }
+
+        // 保存状态
+        function saveState() {
+            localStorage.setItem('mahjongGameState', JSON.stringify(gameState));
+        }
+
+        // 加载状态
+        function loadState() {
+            const saved = localStorage.getItem('mahjongGameState');
+            if (saved) {
+                gameState = JSON.parse(saved);
+
+                // 向后兼容：为旧记录添加type字段
+                if (gameState.history) {
+                    gameState.history.forEach(record => {
+                        if (!record.type) {
+                            record.type = 'win';
+                        }
+                        if (record.doraCount === undefined) record.doraCount = 0;
+                        if (record.akaDoraCount === undefined) record.akaDoraCount = 0;
+                        if (record.uraDoraCount === undefined) record.uraDoraCount = 0;
+                        if (record.yakuHan === undefined && record.han !== undefined) {
+                            record.yakuHan = Math.max(
+                                record.han - record.doraCount - record.akaDoraCount - record.uraDoraCount,
+                                0
+                            );
+                        }
+                    });
+                }
+
+                // 确保honba和riichiSticks存在
+                if (gameState.honba === undefined) gameState.honba = 0;
+                if (gameState.riichiSticks === undefined) gameState.riichiSticks = 0;
+                if (gameState.gameEnded === undefined) gameState.gameEnded = false;
+
+                // 恢复规则选择
+                document.querySelectorAll('.rule-btn-compact').forEach(btn => {
+                    if (btn.dataset.rule === gameState.rule) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
