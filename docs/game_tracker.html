@@ -352,6 +352,107 @@
             border-radius: 5px;
             min-height: 50px;
         }
+
+        /* 响应式设计 - 手机端适配 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+                border-radius: 10px;
+            }
+
+            .section {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 20px;
+            }
+
+            .section h2 {
+                font-size: 1.2em;
+                margin-bottom: 10px;
+            }
+
+            .scores-display {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .player-score {
+                padding: 15px;
+            }
+
+            .player-score input {
+                font-size: 14px;
+            }
+
+            .player-score .score {
+                font-size: 1.5em;
+            }
+
+            .record-form {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .rule-switch {
+                top: 10px;
+                right: 10px;
+                padding: 6px;
+            }
+
+            .rule-btn-compact {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .history-item {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            button {
+                padding: 12px;
+                font-size: 15px;
+            }
+
+            input, select {
+                font-size: 16px;
+            }
+        }
+
+        /* 更小的手机屏幕 */
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .section {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .scores-display {
+                grid-template-columns: 1fr;
+            }
+
+            #game-info-compact {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2448,12 +2549,60 @@
             return summary;
         }
 
+        // 计算字符串的简单hash值（使用DJB2算法）
+        function calculateHash(str) {
+            let hash = 5381;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) + hash) + str.charCodeAt(i); // hash * 33 + c
+            }
+            // 转换为正数的16进制字符串
+            return (hash >>> 0).toString(16).padStart(8, '0');
+        }
+
+        // 验证JSON字符串的hash值
+        // 使用方法：将包含hash的完整字符串粘贴进来验证
+        // 例如: verifyJsonHash(jsonStringWithHash)
+        function verifyJsonHash(jsonWithHash) {
+            try {
+                // 提取hash值
+                const hashMatch = jsonWithHash.match(/\/\/ Hash: ([a-f0-9]{8})/);
+                if (!hashMatch) {
+                    return { valid: false, error: '未找到Hash值' };
+                }
+                const providedHash = hashMatch[1];
+
+                // 提取JSON部分（去掉hash注释）
+                const jsonPart = jsonWithHash.split('// Hash:')[0].trim();
+
+                // 计算实际hash
+                const compactJson = jsonPart.replace(/\s+/g, '');
+                const calculatedHash = calculateHash(compactJson);
+
+                return {
+                    valid: providedHash === calculatedHash,
+                    providedHash,
+                    calculatedHash,
+                    match: providedHash === calculatedHash
+                };
+            } catch (error) {
+                return { valid: false, error: error.message };
+            }
+        }
+
         function updateGameSummary() {
             const summaryElement = document.getElementById('game-summary-json');
             if (!summaryElement) return;
             try {
                 const summary = generateGameSummary();
-                summaryElement.textContent = JSON.stringify(summary, null, 2);
+                const jsonString = JSON.stringify(summary, null, 2);
+
+                // 计算去掉所有空格和换行后的JSON字符串的hash
+                const compactJson = jsonString.replace(/\s+/g, '');
+                const hash = calculateHash(compactJson);
+
+                // 在JSON字符串后添加hash值作为注释
+                summaryElement.textContent = jsonString + '\n\n// Hash: ' + hash;
+
                 if (gameState.history.length > 0) {
                     copyGameSummary(true);
                 }
