@@ -420,6 +420,16 @@
                 gap: 10px;
             }
 
+            /* 和牌者/点炮者/门清行在移动端垂直排列 */
+            .winner-loser-row {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* 宝牌符数行在移动端改为2列 */
+            .dora-fu-row {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+
             .rule-btn-compact {
                 padding: 8px 14px;
                 font-size: 13px;
@@ -535,80 +545,12 @@
             </div>
         </div>
 
-        <!-- 记录和牌 -->
+        <!-- 记录结果 -->
         <div class="section">
-            <h2 data-i18n="section_record_win">记录和牌</h2>
-            <div class="record-form">
-                <div class="input-group">
-                    <label data-i18n="label_winner">和牌者</label>
-                    <select id="winner"></select>
-                </div>
-                <div class="input-group">
-                    <label data-i18n="label_loser">点炮者（自摸选择"自摸"）</label>
-                    <select id="loser">
-                        <option value="tsumo" data-i18n-option="option_tsumo">自摸</option>
-                    </select>
-                </div>
-            </div>
-            <div style="margin-top: 15px;">
-                <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-i18n="label_choose_yaku">选择役种</label>
-                <div class="yaku-selector">
-                    <div class="input-group" style="flex: 1; margin: 0;">
-                        <input type="text" id="yaku-search" list="yaku-datalist" placeholder="输入搜索或从列表选择..." data-i18n-placeholder="placeholder_yaku_search">
-                        <datalist id="yaku-datalist"></datalist>
-                    </div>
-                    <button id="add-yaku-btn" type="button" style="background: #28a745;" data-i18n="button_add_yaku">添加</button>
-                </div>
-                <div class="selected-yaku-list" id="selected-yaku-list">
-                    <div style="color: #999;" data-i18n="selected_yaku_placeholder">请选择役种...</div>
-                </div>
-            </div>
-            <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                <div class="input-group">
-                    <label data-i18n="label_dora">宝牌</label>
-                    <input type="number" id="dora-count" value="0" min="0" max="20" style="text-align: center;">
-                </div>
-                <div class="input-group">
-                    <label data-i18n="label_aka_dora">赤宝牌</label>
-                    <input type="number" id="aka-dora-count" value="0" min="0" max="3" style="text-align: center;">
-                </div>
-                <div class="input-group">
-                    <label data-i18n="label_ura_dora">里宝牌</label>
-                    <input type="number" id="ura-dora-count" value="0" min="0" max="20" style="text-align: center;">
-                </div>
-            </div>
-            <div class="record-form" style="margin-top: 15px;">
-                <div class="input-group">
-                    <label data-i18n="label_fu">符数</label>
-                    <select id="fu">
-                        <option value="20" data-i18n-option="fu_value">20符</option>
-                        <option value="25" data-i18n-option="fu_value">25符（七对子）</option>
-                        <option value="30" data-i18n-option="fu_value" selected>30符</option>
-                        <option value="40" data-i18n-option="fu_value">40符</option>
-                        <option value="50" data-i18n-option="fu_value">50符</option>
-                        <option value="60" data-i18n-option="fu_value">60符</option>
-                        <option value="70" data-i18n-option="fu_value">70符</option>
-                        <option value="80" data-i18n-option="fu_value">80符</option>
-                        <option value="90" data-i18n-option="fu_value">90符</option>
-                        <option value="100" data-i18n-option="fu_value">100符</option>
-                        <option value="110" data-i18n-option="fu_value">110符</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <div class="checkbox-group" style="align-items: center; height: 100%; padding-top: 25px;">
-                        <input type="checkbox" id="menzen" checked>
-                        <label for="menzen" data-i18n="label_menzen">门清</label>
-                    </div>
-                </div>
-            </div>
-            <div id="yaku-preview" style="margin-top: 15px; padding: 15px; background: white; border-radius: 5px; display: none;">
-                <div style="font-weight: 600; margin-bottom: 10px;" data-i18n="preview_title">计算预览：</div>
-                <div id="yaku-recognized" style="color: #28a745; margin-bottom: 5px;"></div>
-                <div id="yaku-unrecognized" style="color: #dc3545; margin-bottom: 5px;"></div>
-                <div id="yaku-han" style="font-weight: bold; font-size: 1.1em; margin-bottom: 5px;"></div>
-                <div id="yaku-points" style="font-weight: bold; font-size: 1.2em; color: #667eea;"></div>
-            </div>
-            <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 5px;">
+            <h2 data-i18n="section_record_result">记录结果</h2>
+
+            <!-- 立直情况 -->
+            <div style="padding: 15px; background: white; border-radius: 5px; margin-bottom: 15px;">
                 <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-i18n="label_riichi_status">立直情况（勾选立直的玩家）</label>
                 <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
                     <div class="checkbox-group">
@@ -629,14 +571,89 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 和牌者、点炮者、门清 -->
+            <div class="winner-loser-row" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; margin-bottom: 15px;">
+                <div class="input-group">
+                    <label data-i18n="label_winner">和牌者</label>
+                    <select id="winner"></select>
+                </div>
+                <div class="input-group">
+                    <label data-i18n="label_loser">点炮者（自摸选择"自摸"）</label>
+                    <select id="loser">
+                        <option value="tsumo" data-i18n-option="option_tsumo">自摸</option>
+                    </select>
+                </div>
+                <div class="input-group" style="min-width: 80px;">
+                    <label style="visibility: hidden;">占位</label>
+                    <div class="checkbox-group" style="align-items: center; height: 44px; justify-content: center;">
+                        <input type="checkbox" id="menzen" checked>
+                        <label for="menzen" data-i18n="label_menzen">门清</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 宝牌和符数 -->
+            <div class="dora-fu-row" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
+                <div class="input-group">
+                    <label data-i18n="label_dora">宝牌</label>
+                    <input type="number" id="dora-count" value="0" min="0" max="20" style="text-align: center;">
+                </div>
+                <div class="input-group">
+                    <label data-i18n="label_aka_dora">赤宝牌</label>
+                    <input type="number" id="aka-dora-count" value="0" min="0" max="3" style="text-align: center;">
+                </div>
+                <div class="input-group">
+                    <label data-i18n="label_ura_dora">里宝牌</label>
+                    <input type="number" id="ura-dora-count" value="0" min="0" max="20" style="text-align: center;">
+                </div>
+                <div class="input-group">
+                    <label data-i18n="label_fu">符数</label>
+                    <select id="fu">
+                        <option value="20" data-i18n-option="fu_value">20符</option>
+                        <option value="25" data-i18n-option="fu_value">25符（七对子）</option>
+                        <option value="30" data-i18n-option="fu_value" selected>30符</option>
+                        <option value="40" data-i18n-option="fu_value">40符</option>
+                        <option value="50" data-i18n-option="fu_value">50符</option>
+                        <option value="60" data-i18n-option="fu_value">60符</option>
+                        <option value="70" data-i18n-option="fu_value">70符</option>
+                        <option value="80" data-i18n-option="fu_value">80符</option>
+                        <option value="90" data-i18n-option="fu_value">90符</option>
+                        <option value="100" data-i18n-option="fu_value">100符</option>
+                        <option value="110" data-i18n-option="fu_value">110符</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 役种选择 -->
+            <div>
+                <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-i18n="label_choose_yaku">选择役种</label>
+                <div class="yaku-selector">
+                    <div class="input-group" style="flex: 1; margin: 0;">
+                        <input type="text" id="yaku-search" list="yaku-datalist" placeholder="输入搜索或从列表选择..." data-i18n-placeholder="placeholder_yaku_search">
+                        <datalist id="yaku-datalist"></datalist>
+                    </div>
+                    <button id="add-yaku-btn" type="button" style="background: #28a745;" data-i18n="button_add_yaku">添加</button>
+                </div>
+                <div class="selected-yaku-list" id="selected-yaku-list">
+                    <div style="color: #999;" data-i18n="selected_yaku_placeholder">请选择役种...</div>
+                </div>
+            </div>
+
+            <!-- 预览 -->
+            <div id="yaku-preview" style="margin-top: 15px; padding: 15px; background: white; border-radius: 5px; display: none;">
+                <div style="font-weight: 600; margin-bottom: 10px;" data-i18n="preview_title">计算预览：</div>
+                <div id="yaku-recognized" style="color: #28a745; margin-bottom: 5px;"></div>
+                <div id="yaku-unrecognized" style="color: #dc3545; margin-bottom: 5px;"></div>
+                <div id="yaku-han" style="font-weight: bold; font-size: 1.1em; margin-bottom: 5px;"></div>
+                <div id="yaku-points" style="font-weight: bold; font-size: 1.2em; color: #667eea;"></div>
+            </div>
+
             <button id="record-win-btn" type="button" style="width: 100%; margin-top: 15px;" data-i18n="button_record_win">记录和牌</button>
             <div id="message"></div>
-        </div>
 
-        <!-- 记录流局 -->
-        <div class="section">
-            <h2 data-i18n="section_record_ryuukyoku">记录流局</h2>
-            <div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 5px;">
+            <!-- 听牌玩家 -->
+            <div style="padding: 15px; background: white; border-radius: 5px; margin-top: 15px; margin-bottom: 15px;">
                 <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-i18n="label_tenpai_players">听牌玩家（勾选听牌的玩家）</label>
                 <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
                     <div class="checkbox-group">
@@ -657,27 +674,7 @@
                     </div>
                 </div>
             </div>
-            <div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 5px;">
-                <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-i18n="label_riichi_status">立直情况（勾选立直的玩家）</label>
-                <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="ryuukyoku-riichi-0">
-                        <label for="ryuukyoku-riichi-0" id="ryuukyoku-riichi-label-0">玩家1</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="ryuukyoku-riichi-1">
-                        <label for="ryuukyoku-riichi-1" id="ryuukyoku-riichi-label-1">玩家2</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="ryuukyoku-riichi-2">
-                        <label for="ryuukyoku-riichi-2" id="ryuukyoku-riichi-label-2">玩家3</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="ryuukyoku-riichi-3">
-                        <label for="ryuukyoku-riichi-3" id="ryuukyoku-riichi-label-3">玩家4</label>
-                    </div>
-                </div>
-            </div>
+
             <button id="record-ryuukyoku-btn" type="button" style="width: 100%; background: #28a745;" data-i18n="button_record_ryuukyoku">记录流局</button>
             <div id="ryuukyoku-message"></div>
         </div>
@@ -796,6 +793,7 @@
                 label_riichi_sticks_prefix: '供托',
                 label_riichi_sticks_suffix: '本',
                 game_end_title: '🏆 对局结束 🏆',
+                section_record_result: '记录结果',
                 section_record_win: '记录和牌',
                 label_winner: '和牌者',
                 label_loser: '点炮者（自摸选择"自摸"）',
@@ -905,6 +903,7 @@
                 label_riichi_sticks_prefix: 'Riichi Sticks',
                 label_riichi_sticks_suffix: '',
                 game_end_title: '🏆 Game Finished 🏆',
+                section_record_result: 'Record Result',
                 section_record_win: 'Record Winning Hand',
                 label_winner: 'Winner',
                 label_loser: 'Loser (select "Tsumo" for self-draw)',
@@ -1220,6 +1219,61 @@
         let lastCopiedSummary = '';
         let copyStatusTimeout = null;
 
+        // 全局立直状态（跟踪每个玩家是否立直）
+        let riichiStatus = [false, false, false, false];
+
+        // 同步立直状态到UI（仅更新勾选框，不修改役种）
+        function syncRiichiCheckboxes() {
+            for (let i = 0; i < 4; i++) {
+                const checkbox = document.getElementById(`riichi-${i}`);
+                if (checkbox) {
+                    checkbox.checked = riichiStatus[i];
+                }
+            }
+        }
+
+        // 根据全局立直状态同步役种列表
+        function syncRiichiToYaku() {
+            const winnerSelect = document.getElementById('winner');
+            if (!winnerSelect) return;
+
+            const winnerId = parseInt(winnerSelect.value);
+            if (isNaN(winnerId) || winnerId < 0 || winnerId >= 4) return;
+
+            const hasRiichi = selectedYaku.some(y => isRiichiYaku(y));
+
+            if (riichiStatus[winnerId] && !hasRiichi) {
+                // 和牌者立直了，但役种中没有立直 → 添加立直役
+                selectedYaku.push(getRiichiKeyword());
+                updateLocks();
+                updateSelectedYakuDisplay();
+                updateYakuPreview();
+            } else if (!riichiStatus[winnerId] && hasRiichi) {
+                // 和牌者没立直，但役种中有立直 → 移除立直役
+                selectedYaku = selectedYaku.filter(y => !isRiichiYaku(y));
+                updateLocks();
+                updateSelectedYakuDisplay();
+                updateYakuPreview();
+            }
+        }
+
+        // 从役种列表更新全局立直状态
+        function syncYakuToRiichi() {
+            const hasRiichi = selectedYaku.some(y => isRiichiYaku(y));
+            const winnerSelect = document.getElementById('winner');
+
+            if (!winnerSelect) return;
+
+            const winnerId = parseInt(winnerSelect.value);
+            if (isNaN(winnerId) || winnerId < 0 || winnerId >= 4) return;
+
+            // 更新全局立直状态
+            riichiStatus[winnerId] = hasRiichi;
+
+            // 同步到勾选框
+            syncRiichiCheckboxes();
+        }
+
         // 获取所有役种的名称列表（用于datalist）
         function getAllYakuNames() {
             const yakuNames = new Set();
@@ -1290,6 +1344,14 @@
             return needsRiichiYaku.some(y => yakuName.toLowerCase() === y.toLowerCase() || yakuName === y);
         }
 
+        // 检查是否是"一发"（需要自动勾选立直的役种）
+        function isIppatsuYaku(yakuName) {
+            const ippatsuYaku = [
+                '一发', 'ippatsu', 'イッパツ'
+            ];
+            return ippatsuYaku.some(y => yakuName.toLowerCase() === y.toLowerCase() || yakuName === y);
+        }
+
         // 检查是否是七对子
         function isSevenPairsYaku(yakuName) {
             const normalized = yakuName.trim();
@@ -1327,13 +1389,18 @@
                 if (winnerInput) {
                     const winnerId = parseInt(winnerInput.value);
                     if (!Number.isNaN(winnerId)) {
-                        const riichiCheckbox = document.getElementById(`riichi-${winnerId}`);
-                        if (riichiCheckbox) {
-                            riichiCheckbox.checked = true;
-                        }
+                        // 更新全局立直状态
+                        riichiStatus[winnerId] = true;
+                        // 同步到勾选框
+                        syncRiichiCheckboxes();
                     }
                 }
             }
+        }
+
+        // 检查并自动添加立直役（使用全局立直状态）
+        function checkAndAutoAddRiichi() {
+            syncRiichiToYaku();
         }
 
         // 添加役种
@@ -1361,11 +1428,16 @@
 
             selectedYaku.push(yakuName);
 
-            // 如果添加的是一发或门清自摸，自动添加立直
-            if (needsRiichi(yakuName)) {
-                const hasRiichi = selectedYaku.some(y => isRiichiYaku(y));
-                if (!hasRiichi) {
-                    selectedYaku.push(getRiichiKeyword());
+            // 如果添加的是"一发"，自动勾选和牌者的立直并添加立直役
+            if (isIppatsuYaku(yakuName)) {
+                const winnerSelect = document.getElementById('winner');
+                if (winnerSelect) {
+                    const winnerId = parseInt(winnerSelect.value);
+                    if (!isNaN(winnerId) && winnerId >= 0 && winnerId < 4) {
+                        riichiStatus[winnerId] = true;
+                        syncRiichiCheckboxes();
+                        syncRiichiToYaku(); // 同步到役种列表
+                    }
                 }
             }
 
@@ -1373,6 +1445,11 @@
             input.value = '';
             updateSelectedYakuDisplay();
             updateYakuPreview();
+
+            // 对于其他役种，从役种同步到全局立直状态
+            if (!isIppatsuYaku(yakuName)) {
+                syncYakuToRiichi();
+            }
         }
 
         // 移除役种
@@ -1384,6 +1461,7 @@
                 updateLocks();
                 updateSelectedYakuDisplay();
                 updateYakuPreview();
+                syncYakuToRiichi(); // 从役种同步到全局立直状态
             }
         }
 
@@ -1545,9 +1623,13 @@
             fuSelect.addEventListener('change', updateYakuPreview);
             winnerSelect.addEventListener('change', () => {
                 updateLocks();
+                checkAndAutoAddRiichi();
                 updateYakuPreview();
             });
-            loserSelect.addEventListener('change', updateYakuPreview);
+            loserSelect.addEventListener('change', () => {
+                checkAndAutoAddRiichi();
+                updateYakuPreview();
+            });
             menzenCheckbox.addEventListener('change', () => {
                 updateSelectedYakuDisplay(); // 更新役种标签的番数
                 updateYakuPreview();
@@ -1556,7 +1638,22 @@
             // 宝牌数量改变时更新预览
             doraCount.addEventListener('input', updateYakuPreview);
             akaDoraCount.addEventListener('input', updateYakuPreview);
-            uraDoraCount.addEventListener('input', updateYakuPreview);
+            uraDoraCount.addEventListener('input', () => {
+                // 如果里宝牌数量非0，自动勾选和牌者的立直
+                const uraCount = parseInt(uraDoraCount.value) || 0;
+                if (uraCount > 0) {
+                    const winnerSelect = document.getElementById('winner');
+                    if (winnerSelect) {
+                        const winnerId = parseInt(winnerSelect.value);
+                        if (!isNaN(winnerId) && winnerId >= 0 && winnerId < 4) {
+                            riichiStatus[winnerId] = true;
+                            syncRiichiCheckboxes();
+                            syncRiichiToYaku(); // 同步到役种列表
+                        }
+                    }
+                }
+                updateYakuPreview();
+            });
         }
 
         function setupActionButtons() {
@@ -1656,15 +1753,13 @@
                 });
             });
 
-            // 流局界面：立直自动勾选听牌
+            // 和牌记录界面：立直勾选变化时更新全局变量
             for (let i = 0; i < 4; i++) {
-                const riichiCheckbox = document.getElementById(`ryuukyoku-riichi-${i}`);
-                const tenpaiCheckbox = document.getElementById(`tenpai-${i}`);
-                if (!riichiCheckbox || !tenpaiCheckbox) continue;
+                const riichiCheckbox = document.getElementById(`riichi-${i}`);
+                if (!riichiCheckbox) continue;
                 riichiCheckbox.addEventListener('change', (e) => {
-                    if (e.target.checked) {
-                        tenpaiCheckbox.checked = true;
-                    }
+                    riichiStatus[i] = e.target.checked;
+                    checkAndAutoAddRiichi();
                 });
             }
 
@@ -1963,10 +2058,10 @@
             );
             const han = yakuResult.totalHan;
 
-            // 获取立直情况
+            // 获取立直情况（使用全局立直状态）
             const riichiPlayers = [];
             for (let i = 0; i < 4; i++) {
-                if (document.getElementById(`riichi-${i}`).checked) {
+                if (riichiStatus[i]) {
                     riichiPlayers.push(i);
                 }
             }
@@ -2078,6 +2173,7 @@
             for (let i = 0; i < 4; i++) {
                 document.getElementById(`riichi-${i}`).checked = false;
             }
+            riichiStatus = [false, false, false, false]; // 重置全局立直状态
             selectedYaku = [];
             updateSelectedYakuDisplay();
             document.getElementById('yaku-preview').style.display = 'none';
@@ -2109,10 +2205,10 @@
                 }
             }
 
-            // 获取立直玩家
+            // 获取立直玩家（使用全局立直状态）
             const riichiPlayers = [];
             for (let i = 0; i < 4; i++) {
-                if (document.getElementById(`ryuukyoku-riichi-${i}`).checked) {
+                if (riichiStatus[i]) {
                     riichiPlayers.push(i);
                 }
             }
@@ -2204,7 +2300,6 @@
             // 清除复选框
             for (let i = 0; i < 4; i++) {
                 document.getElementById(`tenpai-${i}`).checked = false;
-                document.getElementById(`ryuukyoku-riichi-${i}`).checked = false;
             }
 
             saveState();
