@@ -2947,6 +2947,7 @@
                 if (gameState.honba === undefined) gameState.honba = 0;
                 if (gameState.riichiSticks === undefined) gameState.riichiSticks = 0;
                 if (gameState.gameEnded === undefined) gameState.gameEnded = false;
+                if (gameState.undoStack === undefined) gameState.undoStack = [];
 
                 // 恢复规则选择
                 document.querySelectorAll('.rule-btn-compact').forEach(btn => {
