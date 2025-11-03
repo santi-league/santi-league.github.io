@@ -31,33 +31,44 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #f0f1ff;
-            color: #4b50c5;
+            background: white;
+            color: #666;
             padding: 8px 16px;
-            border-radius: 20px;
+            border-radius: 12px;
             text-decoration: none;
             font-weight: 600;
-            border: 1px solid rgba(102, 126, 234, 0.4);
+            border: 2px solid transparent;
             transition: all 0.2s ease;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .language-switcher a:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-1px);
+            background: #f0f0f0;
+            border-color: #667eea;
+            color: #667eea;
         }
 
         .language-switcher a.active {
             background: #667eea;
             color: white;
+            border-color: #667eea;
+        }
+
+        .header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 20px;
+            flex-wrap: wrap;
         }
 
         h1 {
-            text-align: center;
             color: #333;
-            margin-bottom: 30px;
+            margin: 0;
             font-size: 2.5em;
+            flex: 1;
+            min-width: 200px;
         }
 
         .section {
@@ -120,22 +131,20 @@
         }
 
         .top-right-panel {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .language-switcher,
         .rule-switch {
             display: flex;
             gap: 10px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 8px;
-            border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 4px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
         }
 
         .rule-btn-compact {
@@ -369,9 +378,19 @@
                 margin-bottom: 20px;
             }
 
+            .header-wrapper {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
             h1 {
                 font-size: 1.8em;
-                margin-bottom: 20px;
+            }
+
+            .top-right-panel {
+                width: 100%;
+                justify-content: center;
             }
 
             .section h2 {
@@ -399,12 +418,6 @@
             .record-form {
                 grid-template-columns: 1fr;
                 gap: 10px;
-            }
-
-            .rule-switch {
-                top: 10px;
-                right: 10px;
-                padding: 6px;
             }
 
             .rule-btn-compact {
@@ -463,7 +476,13 @@
             }
 
             h1 {
-                font-size: 1.5em;
+                font-size: 1.3em;
+            }
+
+            .language-switcher a,
+            .rule-btn-compact {
+                font-size: 12px;
+                padding: 6px 12px;
             }
 
             .scores-display {
@@ -484,19 +503,20 @@
     </style>
 </head>
 <body>
-    <div class="top-right-panel">
-        <div class="language-switcher">
-            <a href="game_tracker.html?lang=zh" data-lang="zh">🇨🇳 中文</a>
-            <a href="game_tracker.html?lang=en" data-lang="en">🇺🇸 English</a>
-        </div>
-        <div class="rule-switch">
-            <button class="rule-btn-compact active" data-rule="mleague" title="M-League (25000点)">M-League</button>
-            <button class="rule-btn-compact" data-rule="wrc" title="WRC (30000点)">WRC</button>
-        </div>
-    </div>
-
     <div class="container">
-        <h1 data-i18n="title_main">🀄 麻将点数计算器</h1>
+        <div class="header-wrapper">
+            <h1 data-i18n="title_main">🀄 麻将点数计算器</h1>
+            <div class="top-right-panel">
+                <div class="language-switcher">
+                    <a href="game_tracker.html?lang=zh" data-lang="zh">🇨🇳 中文</a>
+                    <a href="game_tracker.html?lang=en" data-lang="en">🇺🇸 English</a>
+                </div>
+                <div class="rule-switch">
+                    <button class="rule-btn-compact active" data-rule="mleague" title="M-League (25000点)">M-League</button>
+                    <button class="rule-btn-compact" data-rule="wrc" title="WRC (30000点)">WRC</button>
+                </div>
+            </div>
+        </div>
 
         <!-- 点数显示 -->
         <div class="section">
