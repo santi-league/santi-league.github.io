@@ -389,7 +389,7 @@
             }
 
             .player-score input {
-                font-size: 14px;
+                font-size: 16px;
             }
 
             .player-score .score {
@@ -408,8 +408,9 @@
             }
 
             .rule-btn-compact {
-                padding: 6px 12px;
-                font-size: 12px;
+                padding: 8px 14px;
+                font-size: 13px;
+                min-height: 44px;
             }
 
             .history-item {
@@ -417,13 +418,33 @@
                 font-size: 14px;
             }
 
+            /* 关键修复：确保按钮在移动端可点击 */
             button {
-                padding: 12px;
-                font-size: 15px;
+                padding: 14px 16px;
+                font-size: 16px;
+                min-height: 44px;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
             }
 
             input, select {
                 font-size: 16px;
+                min-height: 44px;
+            }
+
+            /* 历史记录撤销按钮 */
+            .history-item button {
+                min-height: 36px;
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+
+            /* 役种删除按钮 */
+            .yaku-tag button {
+                padding: 4px;
+                font-size: 16px;
+                min-width: 24px;
+                min-height: 24px;
             }
         }
 
@@ -451,6 +472,13 @@
 
             #game-info-compact {
                 font-size: 12px;
+            }
+
+            /* 确保小屏幕上按钮也足够大 */
+            button {
+                padding: 14px 12px;
+                font-size: 16px;
+                min-height: 44px;
             }
         }
     </style>
@@ -636,8 +664,13 @@
 
         <!-- 对局历史 -->
         <div class="section">
-            <h2 data-i18n="section_history">对局历史</h2>
-            <button id="clear-history-btn" type="button" style="margin-bottom: 15px; background: #dc3545;" data-i18n="button_clear_history">清空历史</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="margin: 0;" data-i18n="section_history">对局历史</h2>
+                <div style="display: flex; gap: 10px;">
+                    <button id="redo-btn" type="button" style="min-width: 100px; padding: 8px 16px; background: #ffc107;" data-i18n="button_redo" disabled>撤销撤销</button>
+                    <button id="clear-history-btn" type="button" style="min-width: 100px; padding: 8px 16px; background: #dc3545;" data-i18n="button_clear_history">清空历史</button>
+                </div>
+            </div>
             <div class="history" id="history"></div>
         </div>
 
@@ -766,6 +799,7 @@
                 section_record_ryuukyoku: '记录流局',
                 section_history: '对局历史',
                 button_clear_history: '清空历史',
+                button_redo: '撤销撤销',
                 history_empty: '暂无对局记录',
                 undo_button: '撤销',
                 section_json: '对局数据（JSON）',
@@ -798,6 +832,8 @@
                 msg_ryuukyoku_success_end: '流局记录成功！对局结束！',
                 msg_no_history: '没有可撤销的记录',
                 msg_undo_success: '已撤销上一局',
+                msg_no_undo_stack: '没有可重做的记录',
+                msg_redo_success: '已重做上一局',
                 msg_clear_confirm: '确定要清空所有历史记录吗？',
                 msg_history_cleared: '已清空历史',
                 msg_switch_rule_disabled: '对局进行中无法切换规则，请先清空历史记录',
@@ -872,6 +908,7 @@
                 section_record_ryuukyoku: 'Record Draw',
                 section_history: 'Game History',
                 button_clear_history: 'Clear History',
+                button_redo: 'Redo',
                 history_empty: 'No records yet',
                 undo_button: 'Undo',
                 section_json: 'Game Data (JSON)',
@@ -904,6 +941,8 @@
                 msg_ryuukyoku_success_end: 'Draw recorded! Game finished!',
                 msg_no_history: 'No records to undo',
                 msg_undo_success: 'Last record undone',
+                msg_no_undo_stack: 'No records to redo',
+                msg_redo_success: 'Record restored',
                 msg_clear_confirm: 'Clear all records?',
                 msg_history_cleared: 'History cleared',
                 msg_switch_rule_disabled: 'Cannot switch rules during a game. Please clear the history first.',
@@ -1099,6 +1138,7 @@
             honba: 0,  // 本场数（连庄次数）
             riichiSticks: 0, // 立直棒数量
             history: [],
+            undoStack: [], // 撤销历史栈，存储被撤销的记录
             gameEnded: false // 对局是否结束
         };
 
@@ -1532,6 +1572,14 @@
                 });
             }
 
+            const redoBtn = document.getElementById('redo-btn');
+            if (redoBtn) {
+                redoBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    redoLast();
+                });
+            }
+
             const selectedYakuList = document.getElementById('selected-yaku-list');
             if (selectedYakuList) {
                 selectedYakuList.addEventListener('click', (event) => {
@@ -1768,6 +1816,12 @@
                 if (recordRyuukyokuButtonEnabled) recordRyuukyokuButtonEnabled.disabled = false;
             }
 
+            // Update redo button state
+            const redoBtn = document.getElementById('redo-btn');
+            if (redoBtn) {
+                redoBtn.disabled = gameState.undoStack.length === 0;
+            }
+
             if (!gameState.gameEnded) {
                 updateLocks();
             }
@@ -1978,6 +2032,9 @@
             gameState.history.push(record);
             gameState.scores = newScores;
 
+            // 清空撤销栈（新操作会使之前的撤销无效）
+            gameState.undoStack = [];
+
             // 更新立直棒数量（和牌后所有立直棒被和牌者拿走，清零）
             gameState.riichiSticks = 0;
 
@@ -2101,6 +2158,9 @@
             gameState.history.push(record);
             gameState.scores = newScores;
 
+            // 清空撤销栈（新操作会使之前的撤销无效）
+            gameState.undoStack = [];
+
             // 更新立直棒（流局后立直棒留在桌上，并增加本局新增的立直棒）
             gameState.riichiSticks += riichiPlayers.length;
 
@@ -2145,6 +2205,10 @@
             }
 
             const lastRecord = gameState.history.pop();
+
+            // 将撤销的记录放入撤销栈
+            gameState.undoStack.push(lastRecord);
+
             gameState.scores = lastRecord.scoreBefore;
             gameState.round = lastRecord.roundBefore;
             gameState.dealer = lastRecord.dealerBefore;
@@ -2157,6 +2221,58 @@
             showMessage(t('msg_undo_success'), 'success');
         }
 
+        // 撤销撤销（重做）
+        function redoLast() {
+            if (gameState.undoStack.length === 0) {
+                showMessage(t('msg_no_undo_stack'), 'error');
+                return;
+            }
+
+            const lastUndone = gameState.undoStack.pop();
+
+            // 将记录重新加入历史
+            gameState.history.push(lastUndone);
+            gameState.scores = lastUndone.scoreAfter;
+            gameState.round = lastUndone.roundBefore;
+            gameState.dealer = lastUndone.dealerBefore;
+            gameState.honba = lastUndone.honbaBefore;
+            gameState.riichiSticks = lastUndone.riichiSticksBefore;
+
+            // 重新应用状态更新逻辑
+            if (lastUndone.type === 'win') {
+                gameState.riichiSticks = 0;
+                if (lastUndone.isDealer) {
+                    gameState.honba++;
+                } else {
+                    gameState.dealer = (gameState.dealer + 1) % 4;
+                    gameState.round++;
+                    gameState.honba = 0;
+                }
+            } else if (lastUndone.type === 'ryuukyoku') {
+                gameState.riichiSticks = lastUndone.riichiSticksBefore + (lastUndone.riichiPlayers?.length || 0);
+                gameState.honba++;
+                if (!lastUndone.dealerTenpai) {
+                    gameState.dealer = (gameState.dealer + 1) % 4;
+                    gameState.round++;
+                }
+            }
+
+            // 检查是否对局结束
+            if (lastUndone.type === 'win') {
+                if (checkGameEnd(lastUndone.isDealer, true)) {
+                    gameState.gameEnded = true;
+                }
+            } else if (lastUndone.type === 'ryuukyoku') {
+                if (checkGameEnd(true, lastUndone.dealerTenpai)) {
+                    gameState.gameEnded = true;
+                }
+            }
+
+            saveState();
+            updateDisplay();
+            showMessage(t('msg_redo_success'), 'success');
+        }
+
         // 清空历史
         function clearHistory() {
             if (!confirm(t('msg_clear_confirm'))) return;
@@ -2164,6 +2280,7 @@
             const initialScore = getInitialScore(gameState.rule);
             gameState.scores = [initialScore, initialScore, initialScore, initialScore];
             gameState.history = [];
+            gameState.undoStack = [];
             gameState.round = 0;
             gameState.dealer = 0;
             gameState.honba = 0;
@@ -2306,6 +2423,7 @@
                     `;
                 } else {
                     // 和牌记录
+                    const nameSeparator = LANGUAGE === 'en' ? ', ' : '、';
                     const winnerName = gameState.players[record.winnerId] || getDefaultPlayerName(record.winnerId);
                     const loserName = record.isTsumo
                         ? t('tsumo_text')
