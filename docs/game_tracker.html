@@ -643,11 +643,14 @@
 
         <!-- 对局JSON摘要 -->
         <div class="section">
-            <h2 data-i18n="section_json">对局数据（JSON）</h2>
-            <div style="display: flex; gap: 10px; align-items: flex-start;">
-                <pre id="game-summary-json" style="flex: 1; min-height: 160px; max-height: 240px; background: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 5px; overflow: auto; white-space: pre; font-size: 0.8em; line-height: 1.35;"></pre>
-                <button id="copy-game-summary" style="min-width: 120px; height: 40px;" data-i18n="button_copy">复制数据</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="margin: 0;" data-i18n="section_json">对局数据（JSON）</h2>
+                <div style="display: flex; gap: 10px;">
+                    <button id="copy-game-summary" style="min-width: 100px; padding: 8px 16px;" data-i18n="button_copy">复制数据</button>
+                    <button id="import-game-data" style="min-width: 100px; padding: 8px 16px; background: #28a745;" data-i18n="button_import">导入数据</button>
+                </div>
             </div>
+            <pre id="game-summary-json" style="min-height: 160px; max-height: 240px; background: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 5px; overflow: auto; white-space: pre; font-size: 0.8em; line-height: 1.35;"></pre>
             <div id="copy-status" style="margin-top: 6px; font-size: 0.85em; color: #28a745;"></div>
         </div>
     </div>
@@ -767,6 +770,7 @@
                 undo_button: '撤销',
                 section_json: '对局数据（JSON）',
                 button_copy: '复制数据',
+                button_import: '导入数据',
                 table_rank: '排名',
                 table_player: '玩家',
                 table_final_score: '最终点数',
@@ -872,6 +876,7 @@
                 undo_button: 'Undo',
                 section_json: 'Game Data (JSON)',
                 button_copy: 'Copy Data',
+                button_import: 'Import Data',
                 table_rank: 'Rank',
                 table_player: 'Player',
                 table_final_score: 'Final Score',
@@ -1008,6 +1013,11 @@
             const copyBtn = document.getElementById('copy-game-summary');
             if (copyBtn) {
                 copyBtn.textContent = t('button_copy');
+            }
+
+            const importBtn = document.getElementById('import-game-data');
+            if (importBtn) {
+                importBtn.textContent = t('button_import');
             }
 
             const gameEndTitle = document.querySelector('#game-end-notice h3');
@@ -1593,6 +1603,11 @@
             const copyBtn = document.getElementById('copy-game-summary');
             if (copyBtn) {
                 copyBtn.addEventListener('click', () => copyGameSummary(false));
+            }
+
+            const importBtn = document.getElementById('import-game-data');
+            if (importBtn) {
+                importBtn.addEventListener('click', () => importGameData());
             }
         }
 
@@ -2433,6 +2448,164 @@
             if (ok) {
                 lastCopiedSummary = text;
                 setCopyStatus(auto ? t('copy_auto') : t('copy_success'));
+            }
+        }
+
+        function importGameData() {
+            const jsonInput = prompt('请粘贴JSON数据：\n(Paste JSON data:)');
+            if (!jsonInput || !jsonInput.trim()) {
+                return;
+            }
+
+            try {
+                // 验证hash
+                const hashVerification = verifyJsonHash(jsonInput);
+                if (hashVerification.error) {
+                    if (!confirm(`警告：无法验证数据完整性 (${hashVerification.error})。\n是否继续导入？\n\nWarning: Cannot verify data integrity (${hashVerification.error}).\nContinue importing?`)) {
+                        return;
+                    }
+                } else if (!hashVerification.valid) {
+                    if (!confirm(`警告：Hash值不匹配！数据可能已被修改。\n提供的Hash: ${hashVerification.providedHash}\n计算的Hash: ${hashVerification.calculatedHash}\n是否继续导入？\n\nWarning: Hash mismatch! Data may have been modified.\nProvided Hash: ${hashVerification.providedHash}\nCalculated Hash: ${hashVerification.calculatedHash}\nContinue importing?`)) {
+                        return;
+                    }
+                }
+
+                // 提取JSON部分（去掉hash注释）
+                const jsonPart = jsonInput.split('// Hash:')[0].trim();
+                const data = JSON.parse(jsonPart);
+
+                // 验证数据结构
+                if (!data.players || !Array.isArray(data.players) || data.players.length !== 4) {
+                    throw new Error('无效的玩家数据 (Invalid player data)');
+                }
+                if (!data.rounds || !Array.isArray(data.rounds)) {
+                    throw new Error('无效的对局记录 (Invalid rounds data)');
+                }
+
+                // 确认导入
+                if (!confirm(`确认导入数据？\n这将覆盖当前的对局记录！\n\n玩家: ${data.players.join(', ')}\n规则: ${data.rule}\n对局数: ${data.rounds.length}\n\nConfirm import?\nThis will overwrite current game records!\n\nPlayers: ${data.players.join(', ')}\nRule: ${data.rule}\nRounds: ${data.rounds.length}`)) {
+                    return;
+                }
+
+                // 还原游戏状态
+                restoreGameState(data);
+
+                setCopyStatus('数据导入成功！(Data imported successfully!)', false);
+                showMessage('数据导入成功！', 'success');
+
+            } catch (error) {
+                console.error('Import failed', error);
+                alert(`导入失败：${error.message}\n\nImport failed: ${error.message}`);
+            }
+        }
+
+        function restoreGameState(data) {
+            // 重置游戏状态
+            const initialScore = data.rule === 'wrc' ? 30000 : 25000;
+            gameState.players = [...data.players];
+            gameState.rule = data.rule;
+            gameState.scores = [initialScore, initialScore, initialScore, initialScore];
+            gameState.round = 0;
+            gameState.dealer = 0;
+            gameState.honba = 0;
+            gameState.riichiSticks = 0;
+            gameState.history = [];
+            gameState.gameEnded = false;
+
+            // 重放所有对局
+            data.rounds.forEach((round, index) => {
+                if (round.type === 'win') {
+                    restoreWinRecord(round, index);
+                } else if (round.type === 'ryuukyoku') {
+                    restoreRyuukyokuRecord(round, index);
+                }
+            });
+
+            // 保存状态并更新显示
+            saveState();
+            updateDisplay();
+        }
+
+        function restoreWinRecord(round, index) {
+            const winnerId = gameState.players.indexOf(round.result.winner);
+            const loserId = round.result.isTsumo ? -1 : gameState.players.indexOf(round.result.loser);
+            const riichiPlayers = (round.riichiPlayers || []).map(name => gameState.players.indexOf(name)).filter(id => id >= 0);
+
+            const record = {
+                type: 'win',
+                winnerId: winnerId,
+                loserId: loserId,
+                isTsumo: round.result.isTsumo,
+                han: round.result.han,
+                fu: round.result.fu,
+                yaku: round.result.yaku.join(' '),
+                yakuHan: round.result.yakuHan || round.result.han,
+                doraCount: round.result.dora?.dora || 0,
+                akaDoraCount: round.result.dora?.aka || 0,
+                uraDoraCount: round.result.dora?.ura || 0,
+                isMenzen: round.result.isMenzen,
+                isDealer: round.result.isDealer,
+                points: round.result.points,
+                riichiPlayers: riichiPlayers,
+                honbaPoints: round.result.honbaPoints || 0,
+                riichiPoints: round.result.riichiPoints || 0,
+                scoreBefore: round.scores.map(s => s.before),
+                scoreAfter: round.scores.map(s => s.after),
+                roundBefore: round.round.number,
+                dealerBefore: gameState.players.indexOf(round.round.dealer),
+                honbaBefore: round.round.honba,
+                riichiSticksBefore: round.round.riichiSticks,
+                timestamp: Date.now()
+            };
+
+            gameState.history.push(record);
+            gameState.scores = [...record.scoreAfter];
+            gameState.round = record.roundBefore;
+            gameState.dealer = record.dealerBefore;
+            gameState.honba = record.honbaBefore;
+            gameState.riichiSticks = 0;
+
+            // 更新下一局的状态
+            if (record.isDealer) {
+                gameState.honba++;
+            } else {
+                gameState.dealer = (gameState.dealer + 1) % 4;
+                gameState.round++;
+                gameState.honba = 0;
+            }
+        }
+
+        function restoreRyuukyokuRecord(round, index) {
+            const tenpaiPlayers = (round.result?.tenpaiPlayers || []).map(name => gameState.players.indexOf(name)).filter(id => id >= 0);
+            const riichiPlayers = (round.riichiPlayers || []).map(name => gameState.players.indexOf(name)).filter(id => id >= 0);
+            const dealerTenpai = tenpaiPlayers.includes(gameState.dealer);
+
+            const record = {
+                type: 'ryuukyoku',
+                tenpaiPlayers: tenpaiPlayers,
+                riichiPlayers: riichiPlayers,
+                dealerTenpai: dealerTenpai,
+                scoreBefore: round.scores.map(s => s.before),
+                scoreAfter: round.scores.map(s => s.after),
+                roundBefore: round.round.number,
+                dealerBefore: gameState.players.indexOf(round.round.dealer),
+                honbaBefore: round.round.honba,
+                riichiSticksBefore: round.round.riichiSticks,
+                timestamp: Date.now()
+            };
+
+            gameState.history.push(record);
+            gameState.scores = [...record.scoreAfter];
+            gameState.round = record.roundBefore;
+            gameState.dealer = record.dealerBefore;
+            gameState.honba = record.honbaBefore;
+            gameState.riichiSticks = record.riichiSticksBefore + riichiPlayers.length;
+
+            // 更新下一局的状态
+            gameState.honba++;
+            if (!dealerTenpai) {
+                gameState.dealer = (gameState.dealer + 1) % 4;
+                gameState.round++;
             }
         }
 
