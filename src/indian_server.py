@@ -14,7 +14,7 @@ from pathlib import Path
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'indian-poker-secret-key'
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # 卡片池定义
 CARD_POOL = [
@@ -34,6 +34,7 @@ CARD_POOL = [
 
 ROUNDS = ['东1局', '东2局', '东3局', '东4局', '南1局', '南2局', '南3局', '南4局']
 INITIAL_SCORE = 100000
+ROLE_NAMES = ['东家', '南家', '西家', '北家']
 
 # 游戏状态存储
 game_state = {
@@ -41,7 +42,7 @@ game_state = {
     'game_started': False,
     'current_round': None,
     'cards': {},  # {'东1局': ['卡1', '卡2', '卡3', '卡4'], ...}
-    'scores': {},  # {'玩家名': 分数, ...}
+    'scores': {0: INITIAL_SCORE, 1: INITIAL_SCORE, 2: INITIAL_SCORE, 3: INITIAL_SCORE},  # {role_index: 分数}
     'field_pot': 0,
     'all_cards_generated': False
 }
@@ -75,7 +76,8 @@ def get_game_hash():
 @app.route('/')
 def index():
     """主页面"""
-    html_path = Path(__file__).parent / 'docs' / 'indian_realtime.html'
+    # 从 src/ 向上一级到根目录，再进入 docs/
+    html_path = Path(__file__).parent.parent / 'docs' / 'indian_realtime.html'
 
     if html_path.exists():
         with open(html_path, 'r', encoding='utf-8') as f:
@@ -182,10 +184,6 @@ def handle_select_role(data):
             game_state['all_cards_generated'] = True
             print('已生成8局卡片')
 
-        # 初始化分数
-        for player in game_state['players']:
-            game_state['scores'][player['name']] = INITIAL_SCORE
-
         # 通知所有客户端可以开始游戏
         socketio.emit('ready_to_start', {
             'message': '所有玩家已准备完毕，请选择局数开始游戏'
@@ -233,11 +231,14 @@ def handle_update_scores(data):
         return
 
     # 应用分数变动
-    for player_name, adjustment in adjustments.items():
-        if player_name == 'field_pot':
+    for key, adjustment in adjustments.items():
+        if key == 'field_pot':
             game_state['field_pot'] += adjustment
-        elif player_name in game_state['scores']:
-            game_state['scores'][player_name] += adjustment
+        else:
+            # key是role_index的字符串形式，转换为整数
+            role_index = int(key)
+            if role_index in game_state['scores']:
+                game_state['scores'][role_index] += adjustment
 
     print(f'分数更新: {adjustments}')
 
@@ -254,7 +255,7 @@ def handle_reset_game():
     game_state['game_started'] = False
     game_state['current_round'] = None
     game_state['cards'] = {}
-    game_state['scores'] = {}
+    game_state['scores'] = {0: INITIAL_SCORE, 1: INITIAL_SCORE, 2: INITIAL_SCORE, 3: INITIAL_SCORE}
     game_state['field_pot'] = 0
     game_state['all_cards_generated'] = False
 
@@ -268,7 +269,7 @@ if __name__ == '__main__':
     print('🎴 Indian Poker 实时多人服务器')
     print('=' * 60)
     print('服务器启动中...')
-    print('访问地址: http://localhost:5000')
+    print('访问地址: http://localhost:5001')
     print('按 Ctrl+C 停止服务器')
     print('=' * 60)
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
+    socketio.run(app, host='0.0.0.0', port=5001, debug=True, allow_unsafe_werkzeug=True)

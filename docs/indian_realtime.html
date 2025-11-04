@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超级翻倍！印第安麻将 - 实时多人</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .game-hash {
+            text-align: center;
+            color: #999;
+            font-size: 0.8em;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 44px;
+        }
+
+        button:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .player-card {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .player-card.selected {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .player-card.me {
+            background: #fff3cd;
+            border-color: #ffc107;
+        }
+
+        .card {
+            background: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1em;
+            display: inline-block;
+        }
+
+        .card-hidden {
+            background: #6c757d;
+        }
+
+        .cards-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .player-card-display {
+            flex: 1;
+            min-width: 150px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+            text-align: center;
+        }
+
+        .player-name {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .score-card {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .score-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .score-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .field-pot {
+            background: #ffc107;
+            border: 2px solid #ff9800;
+        }
+
+        .field-pot h3 {
+            color: #856404;
+        }
+
+        .info-message {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .input-group input {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .scores-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎴 超级翻倍！印第安麻将</h1>
+        <div class="game-hash" id="game-hash"></div>
+
+        <!-- 阶段1: 输入姓名 -->
+        <div class="section" id="name-section">
+            <h2>1. 输入你的姓名</h2>
+            <div class="input-group">
+                <input type="text" id="player-name-input" placeholder="输入你的姓名" maxlength="20">
+                <button onclick="joinGame()">确定</button>
+            </div>
+            <div id="name-message"></div>
+        </div>
+
+        <!-- 阶段2: 等待玩家和选择角色 -->
+        <div class="section hidden" id="players-section">
+            <h2>2. 等待玩家 (<span id="player-count">0</span>/4)</h2>
+            <div class="players-grid" id="players-grid"></div>
+            <div style="margin-top: 20px;">
+                <button onclick="showRoleSelection()" id="select-role-btn">选择我的角色</button>
+            </div>
+        </div>
+
+        <!-- 角色选择面板 -->
+        <div class="section hidden" id="role-section">
+            <h2>选择你的角色</h2>
+            <div class="info-message">请选择你在游戏中的位置</div>
+            <div class="players-grid">
+                <div class="player-card" onclick="selectRole(0)" id="role-0">
+                    <h3>东家</h3>
+                    <p id="role-0-status">可选择</p>
+                </div>
+                <div class="player-card" onclick="selectRole(1)" id="role-1">
+                    <h3>南家</h3>
+                    <p id="role-1-status">可选择</p>
+                </div>
+                <div class="player-card" onclick="selectRole(2)" id="role-2">
+                    <h3>西家</h3>
+                    <p id="role-2-status">可选择</p>
+                </div>
+                <div class="player-card" onclick="selectRole(3)" id="role-3">
+                    <h3>北家</h3>
+                    <p id="role-3-status">可选择</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 阶段3: 选择局数 -->
+        <div class="section hidden" id="round-section">
+            <h2>3. 选择局数开始游戏</h2>
+            <div class="success-message">所有玩家已准备完毕！请选择要开始的局数。</div>
+            <select id="round-select">
+                <option value="东1局">东1局</option>
+                <option value="东2局">东2局</option>
+                <option value="东3局">东3局</option>
+                <option value="东4局">东4局</option>
+                <option value="南1局">南1局</option>
+                <option value="南2局">南2局</option>
+                <option value="南3局">南3局</option>
+                <option value="南4局">南4局</option>
+            </select>
+            <button onclick="startRound()" style="width: 100%; margin-top: 15px;">开始游戏</button>
+        </div>
+
+        <!-- 阶段4: 游戏进行中 - 显示卡片 -->
+        <div class="section hidden" id="cards-section">
+            <h2>4. 玩家NG卡片 - <span id="current-round"></span></h2>
+            <div class="info-message">你可以看到其他玩家的NG卡片，但看不到自己的卡片</div>
+            <div class="cards-row" id="cards-row"></div>
+        </div>
+
+        <!-- 阶段5: 点数追踪 -->
+        <div class="section hidden" id="scores-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;">5. 点数追踪</h2>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span style="font-weight: 600; color: #666;">场供：</span>
+                    <span id="field-pot-display" style="font-size: 1.3em; font-weight: bold; color: #007bff;">0</span>
+                    <input type="number"
+                           class="adjustment-input"
+                           style="width: 120px; padding: 5px; border: 2px solid #ddd; border-radius: 5px;"
+                           id="adj-field"
+                           placeholder="场供变动（±）"
+                           oninput="updateAdjustmentSum()">
+                </div>
+            </div>
+            <div class="scores-grid" id="scores-grid"></div>
+            <div style="margin-top: 20px; padding: 15px; background: white; border-radius: 10px;">
+                <h3 style="margin-bottom: 15px;">应用点数变动</h3>
+                <p style="color: #666; margin-bottom: 15px;">输入每个玩家的收支（正数为收入，负数为支出），收支总和必须为0才能应用</p>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: 600;">当前收支总和：</span>
+                    <span id="adjustment-sum" style="font-weight: bold; color: #dc3545;">0</span>
+                </div>
+                <button id="apply-btn" onclick="applyAdjustments()" disabled>应用变动</button>
+                <div id="adjustment-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let myName = null;
+        let myRoleIndex = null;
+        const roleNames = ['东家', '南家', '西家', '北家'];
+        let game_state = { players: [] };  // 本地游戏状态缓存
+
+        // 连接成功
+        socket.on('connect', () => {
+            console.log('连接到服务器');
+        });
+
+        // 接收游戏状态更新
+        socket.on('game_state_update', (data) => {
+            console.log('游戏状态更新:', data);
+            game_state.players = data.players;
+            updatePlayersDisplay(data.players);
+            if (data.game_started) {
+                updateScoresDisplay(data.scores, data.field_pot);
+            }
+        });
+
+        // 接收玩家列表更新
+        socket.on('players_update', (data) => {
+            console.log('玩家列表更新:', data);
+            game_state.players = data.players;
+            updatePlayersDisplay(data.players);
+            updateRoleSelection(data.players);
+        });
+
+        // 准备开始游戏
+        socket.on('ready_to_start', (data) => {
+            console.log('准备开始:', data);
+            document.getElementById('round-section').classList.remove('hidden');
+        });
+
+        // 游戏开始
+        socket.on('game_started', (data) => {
+            console.log('游戏开始:', data);
+            document.getElementById('current-round').textContent = data.round;
+            document.getElementById('game-hash').textContent = `游戏ID: ${data.game_hash}`;
+            renderCards(data.players, data.cards);
+            updateScoresDisplay(data.scores, data.field_pot);
+            document.getElementById('cards-section').classList.remove('hidden');
+            document.getElementById('scores-section').classList.remove('hidden');
+            // 不隐藏局数选择，允许切换局数
+            document.getElementById('round-select').value = data.round;
+            // 游戏开始后隐藏角色选择按钮和角色选择面板
+            document.getElementById('select-role-btn').style.display = 'none';
+            document.getElementById('role-section').classList.add('hidden');
+        });
+
+        // 分数更新
+        socket.on('scores_update', (data) => {
+            console.log('分数更新:', data);
+            updateScoresDisplay(data.scores, data.field_pot);
+        });
+
+        // 错误消息
+        socket.on('error', (data) => {
+            showMessage('name-message', data.message, 'error');
+        });
+
+        // 加入游戏
+        function joinGame() {
+            const nameInput = document.getElementById('player-name-input');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                showMessage('name-message', '请输入姓名', 'error');
+                return;
+            }
+
+            myName = name;
+            socket.emit('join_game', { name: name });
+
+            // 隐藏输入框，显示玩家列表
+            document.getElementById('name-section').classList.add('hidden');
+            document.getElementById('players-section').classList.remove('hidden');
+        }
+
+        // 显示角色选择
+        function showRoleSelection() {
+            document.getElementById('role-section').classList.remove('hidden');
+        }
+
+        // 选择角色
+        function selectRole(roleIndex) {
+            socket.emit('select_role', { role_index: roleIndex });
+            myRoleIndex = roleIndex;
+            document.getElementById('role-section').classList.add('hidden');
+        }
+
+        // 开始局
+        function startRound() {
+            const round = document.getElementById('round-select').value;
+            socket.emit('start_round', { round: round });
+        }
+
+        // 更新玩家显示
+        function updatePlayersDisplay(players) {
+            const grid = document.getElementById('players-grid');
+            const count = document.getElementById('player-count');
+            count.textContent = players.length;
+
+            grid.innerHTML = '';
+            players.forEach(player => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                if (player.name === myName) {
+                    card.classList.add('me');
+                }
+                if (player.role_index !== null) {
+                    card.classList.add('selected');
+                }
+
+                card.innerHTML = `
+                    <h3>${player.name}</h3>
+                    <p>${player.role_index !== null ? roleNames[player.role_index] : '未选择角色'}</p>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 更新角色选择显示
+        function updateRoleSelection(players) {
+            for (let i = 0; i < 4; i++) {
+                const player = players.find(p => p.role_index === i);
+                const statusEl = document.getElementById(`role-${i}-status`);
+                const roleCard = document.getElementById(`role-${i}`);
+
+                if (player) {
+                    statusEl.textContent = `已被 ${player.name} 选择`;
+                    roleCard.style.opacity = '0.5';
+                    roleCard.style.pointerEvents = 'none';
+                } else {
+                    statusEl.textContent = '可选择';
+                    roleCard.style.opacity = '1';
+                    roleCard.style.pointerEvents = 'auto';
+                }
+            }
+        }
+
+        // 渲染卡片
+        function renderCards(players, cards) {
+            const cardsRow = document.getElementById('cards-row');
+            cardsRow.innerHTML = '';
+
+            // 按照 role_index 排序
+            const sortedPlayers = players.sort((a, b) => a.role_index - b.role_index);
+
+            sortedPlayers.forEach((player, index) => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'player-card-display';
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'player-name';
+                nameDiv.textContent = player.name;
+
+                const cardSpan = document.createElement('span');
+                if (player.name === myName) {
+                    // 自己的卡片隐藏
+                    cardSpan.className = 'card card-hidden';
+                    cardSpan.textContent = '???';
+                } else {
+                    // 显示其他人的卡片
+                    cardSpan.className = 'card';
+                    cardSpan.textContent = cards[index];
+                }
+
+                cardDiv.appendChild(nameDiv);
+                cardDiv.appendChild(cardSpan);
+                cardsRow.appendChild(cardDiv);
+            });
+        }
+
+        // 更新分数显示
+        function updateScoresDisplay(scores, fieldPot) {
+            const grid = document.getElementById('scores-grid');
+            grid.innerHTML = '';
+
+            // 更新场供显示
+            document.getElementById('field-pot-display').textContent = fieldPot.toLocaleString();
+
+            // 获取自己的座位索引用于计算差值
+            const myRoleScore = myRoleIndex !== null ? scores[myRoleIndex] : null;
+
+            // 显示4个固定座位的分数卡片，但用玩家名字显示
+            for (let roleIndex = 0; roleIndex < 4; roleIndex++) {
+                const card = document.createElement('div');
+                card.className = 'score-card';
+
+                const score = scores[roleIndex] || 0;
+
+                // 找到坐在这个位置的玩家
+                const playerAtRole = game_state.players.find(p => p.role_index === roleIndex);
+                const playerName = playerAtRole ? playerAtRole.name : roleNames[roleIndex];
+                const isMe = playerAtRole && playerAtRole.name === myName;
+
+                let diffHTML = '';
+                if (myRoleScore !== null && roleIndex !== myRoleIndex) {
+                    const diff = score - myRoleScore;
+                    const diffColor = diff > 0 ? '#28a745' : diff < 0 ? '#dc3545' : '#6c757d';
+                    const diffSign = diff > 0 ? '+' : '';
+                    diffHTML = `<span style="font-size: 0.7em; color: ${diffColor}; margin-left: 8px;">(${diffSign}${diff.toLocaleString()})</span>`;
+                }
+
+                card.innerHTML = `
+                    <h3>${playerName}${isMe ? ' (你)' : ''}</h3>
+                    <div class="score-value">
+                        ${score.toLocaleString()}${diffHTML}
+                    </div>
+                    <input type="number"
+                           class="adjustment-input"
+                           id="adj-${roleIndex}"
+                           placeholder="收支（±）"
+                           oninput="updateAdjustmentSum()">
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        // 更新收支总和
+        function updateAdjustmentSum() {
+            const inputs = document.querySelectorAll('.adjustment-input');
+            let sum = 0;
+
+            inputs.forEach(input => {
+                const value = parseFloat(input.value) || 0;
+                sum += value;
+            });
+
+            document.getElementById('adjustment-sum').textContent = sum.toLocaleString();
+            document.getElementById('apply-btn').disabled = sum !== 0;
+        }
+
+        // 应用点数调整
+        function applyAdjustments() {
+            const adjustments = {};
+            const inputs = document.querySelectorAll('.adjustment-input');
+
+            inputs.forEach(input => {
+                const value = parseFloat(input.value) || 0;
+                if (value !== 0) {
+                    const id = input.id.replace('adj-', '');
+                    adjustments[id === 'field' ? 'field_pot' : id] = value;
+                }
+            });
+
+            socket.emit('update_scores', { adjustments: adjustments });
+
+            // 清空输入框
+            inputs.forEach(input => input.value = '');
+            updateAdjustmentSum();
+
+            showMessage('adjustment-message', '点数变动已应用！', 'success');
+        }
+
+        // 显示消息
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.className = type === 'error' ? 'error-message' : type === 'success' ? 'success-message' : 'info-message';
+            element.textContent = message;
+            element.style.display = 'block';
+
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
