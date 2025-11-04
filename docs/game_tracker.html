@@ -641,12 +641,14 @@
             </div>
 
             <!-- 预览 -->
-            <div id="yaku-preview" style="margin-top: 15px; padding: 15px; background: white; border-radius: 5px; display: none;">
-                <div style="font-weight: 600; margin-bottom: 10px;" data-i18n="preview_title">计算预览：</div>
-                <div id="yaku-recognized" style="color: #28a745; margin-bottom: 5px;"></div>
-                <div id="yaku-unrecognized" style="color: #dc3545; margin-bottom: 5px;"></div>
-                <div id="yaku-han" style="font-weight: bold; font-size: 1.1em; margin-bottom: 5px;"></div>
-                <div id="yaku-points" style="font-weight: bold; font-size: 1.2em; color: #667eea;"></div>
+            <div id="yaku-preview" style="margin-top: 15px; padding: 12px 15px; background: white; border-radius: 5px; display: none;">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <span style="font-weight: 600;" data-i18n="preview_title">计算预览：</span>
+                    <span id="yaku-recognized" style="color: #28a745;"></span>
+                    <span id="yaku-unrecognized" style="color: #dc3545;"></span>
+                    <span id="yaku-han" style="font-weight: bold;"></span>
+                    <span id="yaku-points" style="font-weight: bold; font-size: 1.1em; color: #667eea;"></span>
+                </div>
             </div>
 
             <button id="record-win-btn" type="button" style="width: 100%; margin-top: 15px;" data-i18n="button_record_win">记录和牌</button>
@@ -1760,6 +1762,14 @@
                 riichiCheckbox.addEventListener('change', (e) => {
                     riichiStatus[i] = e.target.checked;
                     checkAndAutoAddRiichi();
+
+                    // 如果打开立直开关，自动勾选听牌开关
+                    if (e.target.checked) {
+                        const tenpaiCheckbox = document.getElementById(`tenpai-${i}`);
+                        if (tenpaiCheckbox) {
+                            tenpaiCheckbox.checked = true;
+                        }
+                    }
                 });
             }
 
@@ -1866,9 +1876,11 @@
             // 更新立直和听牌选项的标签
             for (let i = 0; i < 4; i++) {
                 const playerName = gameState.players[i] || getDefaultPlayerName(i);
-                document.getElementById(`riichi-label-${i}`).textContent = playerName;
-                document.getElementById(`tenpai-label-${i}`).textContent = playerName;
-                document.getElementById(`ryuukyoku-riichi-label-${i}`).textContent = playerName;
+                const riichiLabel = document.getElementById(`riichi-label-${i}`);
+                const tenpaiLabel = document.getElementById(`tenpai-label-${i}`);
+
+                if (riichiLabel) riichiLabel.textContent = playerName;
+                if (tenpaiLabel) tenpaiLabel.textContent = playerName;
             }
 
             // 根据历史记录是否存在，禁用或启用规则按钮
@@ -1902,7 +1914,6 @@
                 // 禁用流局相关的所有输入
                 for (let i = 0; i < 4; i++) {
                     document.getElementById(`tenpai-${i}`).disabled = true;
-                    document.getElementById(`ryuukyoku-riichi-${i}`).disabled = true;
                     document.getElementById(`riichi-${i}`).disabled = true;
                 }
                 const recordRyuukyokuButton = document.getElementById('record-ryuukyoku-btn');
@@ -1924,7 +1935,6 @@
 
                 for (let i = 0; i < 4; i++) {
                     document.getElementById(`tenpai-${i}`).disabled = false;
-                    document.getElementById(`ryuukyoku-riichi-${i}`).disabled = false;
                     document.getElementById(`riichi-${i}`).disabled = false;
                 }
                 const recordRyuukyokuButtonEnabled = document.getElementById('record-ryuukyoku-btn');
