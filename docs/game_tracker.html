@@ -686,8 +686,8 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="margin: 0;" data-i18n="section_history">对局历史</h2>
                 <div style="display: flex; gap: 10px;">
+                    <button id="undo-btn" type="button" style="min-width: 100px; padding: 8px 16px; background: #ff9800;" data-i18n="undo_button" disabled>撤销</button>
                     <button id="redo-btn" type="button" style="min-width: 100px; padding: 8px 16px; background: #ffc107;" data-i18n="button_redo" disabled>撤销撤销</button>
-                    <button id="clear-history-btn" type="button" style="min-width: 100px; padding: 8px 16px; background: #dc3545;" data-i18n="button_clear_history">清空历史</button>
                 </div>
             </div>
             <div class="history" id="history"></div>
@@ -1691,6 +1691,14 @@
                 });
             }
 
+            const undoBtn = document.getElementById('undo-btn');
+            if (undoBtn) {
+                undoBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    undoLast();
+                });
+            }
+
             const redoBtn = document.getElementById('redo-btn');
             if (redoBtn) {
                 redoBtn.addEventListener('click', (e) => {
@@ -1939,6 +1947,12 @@
                 }
                 const recordRyuukyokuButtonEnabled = document.getElementById('record-ryuukyoku-btn');
                 if (recordRyuukyokuButtonEnabled) recordRyuukyokuButtonEnabled.disabled = false;
+            }
+
+            // Update undo button state
+            const undoBtn = document.getElementById('undo-btn');
+            if (undoBtn) {
+                undoBtn.disabled = gameState.history.length === 0;
             }
 
             // Update redo button state
@@ -2618,17 +2632,11 @@
                     `;
                 }
 
-                // 只有最新的一条记录(index === 0)才显示撤销按钮
-                const undoButton = index === 0
-                    ? `<button type="button" class="undo-last-btn">${t('undo_button')}</button>`
-                    : '';
-
                 historyDiv.innerHTML += `
                     <div class="history-item">
                         <div class="details">
                             ${detailsHtml}
                         </div>
-                        ${undoButton}
                     </div>
                 `;
             });
