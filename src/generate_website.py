@@ -13,6 +13,8 @@ import re
 import html as html_module
 from datetime import datetime
 from player_stats import calculate_player_stats, scan_files, summarize_log, YAKU_TRANSLATION
+from template_renderer import render_m_league_tabs
+from generate_m_league_tabs import generate_ranking_content
 
 # 役种英文翻译（中文到英文的映射）
 YAKU_TRANSLATION_EN = {v: k for k, v in YAKU_TRANSLATION.items()}
@@ -25,9 +27,9 @@ TRANSLATIONS = {
         'title': '雀魂统计 - Santi League',
         'subtitle': '雀魂麻将数据统计',
         'm_league': 'M-League',
-        'wrc': 'WRC',
+        'ema': 'EMA',
         'view_m_league': '查看 M-League 数据统计',
-        'view_wrc': '查看 WRC 数据统计',
+        'view_ema': '查看 EMA 数据统计',
         'back_home': '← 返回首页',
         'data_updated': '数据更新至',
         'player': '玩家',
@@ -110,14 +112,24 @@ TRANSLATIONS = {
         'r_change': 'R变动',
         'r_after': '局后R',
         'table_avg_r': '桌平均R',
+        # 标签页相关
+        'tab_recent': '最近牌谱',
+        'tab_honor': '荣誉牌谱',
+        'tab_ranking': '总排名',
+        'tab_players': '玩家详情',
+        'select_player': '选择玩家',
+        'choose_player': '请选择',
+        'select_player_prompt': '请选择玩家查看详细数据',
+        'qualified_players': '正式排名',
+        'unqualified_players': '新人榜',
     },
     'en': {
         'title': 'Mahjong Soul Stats - Santi League',
         'subtitle': 'Mahjong Soul Statistics',
         'm_league': 'M-League',
-        'wrc': 'WRC',
+        'ema': 'EMA',
         'view_m_league': 'View M-League Statistics',
-        'view_wrc': 'View WRC Statistics',
+        'view_ema': 'View EMA Statistics',
         'back_home': '← Back to Home',
         'data_updated': 'Data Updated',
         'player': 'Player',
@@ -200,6 +212,16 @@ TRANSLATIONS = {
         'r_change': 'R Δ',
         'r_after': 'R After',
         'table_avg_r': 'Table Avg R',
+        # Tab related
+        'tab_recent': 'Recent Games',
+        'tab_honor': 'Honor Games',
+        'tab_ranking': 'Rankings',
+        'tab_players': 'Player Details',
+        'select_player': 'Select Player',
+        'choose_player': 'Please Select',
+        'select_player_prompt': 'Please select a player to view detailed stats',
+        'qualified_players': 'Official Rankings',
+        'unqualified_players': 'Newcomers',
     }
 }
 
@@ -519,10 +541,10 @@ def generate_index_html(lang='zh'):
                 <div class="desc">{t['view_m_league']}</div>
             </a>
 
-            <a href="{'wrc-en.html' if lang == 'en' else 'wrc.html'}" class="link-card">
+            <a href="{'ema-en.html' if lang == 'en' else 'ema.html'}" class="link-card">
                 <span class="icon">🏆</span>
-                <div class="title">{t['wrc']}</div>
-                <div class="desc">{t['view_wrc']}</div>
+                <div class="title">{t['ema']}</div>
+                <div class="desc">{t['view_ema']}</div>
             </a>
         </div>
     </div>
@@ -547,8 +569,8 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
         other_stats_page = 'm-league-en.html' if lang == 'zh' else 'm-league.html'
         other_index = 'index-en.html' if lang == 'zh' else 'index.html'  # 语言切换用
         current_index = 'index.html' if lang == 'zh' else 'index-en.html'  # 返回首页用
-    else:  # wrc
-        other_stats_page = 'wrc-en.html' if lang == 'zh' else 'wrc.html'
+    else:  # ema
+        other_stats_page = 'ema-en.html' if lang == 'zh' else 'ema.html'
         other_index = 'index-en.html' if lang == 'zh' else 'index.html'  # 语言切换用
         current_index = 'index.html' if lang == 'zh' else 'index-en.html'  # 返回首页用
 
@@ -1707,6 +1729,440 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
     return html
 
 
+def generate_recent_games_content_for_tabs(recent_games, t, lang='zh'):
+    """生成最近牌谱内容"""
+    if not recent_games or len(recent_games) == 0:
+        return f"<p style='text-align: center; color: #999; padding: 40px;'>{t.get('no_recent_games', '暂无最近牌谱')}</p>"
+
+    table_rows = ""
+    for game_idx, game in enumerate(recent_games, 1):
+        date_str = game['date'] if lang == 'zh' else game['date_en']
+        table_avg_r = game.get('table_avg_r', 0)
+        players_data = game.get('players_detail', [])
+
+        player_cells = ""
+        for p in players_data:
+            rank_class = f"rank-{p['rank']}"
+            player_cells += f"""
+                <td class="player-name {rank_class}">{p['name']}</td>
+                <td class="r-value">{p['r_before']}</td>
+                <td class="games-count">{p['games_before']}</td>
+                <td class="score-change">{p['score_change']:+.1f}</td>
+                <td class="r-correction">{p['r_correction']:+.2f}</td>
+                <td class="games-coef">{p['games_correction']:.3f}</td>
+                <td class="r-change">{p['r_change']:+.2f}</td>
+                <td class="r-value">{p['r_after']}</td>
+            """
+
+        table_rows += f"""
+            <tr>
+                <td class="game-date">{date_str}</td>
+                <td class="table-avg-r">{table_avg_r:.2f}</td>
+                {player_cells}
+            </tr>
+        """
+
+    html_content = f"""
+    <div class="table-scroll">
+        <table class="recent-games-table">
+            <thead>
+                <tr>
+                    <th rowspan="2">{t['game_date']}</th>
+                    <th rowspan="2">{t['table_avg_r']}</th>
+                    <th colspan="8">{t['player']}1</th>
+                    <th colspan="8">{t['player']}2</th>
+                    <th colspan="8">{t['player']}3</th>
+                    <th colspan="8">{t['player']}4</th>
+                </tr>
+                <tr>
+                    <th>{t['player']}</th>
+                    <th>{t['r_before']}</th>
+                    <th>{t['games_count']}</th>
+                    <th>{t['score_change_pt']}</th>
+                    <th>{t['r_correction']}</th>
+                    <th>{t['games_coef']}</th>
+                    <th>{t['r_change']}</th>
+                    <th>{t['r_after']}</th>
+
+                    <th>{t['player']}</th>
+                    <th>{t['r_before']}</th>
+                    <th>{t['games_count']}</th>
+                    <th>{t['score_change_pt']}</th>
+                    <th>{t['r_correction']}</th>
+                    <th>{t['games_coef']}</th>
+                    <th>{t['r_change']}</th>
+                    <th>{t['r_after']}</th>
+
+                    <th>{t['player']}</th>
+                    <th>{t['r_before']}</th>
+                    <th>{t['games_count']}</th>
+                    <th>{t['score_change_pt']}</th>
+                    <th>{t['r_correction']}</th>
+                    <th>{t['games_coef']}</th>
+                    <th>{t['r_change']}</th>
+                    <th>{t['r_after']}</th>
+
+                    <th>{t['player']}</th>
+                    <th>{t['r_before']}</th>
+                    <th>{t['games_count']}</th>
+                    <th>{t['score_change_pt']}</th>
+                    <th>{t['r_correction']}</th>
+                    <th>{t['games_coef']}</th>
+                    <th>{t['r_change']}</th>
+                    <th>{t['r_after']}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {table_rows}
+            </tbody>
+        </table>
+    </div>
+    """
+    return html_content
+
+
+def generate_honor_games_content_for_tabs(honor_games, t, lang='zh'):
+    """生成荣誉牌谱内容"""
+    if not honor_games or len(honor_games) == 0:
+        return f"<p style='text-align: center; color: #999; padding: 40px;'>{t.get('no_honor_games', '暂无荣誉牌谱')}</p>"
+
+    honor_cards = ""
+    for game in honor_games:
+        yaku_list = game.get('yaku_list', [])
+        if lang == 'zh':
+            translated_yaku = ', '.join([YAKU_TRANSLATION.get(y.split('(')[0], y) for y in yaku_list])
+        else:
+            translated_yaku = ', '.join([YAKU_TRANSLATION_EN.get(y.split('(')[0], y) if '(' in y else y for y in yaku_list])
+
+        game_type = game.get('type', 'yakuman')
+        game_type_text = t['yakuman'] if game_type == 'yakuman' else t['sanbaiman']
+        game_type_class = 'yakuman' if game_type == 'yakuman' else 'sanbaiman'
+        escaped_url = html_module.escape(game['tenhou_url'], quote=True)
+
+        honor_cards += f"""
+        <div class="honor-card {game_type_class}">
+            <div class="honor-type">{game_type_text}</div>
+            <div class="honor-info">
+                <div class="honor-date">{game['date']}</div>
+                <div class="honor-round">{game['round']}</div>
+                <div class="honor-winner">{game['winner']}</div>
+                <div class="honor-yaku">{translated_yaku}</div>
+            </div>
+            <a href="{escaped_url}" target="_blank" class="honor-replay-btn">{t['view_replay']}</a>
+        </div>
+        """
+
+    return f'<div class="honor-games-grid">{honor_cards}</div>'
+
+
+def generate_player_details_html_for_tabs(name, data, t, lang='zh', league_avg=None):
+    """生成单个玩家的详细数据HTML（为标签页版本简化）"""
+    if league_avg is None:
+        league_avg = {}
+
+    player_id = name.replace(" ", "_").replace("(", "").replace(")", "")
+    riichi_win_hands = data['riichi_win_hands']
+    furo_then_win_hands = data['furo_then_win_hands']
+    dama_win_hands = data.get('dama_win_hands', 0)
+    tsumo_only_win_hands = data.get('tsumo_only_win_hands', 0)
+
+    yaku_html = ""
+    if data.get('yaku_count'):
+        yaku_sorted = sorted(data['yaku_count'].items(), key=lambda x: -x[1])[:10]
+        for yaku, count in yaku_sorted:
+            if lang == 'zh':
+                yaku_name = YAKU_TRANSLATION.get(yaku, yaku)
+            else:
+                yaku_name = YAKU_TRANSLATION_EN.get(yaku, yaku)
+            rate = data['yaku_rate'].get(yaku, 0)
+            avg_rate = league_avg.get('yaku_rate', {}).get(yaku, 0) if league_avg else 0
+            avg_text = f' <span class="league-avg">({t["average"]}{avg_rate}%)</span>' if avg_rate > 0 else ''
+            yaku_html += f"<li>{yaku_name}: {count}{t['times']} ({rate}%){avg_text}</li>"
+
+    vs_players_html = ""
+    if data.get('vs_players'):
+        vs_sorted = sorted(data['vs_players'].items(), key=lambda x: -x[1]['games'])
+        vs_players_html = f"""
+        <table class="vs-table">
+            <thead>
+                <tr>
+                    <th>{t['opponent']}</th>
+                    <th>{t['games_count']}</th>
+                    <th>{t['win_rate_vs']}</th>
+                    <th>{t['win_points']}</th>
+                    <th>{t['lose_points']}</th>
+                    <th>{t['net_points']}</th>
+                    <th>{t['score_diff']}</th>
+                </tr>
+            </thead>
+            <tbody>
+        """
+
+        for vs_player, vs_data in vs_sorted:
+            vs_win_rate = vs_data['win_rate']
+            win_rate_class = 'rate-good' if vs_win_rate > 25 else 'rate-bad' if vs_win_rate < 25 else ''
+            net_points = vs_data['win_points'] - vs_data['lose_points']
+            net_class = 'positive' if net_points > 0 else 'negative' if net_points < 0 else ''
+            score_diff = vs_data['score_diff']
+            score_diff_class = 'positive' if score_diff > 0 else 'negative' if score_diff < 0 else ''
+
+            vs_players_html += f"""
+                <tr>
+                    <td>{vs_player}</td>
+                    <td>{vs_data['games']}</td>
+                    <td class="{win_rate_class}">{vs_win_rate:.1f}%</td>
+                    <td class="positive">+{vs_data['win_points']}</td>
+                    <td class="negative">-{vs_data['lose_points']}</td>
+                    <td class="{net_class}">{net_points:+}</td>
+                    <td class="{score_diff_class}">{score_diff:+}</td>
+                </tr>
+            """
+        vs_players_html += "</tbody></table>"
+
+    html = f"""
+    <div class="player-card" id="player-{player_id}">
+        <h3>{name}</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-label">{t['tenhou_r']}</div>
+                <div class="stat-value large">{data['tenhou_r']:.2f}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">{t['total_score']}</div>
+                <div class="stat-value">{data['total_score']:+}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">{t['avg_rank']}</div>
+                <div class="stat-value">{data['avg_rank']:.2f}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">{t['games_count']}</div>
+                <div class="stat-value">{data['games']} {t['games']}</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>{t['rank_distribution']}</h4>
+            <div class="rank-bars">
+                <div class="rank-bar">
+                    <span class="rank-label">{t['rank_1']}</span>
+                    <div class="bar-container">
+                        <div class="bar bar-1" style="width: {data['rank_1_rate']}%"></div>
+                        <span class="bar-text">{data['rank_1']} {t['times']} ({data['rank_1_rate']:.1f}%)</span>
+                    </div>
+                </div>
+                <div class="rank-bar">
+                    <span class="rank-label">{t['rank_2']}</span>
+                    <div class="bar-container">
+                        <div class="bar bar-2" style="width: {data['rank_2_rate']}%"></div>
+                        <span class="bar-text">{data['rank_2']} {t['times']} ({data['rank_2_rate']:.1f}%)</span>
+                    </div>
+                </div>
+                <div class="rank-bar">
+                    <span class="rank-label">{t['rank_3']}</span>
+                    <div class="bar-container">
+                        <div class="bar bar-3" style="width: {data['rank_3_rate']}%"></div>
+                        <span class="bar-text">{data['rank_3']} {t['times']} ({data['rank_3_rate']:.1f}%)</span>
+                    </div>
+                </div>
+                <div class="rank-bar">
+                    <span class="rank-label">{t['rank_4']}</span>
+                    <div class="bar-container">
+                        <div class="bar bar-4" style="width: {data['rank_4_rate']}%"></div>
+                        <span class="bar-text">{data['rank_4']} {t['times']} ({data['rank_4_rate']:.1f}%)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>{t['win_stats']}</h4>
+            <div class="summary-box">
+                <span class="summary-label">{t['total_wins']}:</span>
+                <span class="summary-value">{data['win_hands']} {t['rounds']} ({data['win_rate']:.1f}%) <span class="league-avg">({t['average']}{league_avg.get('win_rate', 0):.1f}%)</span></span>
+                <span class="summary-label">{t['avg_points']}:</span>
+                <span class="summary-value">{data['avg_win_points']:.0f}{t['points']} <span class="league-avg">({t['average']}{league_avg.get('avg_win_points', 0):.0f}{t['points']})</span></span>
+            </div>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>{t['type']}</th>
+                        <th>{t['count']}</th>
+                        <th>{t['avg_points']}</th>
+                        <th>{t['special_stats']}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="type-label">{t['riichi_win']}</td>
+                        <td>{riichi_win_hands} {t['rounds']}</td>
+                        <td class="points-value">{data['avg_riichi_win_points']:.0f}{t['points']} <span class="league-avg">({t['average']}{league_avg.get('avg_riichi_win_points', 0):.0f})</span></td>
+                        <td class="special-stats">{t['ippatsu']}: {data['ippatsu_hands']}{t['rounds']} ({data['ippatsu_rate']:.1f}%) <span class="league-avg">({t['average']}{league_avg.get('ippatsu_rate', 0):.1f}%)</span> · {t['ura']}: {data['ura_hands']}{t['rounds']} ({data['ura_rate']:.1f}%) <span class="league-avg">({t['average']}{league_avg.get('ura_rate', 0):.1f}%)</span></td>
+                    </tr>
+                    <tr>
+                        <td class="type-label">{t['furo_win']}</td>
+                        <td>{furo_then_win_hands} {t['rounds']}</td>
+                        <td class="points-value">{data['avg_furo_win_points']:.0f}{t['points']} <span class="league-avg">({t['average']}{league_avg.get('avg_furo_win_points', 0):.0f})</span></td>
+                        <td class="special-stats">-</td>
+                    </tr>
+                    {f'''<tr>
+                        <td class="type-label">{t['dama_win']}</td>
+                        <td>{dama_win_hands} {t['rounds']}</td>
+                        <td class="points-value">{data['avg_dama_win_points']:.0f}{t['points']} <span class="league-avg">({t['average']}{league_avg.get('avg_dama_win_points', 0):.0f})</span></td>
+                        <td class="special-stats">{t['has_yaku_menzen']}</td>
+                    </tr>''' if dama_win_hands > 0 else ''}
+                    {f'''<tr>
+                        <td class="type-label">{t['tsumo_only_win']}</td>
+                        <td>{tsumo_only_win_hands} {t['rounds']}</td>
+                        <td class="points-value">{data['avg_tsumo_only_win_points']:.0f}{t['points']} <span class="league-avg">({t['average']}{league_avg.get('avg_tsumo_only_win_points', 0):.0f})</span></td>
+                        <td class="special-stats">{t['menzen_tsumo']}</td>
+                    </tr>''' if tsumo_only_win_hands > 0 else ''}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h4>{t['riichi_furo']}</h4>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>{t['type']}</th>
+                        <th>{t['count_rate']}</th>
+                        <th>{t['win']}</th>
+                        <th>{t['draw']}</th>
+                        <th>{t['deal_in']}</th>
+                        <th>{t['pass']}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="type-label">{t['riichi']}</td>
+                        <td>{data['riichi_hands']} {t['rounds']} ({data['riichi_rate']:.1f}%) <span class="league-avg">({t['average']}{league_avg.get('riichi_rate', 0):.1f}%)</span></td>
+                        <td class="rate-good">{data['riichi_win_rate']:.1f}% <span class="league-avg">({t['average']}{league_avg.get('riichi_win_rate', 0):.1f}%)</span></td>
+                        <td class="rate-neutral">{data['riichi_ryuukyoku_rate']:.1f}%</td>
+                        <td class="rate-bad">{data['riichi_then_deal_in_rate']:.1f}% <span class="league-avg">({t['average']}{league_avg.get('riichi_then_deal_in_rate', 0):.1f}%)</span></td>
+                        <td class="rate-neutral">{data['riichi_pass_rate']:.1f}%</td>
+                    </tr>
+                    <tr>
+                        <td class="type-label">{t['furo']}</td>
+                        <td>{data['furo_hands']} {t['rounds']} ({data['furo_rate']:.1f}%) <span class="league-avg">({t['average']}{league_avg.get('furo_rate', 0):.1f}%)</span></td>
+                        <td class="rate-good">{data['furo_then_win_rate']:.1f}% <span class="league-avg">({t['average']}{league_avg.get('furo_then_win_rate', 0):.1f}%)</span></td>
+                        <td class="rate-neutral">{data['furo_ryuukyoku_rate']:.1f}%</td>
+                        <td class="rate-bad">{data['furo_then_deal_in_rate']:.1f}% <span class="league-avg">({t['average']}{league_avg.get('furo_then_deal_in_rate', 0):.1f}%)</span></td>
+                        <td class="rate-neutral">{data['furo_pass_rate']:.1f}%</td>
+                    </tr>
+                    {f'''<tr>
+                        <td class="type-label">{t['dama']}</td>
+                        <td>{data['dama_state_hands']} {t['times']}</td>
+                        <td class="rate-good">{data['dama_state_win_rate']:.1f}%</td>
+                        <td class="rate-neutral">{data['dama_state_draw_rate']:.1f}%</td>
+                        <td class="rate-bad">{data['dama_state_deal_in_rate']:.1f}%</td>
+                        <td class="rate-neutral">{data['dama_state_pass_rate']:.1f}%</td>
+                    </tr>''' if data.get('dama_state_hands', 0) > 0 else ''}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h4>{t['deal_in_stats']}</h4>
+            <div class="summary-box">
+                <span class="summary-label">{t['deal_in']}:</span>
+                <span class="summary-value">{data['deal_in_hands']} {t['rounds']} ({data['deal_in_rate']:.1f}%) <span class="league-avg">({t['average']}{league_avg.get('deal_in_rate', 0):.1f}%)</span></span>
+                <span class="summary-label">{t['avg_deal_in_points']}:</span>
+                <span class="summary-value negative">{data['avg_deal_in_points']:.0f}{t['points']} <span class="league-avg">({t['average']}{league_avg.get('avg_deal_in_points', 0):.0f}{t['points']})</span></span>
+            </div>
+        </div>
+
+        {f'''<div class="section">
+            <h4>{t['vs_stats']}</h4>
+            {vs_players_html}
+        </div>''' if vs_players_html else ''}
+
+        {f'''<div class="section">
+            <h4>{t['yaku_stats']}</h4>
+            <ul class="yaku-list">
+                {yaku_html}
+            </ul>
+        </div>''' if yaku_html else ''}
+
+        {f'''<div class="section">
+            <h4>{t['draw_tenpai']}</h4>
+            <p>{t['draw_count']}: {data['ryuukyoku_hands']} {t['times']}, {t['tenpai']} {data['ryuukyoku_tenpai']} {t['times']} ({data['tenpai_rate']:.1f}%) <span class="league-avg">({t['average']}{league_avg.get('tenpai_rate', 0):.1f}%)</span></p>
+        </div>''' if data['ryuukyoku_hands'] > 0 else ''}
+    </div>
+    """
+    return html
+
+
+def generate_m_league_tabs_page(stats_dict, league_avg, honor_games, recent_games, sorted_files, results, latest_date, lang='zh'):
+    """生成M-League标签页页面（使用已加载的数据）"""
+    t = TRANSLATIONS[lang]
+
+    # 生成各个标签页的内容
+    recent_content = generate_recent_games_content_for_tabs(recent_games, t, lang)
+    honor_content = generate_honor_games_content_for_tabs(honor_games, t, lang)
+    ranking_content = generate_ranking_content(stats_dict, t, league_avg)
+
+    # 生成玩家详情内容
+    sorted_players = sorted(stats_dict.items(), key=lambda x: (-x[1]["games"], x[0]))
+
+    # 生成下拉选项
+    player_options = ""
+    for name, data in sorted_players:
+        player_options += f'<option value="{name}">{name} ({data["games"]}局)</option>\n'
+
+    # 生成每个玩家的详细HTML
+    players_data = {}
+    for name, data in sorted_players:
+        player_html = generate_player_details_html_for_tabs(name, data, t, lang, league_avg)
+        players_data[name] = player_html
+
+    # 确定链接
+    if lang == 'zh':
+        other_stats_page = 'm-league-en.html'
+        current_index = 'index.html'
+        switch_lang_text = '🌐 English'
+        title = 'M-League 数据统计'
+    else:
+        other_stats_page = 'm-league.html'
+        current_index = 'index-en.html'
+        switch_lang_text = '🌐 中文'
+        title = 'M-League Statistics'
+
+    # 日期信息
+    date_info = f"{t['data_updated']}: {latest_date}" if latest_date else ""
+
+    # 标签文本
+    tab_texts = {
+        'recent': t['tab_recent'],
+        'honor': t['tab_honor'],
+        'ranking': t['tab_ranking'],
+        'players': t['tab_players']
+    }
+
+    # 渲染模板
+    html_content = render_m_league_tabs(
+        lang=lang,
+        title=title,
+        date_info=date_info,
+        other_stats_page=other_stats_page,
+        current_index=current_index,
+        switch_lang_text=switch_lang_text,
+        back_home_text=t['back_home'],
+        tab_texts=tab_texts,
+        recent_content=recent_content,
+        honor_content=honor_content,
+        ranking_content=ranking_content,
+        player_options=player_options,
+        players_data=players_data,
+        select_player_label=t['select_player'],
+        choose_player=t['choose_player'],
+        select_player_prompt=t['select_player_prompt']
+    )
+
+    return html_content
+
+
 def main():
     print("开始生成静态网站...", file=sys.stderr)
 
@@ -1762,15 +2218,37 @@ def main():
         recent_games = extract_recent_games(sorted_files, results, count=5)
 
         stats = calculate_player_stats(results, round_counts)
+        stats_dict = dict(stats)
 
-        # 生成中文版
-        m_league_html_zh = generate_stats_html("M-League 数据统计", dict(stats), "m-league", latest_date, lang='zh', honor_games=honor_games, recent_games=recent_games)
+        # 提取league_average
+        league_avg = stats_dict.pop("_league_average", {})
+
+        # 生成中文版（使用新的标签页模板）
+        m_league_html_zh = generate_m_league_tabs_page(
+            stats_dict=stats_dict,
+            league_avg=league_avg,
+            honor_games=honor_games,
+            recent_games=recent_games,
+            sorted_files=sorted_files,
+            results=results,
+            latest_date=latest_date,
+            lang='zh'
+        )
         with open("docs/m-league.html", "w", encoding="utf-8") as f:
             f.write(m_league_html_zh)
         print(f"✓ 已生成 docs/m-league.html (中文, 处理了 {len(results)} 个文件)", file=sys.stderr)
 
-        # 生成英文版
-        m_league_html_en = generate_stats_html("M-League Statistics", dict(stats), "m-league", latest_date, lang='en', honor_games=honor_games, recent_games=recent_games)
+        # 生成英文版（使用新的标签页模板）
+        m_league_html_en = generate_m_league_tabs_page(
+            stats_dict=stats_dict,
+            league_avg=league_avg,
+            honor_games=honor_games,
+            recent_games=recent_games,
+            sorted_files=sorted_files,
+            results=results,
+            latest_date=latest_date,
+            lang='en'
+        )
         with open("docs/m-league-en.html", "w", encoding="utf-8") as f:
             f.write(m_league_html_en)
         print(f"✓ 已生成 docs/m-league-en.html (英文, 处理了 {len(results)} 个文件)", file=sys.stderr)
@@ -1780,14 +2258,14 @@ def main():
     else:
         print("⚠ 未找到 M-League 数据文件", file=sys.stderr)
 
-    # 生成 WRC 占位页面（中文）
+    # 生成 EMA 占位页面（中文）
     t_zh = TRANSLATIONS['zh']
-    wrc_html_zh = f"""<!DOCTYPE html>
+    ema_html_zh = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WRC - Santi League</title>
+    <title>EMA - Santi League</title>
     <style>
         body {{
             font-family: 'Microsoft YaHei', sans-serif;
@@ -1815,27 +2293,27 @@ def main():
     </style>
 </head>
 <body>
-    <a href="wrc-en.html" class="lang-switch">🌐 English</a>
+    <a href="ema-en.html" class="lang-switch">🌐 English</a>
     <div>
-        <h1>🏆 WRC</h1>
+        <h1>🏆 EMA</h1>
         <p>{t_zh['coming_soon']}</p>
         <a href="index.html">{t_zh['back_home']}</a>
     </div>
 </body>
 </html>
 """
-    with open("docs/wrc.html", "w", encoding="utf-8") as f:
-        f.write(wrc_html_zh)
-    print("✓ 已生成 docs/wrc.html (中文)", file=sys.stderr)
+    with open("docs/ema.html", "w", encoding="utf-8") as f:
+        f.write(ema_html_zh)
+    print("✓ 已生成 docs/ema.html (中文)", file=sys.stderr)
 
-    # 生成 WRC 占位页面（英文）
+    # 生成 EMA 占位页面（英文）
     t_en = TRANSLATIONS['en']
-    wrc_html_en = f"""<!DOCTYPE html>
+    ema_html_en = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WRC - Santi League</title>
+    <title>EMA - Santi League</title>
     <style>
         body {{
             font-family: 'Microsoft YaHei', sans-serif;
@@ -1863,18 +2341,18 @@ def main():
     </style>
 </head>
 <body>
-    <a href="wrc.html" class="lang-switch">🌐 中文</a>
+    <a href="ema.html" class="lang-switch">🌐 中文</a>
     <div>
-        <h1>🏆 WRC</h1>
+        <h1>🏆 EMA</h1>
         <p>{t_en['coming_soon']}</p>
         <a href="index-en.html">{t_en['back_home']}</a>
     </div>
 </body>
 </html>
 """
-    with open("docs/wrc-en.html", "w", encoding="utf-8") as f:
-        f.write(wrc_html_en)
-    print("✓ 已生成 docs/wrc-en.html (英文)", file=sys.stderr)
+    with open("docs/ema-en.html", "w", encoding="utf-8") as f:
+        f.write(ema_html_en)
+    print("✓ 已生成 docs/ema-en.html (英文)", file=sys.stderr)
 
     print("\n网站生成完成！", file=sys.stderr)
     print("请将 docs 文件夹的内容推送到 GitHub Pages", file=sys.stderr)

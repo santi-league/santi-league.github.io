@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="{lang_code}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+
+        body {{
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }}
+
+        .header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }}
+
+        .header h1 {{
+            font-size: 36px;
+            margin-bottom: 10px;
+        }}
+
+        .date-info {{
+            font-size: 16px;
+            margin: 10px 0;
+            opacity: 0.9;
+        }}
+
+        .back-link {{
+            display: inline-block;
+            margin-top: 10px;
+            color: white;
+            text-decoration: none;
+            opacity: 0.9;
+        }}
+
+        .back-link:hover {{
+            opacity: 1;
+            text-decoration: underline;
+        }}
+
+        .lang-switch {{
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }}
+
+        .lang-switch:hover {{
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }}
+
+        .container {{
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }}
+
+        .summary-table {{
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }}
+
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+
+        th {{
+            background: #667eea;
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+        }}
+
+        td {{
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }}
+
+        tr:hover {{
+            background: #f9f9f9;
+        }}
+
+        .player-name {{
+            font-weight: bold;
+        }}
+
+        .player-link {{
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }}
+
+        .player-link:hover {{
+            color: #764ba2;
+            text-decoration: underline;
+        }}
+
+        .highlight {{
+            background: #fff3cd;
+            font-weight: bold;
+        }}
+
+        html {{
+            scroll-behavior: smooth;
+        }}
+
+        h2 {{
+            margin: 40px 0 20px 0;
+            color: #667eea;
+            font-size: 28px;
+        }}
+
+        .player-card {{
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }}
+
+        .player-card h3 {{
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }}
+
+        .stats-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }}
+
+        .stat-item {{
+            text-align: center;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }}
+
+        .stat-label {{
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }}
+
+        .stat-value {{
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }}
+
+        .stat-value.large {{
+            font-size: 32px;
+        }}
+
+        .section {{
+            margin-top: 25px;
+        }}
+
+        .section h4 {{
+            color: #555;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }}
+
+        .section p {{
+            line-height: 1.8;
+            color: #666;
+        }}
+
+        .section ul {{
+            margin-left: 20px;
+            line-height: 1.8;
+            color: #666;
+        }}
+
+        .rank-bars {{
+            margin-top: 10px;
+        }}
+
+        .rank-bar {{
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }}
+
+        .rank-label {{
+            width: 50px;
+            font-weight: bold;
+        }}
+
+        .bar-container {{
+            flex: 1;
+            position: relative;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }}
+
+        .bar {{
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 5px;
+        }}
+
+        .bar-1 {{ background: linear-gradient(90deg, #28a745, #5cb85c); }}
+        .bar-2 {{ background: linear-gradient(90deg, #17a2b8, #5bc0de); }}
+        .bar-3 {{ background: linear-gradient(90deg, #ffc107, #ffda6a); }}
+        .bar-4 {{ background: linear-gradient(90deg, #dc3545, #e66a73); }}
+
+        .bar-text {{
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+        }}
+
+        .yaku-list {{
+            columns: 2;
+            column-gap: 20px;
+        }}
+
+        .yaku-list li {{
+            break-inside: avoid;
+            margin-bottom: 5px;
+        }}
+
+        .vs-table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }}
+
+        .vs-table th {{
+            background: #667eea;
+            color: white;
+            padding: 10px 8px;
+            text-align: center;
+            font-weight: 600;
+        }}
+
+        .vs-table td {{
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }}
+
+        .vs-table tr:hover {{
+            background: #f9f9f9;
+        }}
+
+        .vs-table .opponent-name {{
+            font-weight: bold;
+            text-align: left;
+        }}
+
+        .vs-table .opponent-link {{
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }}
+
+        .vs-table .opponent-link:hover {{
+            color: #764ba2;
+            text-decoration: underline;
+        }}
+
+        .vs-table .positive {{
+            color: #28a745;
+            font-weight: bold;
+        }}
+
+        .vs-table .negative {{
+            color: #dc3545;
+            font-weight: bold;
+        }}
+
+        .vs-table .neutral {{
+            color: #666;
+        }}
+
+        .summary-box {{
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            border-left: 4px solid #667eea;
+        }}
+
+        .summary-label {{
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }}
+
+        .summary-value {{
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+        }}
+
+        .summary-value.negative {{
+            color: #dc3545;
+        }}
+
+        .league-avg {{
+            font-size: 13px;
+            color: #888;
+            margin-left: 8px;
+            font-weight: normal;
+        }}
+
+        .stats-table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }}
+
+        .stats-table thead {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }}
+
+        .stats-table th {{
+            color: white;
+            padding: 12px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+        }}
+
+        .stats-table td {{
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 16px;
+        }}
+
+        .stats-table tbody tr:hover {{
+            background: #f8f9fa;
+        }}
+
+        .stats-table tbody tr:last-child td {{
+            border-bottom: none;
+        }}
+
+        .stats-table .type-label {{
+            font-weight: 600;
+            color: #555;
+            text-align: left;
+        }}
+
+        .stats-table .points-value {{
+            color: #667eea;
+            font-weight: 600;
+            font-size: 18px;
+        }}
+
+        .stats-table .special-stats {{
+            color: #666;
+            font-size: 14px;
+        }}
+
+        .stats-table .rate-good {{
+            color: #28a745;
+            font-weight: 600;
+            font-size: 17px;
+        }}
+
+        .stats-table .rate-bad {{
+            color: #dc3545;
+            font-weight: 600;
+            font-size: 17px;
+        }}
+
+        .stats-table .rate-neutral {{
+            color: #666;
+            font-size: 16px;
+        }}
+
+        /* 最近牌谱样式 - 横向表格 */
+        .recent-games-section {{
+            margin-bottom: 30px;
+        }}
+
+        .recent-games-section h2 {{
+            margin: 0 0 15px 0;
+            color: #667eea;
+            font-size: 24px;
+        }}
+
+        .table-scroll {{
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }}
+
+        .recent-games-table {{
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }}
+
+        .recent-games-table thead {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }}
+
+        .recent-games-table th {{
+            padding: 8px 5px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            white-space: nowrap;
+        }}
+
+        .recent-games-table tbody tr {{
+            transition: background-color 0.2s;
+        }}
+
+        .recent-games-table tbody tr:nth-child(even) {{
+            background: #f8f9fa;
+        }}
+
+        .recent-games-table tbody tr:hover {{
+            background: #e3f2fd;
+        }}
+
+        .recent-games-table td {{
+            padding: 6px 4px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            font-size: 10px;
+            white-space: nowrap;
+        }}
+
+        .recent-games-table .game-date {{
+            font-weight: bold;
+            color: #667eea;
+            font-size: 11px;
+        }}
+
+        .recent-games-table .table-avg-r {{
+            font-weight: 600;
+            color: #764ba2;
+        }}
+
+        .recent-games-table .player-name {{
+            font-weight: 500;
+            color: #333;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }}
+
+        .recent-games-table .player-name.rank-1 {{
+            color: #ffc107;
+            font-weight: bold;
+        }}
+
+        .recent-games-table .player-name.rank-2 {{
+            color: #666;
+        }}
+
+        .recent-games-table .player-name.rank-3 {{
+            color: #999;
+        }}
+
+        .recent-games-table .player-name.rank-4 {{
+            color: #ccc;
+        }}
+
+        .recent-games-table .r-value {{
+            color: #667eea;
+            font-weight: 500;
+        }}
+
+        .recent-games-table .games-count {{
+            color: #888;
+        }}
+
+        .recent-games-table .score-change {{
+            font-weight: 500;
+        }}
+
+        .recent-games-table .r-correction {{
+            color: #764ba2;
+        }}
+
+        .recent-games-table .games-coef {{
+            color: #888;
+            font-size: 9px;
+        }}
+
+        .recent-games-table .r-change {{
+            font-weight: bold;
+        }}
+
+        /* 荣誉牌谱样式 */
+        .honor-games-section {{
+            margin-bottom: 40px;
+        }}
+
+        .honor-games-section h2 {{
+            margin: 0 0 20px 0;
+            color: #667eea;
+            font-size: 28px;
+        }}
+
+        .honor-games-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }}
+
+        .honor-card {{
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }}
+
+        .honor-card.yakuman {{
+            border-left-color: #dc3545;
+            background: linear-gradient(135deg, #fff 0%, #ffe6e6 100%);
+        }}
+
+        .honor-card.sanbaiman {{
+            border-left-color: #ffc107;
+            background: linear-gradient(135deg, #fff 0%, #fff9e6 100%);
+        }}
+
+        .honor-card:hover {{
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }}
+
+        .honor-type {{
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+        }}
+
+        .honor-card.yakuman .honor-type {{
+            color: #dc3545;
+        }}
+
+        .honor-card.sanbaiman .honor-type {{
+            color: #ffc107;
+        }}
+
+        .honor-info {{
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }}
+
+        .honor-date {{
+            font-size: 14px;
+            color: #666;
+        }}
+
+        .honor-round {{
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }}
+
+        .honor-winner {{
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }}
+
+        .honor-yaku {{
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }}
+
+        .honor-replay-btn {{
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            transition: background 0.2s;
+        }}
+
+        .honor-replay-btn:hover {{
+            background: #764ba2;
+        }}
+
+        @media (max-width: 768px) {{
+            .stats-grid {{
+                grid-template-columns: 1fr;
+            }}
+
+            .yaku-list {{
+                columns: 1;
+            }}
+
+            .vs-table {{
+                font-size: 12px;
+            }}
+
+            .vs-table th,
+            .vs-table td {{
+                padding: 6px 4px;
+            }}
+
+            .stats-table {{
+                font-size: 12px;
+            }}
+
+            .stats-table th,
+            .stats-table td {{
+                padding: 8px 5px;
+            }}
+
+            .stats-table .special-stats {{
+                font-size: 11px;
+            }}
+
+            .summary-box {{
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }}
+
+            .recent-games-table {{
+                font-size: 9px;
+            }}
+
+            .recent-games-table th {{
+                padding: 6px 3px;
+                font-size: 8px;
+            }}
+
+            .recent-games-table td {{
+                padding: 4px 2px;
+                font-size: 9px;
+            }}
+
+            .honor-games-grid {{
+                grid-template-columns: 1fr;
+            }}
+        }}
+
+        /* 标签页导航样式 */
+        .tabs-nav {{
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            background: white;
+            padding: 10px 20px 0 20px;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }}
+
+        .tab-button {{
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+            top: 2px;
+        }}
+
+        .tab-button:hover {{
+            color: #667eea;
+            background: #f8f9fa;
+        }}
+
+        .tab-button.active {{
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }}
+
+        /* 标签页内容样式 */
+        .tab-content {{
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }}
+
+        .tab-content.active {{
+            display: block;
+        }}
+
+        @keyframes fadeIn {{
+            from {{
+                opacity: 0;
+                transform: translateY(10px);
+            }}
+            to {{
+                opacity: 1;
+                transform: translateY(0);
+            }}
+        }}
+
+        /* 玩家选择器样式 */
+        .player-selector {{
+            margin-bottom: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }}
+
+        .player-selector label {{
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+            margin-right: 10px;
+        }}
+
+        .player-selector select {{
+            padding: 10px 15px;
+            font-size: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+            min-width: 250px;
+        }}
+
+        .player-selector select:hover {{
+            border-color: #667eea;
+        }}
+
+        .player-selector select:focus {{
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }}
+
+        {additional_styles}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="{other_stats_page}" class="lang-switch">🌐 {switch_lang_text}</a>
+        <h1>{title}</h1>
+        {date_info}
+        <a href="{current_index}" class="back-link">{back_home_text}</a>
+    </div>
+
+    <div class="container">
+        <div class="tabs-nav">
+            <button class="tab-button active" onclick="switchTab('recent')">{tab_recent}</button>
+            <button class="tab-button" onclick="switchTab('honor')">{tab_honor}</button>
+            <button class="tab-button" onclick="switchTab('ranking')">{tab_ranking}</button>
+            <button class="tab-button" onclick="switchTab('players')">{tab_players}</button>
+        </div>
+
+        <!-- 最近牌谱标签页 -->
+        <div id="tab-recent" class="tab-content active">
+            {recent_content}
+        </div>
+
+        <!-- 荣誉牌谱标签页 -->
+        <div id="tab-honor" class="tab-content">
+            {honor_content}
+        </div>
+
+        <!-- 总排名标签页 -->
+        <div id="tab-ranking" class="tab-content">
+            {ranking_content}
+        </div>
+
+        <!-- 玩家详情标签页 -->
+        <div id="tab-players" class="tab-content">
+            <div class="player-selector">
+                <label for="player-select">{select_player_label}:</label>
+                <select id="player-select" onchange="showPlayerDetails(this.value)">
+                    <option value="">-- {choose_player} --</option>
+                    {player_options}
+                </select>
+            </div>
+            <div id="player-details-container">
+                <p style="text-align: center; color: #999; padding: 40px;">{select_player_prompt}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签页切换函数
+        function switchTab(tabName) {{
+            // 隐藏所有标签页内容
+            const allContents = document.querySelectorAll('.tab-content');
+            allContents.forEach(content => {{
+                content.classList.remove('active');
+            }});
+
+            // 移除所有按钮的active状态
+            const allButtons = document.querySelectorAll('.tab-button');
+            allButtons.forEach(button => {{
+                button.classList.remove('active');
+            }});
+
+            // 显示选中的标签页
+            document.getElementById(`tab-${{tabName}}`).classList.add('active');
+            event.target.classList.add('active');
+
+            // 保存当前标签页到localStorage
+            localStorage.setItem('activeTab', tabName);
+        }}
+
+        // 页面加载时恢复上次选择的标签页
+        window.addEventListener('DOMContentLoaded', function() {{
+            const savedTab = localStorage.getItem('activeTab');
+            if (savedTab) {{
+                const tabButton = document.querySelector(`.tab-button[onclick="switchTab('${{savedTab}}')"]`);
+                if (tabButton) {{
+                    document.querySelector('.tab-content.active').classList.remove('active');
+                    document.querySelector('.tab-button.active').classList.remove('active');
+                    document.getElementById(`tab-${{savedTab}}`).classList.add('active');
+                    tabButton.classList.add('active');
+                }}
+            }}
+        }});
+
+        // 玩家详情数据
+        const playersData = {players_data_json};
+
+        // 显示玩家详情
+        function showPlayerDetails(playerName) {{
+            const container = document.getElementById('player-details-container');
+
+            if (!playerName) {{
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">{select_player_prompt}</p>';
+                return;
+            }}
+
+            const playerData = playersData[playerName];
+            if (!playerData) {{
+                container.innerHTML = '<p style="text-align: center; color: #dc3545; padding: 40px;">未找到玩家数据</p>';
+                return;
+            }}
+
+            container.innerHTML = playerData;
+        }}
+
+        {additional_scripts}
+    </script>
+</body>
+</html>

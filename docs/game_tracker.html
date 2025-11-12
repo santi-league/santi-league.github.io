@@ -523,7 +523,7 @@
                 </div>
                 <div class="rule-switch">
                     <button class="rule-btn-compact active" data-rule="mleague" title="M-League (25000点)">M-League</button>
-                    <button class="rule-btn-compact" data-rule="wrc" title="WRC (30000点)">WRC</button>
+                    <button class="rule-btn-compact" data-rule="ema" title="EMA (30000点)">EMA</button>
                 </div>
             </div>
         </div>
@@ -1146,7 +1146,7 @@
 
         // 获取初始点数
         function getInitialScore(rule) {
-            return rule === 'wrc' ? 30000 : 25000;
+            return rule === 'ema' ? 30000 : 25000;
         }
 
         // 游戏状态
@@ -1205,7 +1205,7 @@
             // 计算马点
             const umaPoints = gameState.rule === 'mleague'
                 ? [45000, 5000, -15000, -35000]  // M-League
-                : [30000, 10000, -10000, -30000]; // WRC
+                : [30000, 10000, -10000, -30000]; // EMA
 
             playerResults.forEach((player, index) => {
                 player.uma = umaPoints[index];
@@ -2010,9 +2010,9 @@
             // 计算基本点
             let basePoints = fu * Math.pow(2, 2 + han);
 
-            // 满贯判定（WRC和M-League规则不同）
-            if (rule === 'wrc') {
-                // WRC规则：只有5番及以上，或4番40符+，或3番70符+才是满贯
+            // 满贯判定（EMA和M-League规则不同）
+            if (rule === 'ema') {
+                // EMA规则：只有5番及以上，或4番40符+，或3番70符+才是满贯
                 if (han >= 5 || (han >= 4 && fu >= 40) || (han >= 3 && fu >= 70)) {
                     return isDealer
                         ? (isTsumo ? [4000, 4000, 4000] : 12000)
@@ -2752,7 +2752,7 @@
 
         function restoreGameState(data) {
             // 重置游戏状态
-            const initialScore = data.rule === 'wrc' ? 30000 : 25000;
+            const initialScore = data.rule === 'ema' ? 30000 : 25000;
             gameState.players = [...data.players];
             gameState.rule = data.rule;
             gameState.scores = [initialScore, initialScore, initialScore, initialScore];

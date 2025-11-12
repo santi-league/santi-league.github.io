@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="{lang_code}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+
+        body {{
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }}
+
+        .header {{
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }}
+
+        .header h1 {{
+            font-size: 42px;
+            margin: 20px 0;
+        }}
+
+        .lang-switch {{
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: white;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }}
+
+        .lang-switch:hover {{
+            background: rgba(255, 255, 255, 0.3);
+        }}
+
+        .back-link {{
+            color: white;
+            text-decoration: none;
+            opacity: 0.9;
+            font-size: 16px;
+        }}
+
+        .back-link:hover {{
+            opacity: 1;
+            text-decoration: underline;
+        }}
+
+        .date-info {{
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin: 10px 0;
+        }}
+
+        .container {{
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }}
+
+        /* 标签页导航 */
+        .tabs-nav {{
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 2px solid #667eea;
+            overflow-x: auto;
+        }}
+
+        .tab-button {{
+            flex: 1;
+            padding: 18px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 120px;
+        }}
+
+        .tab-button:hover {{
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }}
+
+        .tab-button.active {{
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }}
+
+        .tab-content {{
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s ease;
+        }}
+
+        .tab-content.active {{
+            display: block;
+        }}
+
+        @keyframes fadeIn {{
+            from {{
+                opacity: 0;
+                transform: translateY(10px);
+            }}
+            to {{
+                opacity: 1;
+                transform: translateY(0);
+            }}
+        }}
+
+        /* 玩家选择器 */
+        .player-selector {{
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }}
+
+        .player-selector label {{
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-right: 15px;
+        }}
+
+        .player-selector select {{
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            min-width: 200px;
+            transition: border-color 0.3s ease;
+        }}
+
+        .player-selector select:focus {{
+            outline: none;
+            border-color: #667eea;
+        }}
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {{
+            .header h1 {{
+                font-size: 28px;
+            }}
+
+            .tab-button {{
+                padding: 14px 16px;
+                font-size: 14px;
+                min-width: 100px;
+            }}
+
+            .tab-content {{
+                padding: 20px 15px;
+            }}
+
+            .player-selector {{
+                text-align: center;
+            }}
+
+            .player-selector label {{
+                display: block;
+                margin-bottom: 10px;
+            }}
+
+            .player-selector select {{
+                width: 100%;
+            }}
+        }}
+
+        {additional_styles}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="{other_stats_page}" class="lang-switch">🌐 {switch_lang_text}</a>
+        <h1>{title}</h1>
+        {date_info}
+        <a href="{current_index}" class="back-link">{back_home_text}</a>
+    </div>
+
+    <div class="container">
+        <div class="tabs-nav">
+            <button class="tab-button active" onclick="switchTab('recent')">{tab_recent}</button>
+            <button class="tab-button" onclick="switchTab('honor')">{tab_honor}</button>
+            <button class="tab-button" onclick="switchTab('ranking')">{tab_ranking}</button>
+            <button class="tab-button" onclick="switchTab('players')">{tab_players}</button>
+        </div>
+
+        <!-- 最近牌谱标签页 -->
+        <div id="tab-recent" class="tab-content active">
+            {recent_content}
+        </div>
+
+        <!-- 荣誉牌谱标签页 -->
+        <div id="tab-honor" class="tab-content">
+            {honor_content}
+        </div>
+
+        <!-- 总排名标签页 -->
+        <div id="tab-ranking" class="tab-content">
+            {ranking_content}
+        </div>
+
+        <!-- 玩家详情标签页 -->
+        <div id="tab-players" class="tab-content">
+            <div class="player-selector">
+                <label for="player-select">{select_player_label}:</label>
+                <select id="player-select" onchange="showPlayerDetails(this.value)">
+                    <option value="">-- {choose_player} --</option>
+                    {player_options}
+                </select>
+            </div>
+            <div id="player-details-container">
+                <p style="text-align: center; color: #999; padding: 40px;">{select_player_prompt}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签页切换函数
+        function switchTab(tabName) {{
+            // 隐藏所有标签页内容
+            const allContents = document.querySelectorAll('.tab-content');
+            allContents.forEach(content => {{
+                content.classList.remove('active');
+            }});
+
+            // 移除所有按钮的active状态
+            const allButtons = document.querySelectorAll('.tab-button');
+            allButtons.forEach(button => {{
+                button.classList.remove('active');
+            }});
+
+            // 显示选中的标签页
+            document.getElementById(`tab-${{tabName}}`).classList.add('active');
+            event.target.classList.add('active');
+
+            // 保存当前标签页到localStorage
+            localStorage.setItem('activeTab', tabName);
+        }}
+
+        // 页面加载时恢复上次选择的标签页
+        window.addEventListener('DOMContentLoaded', function() {{
+            const savedTab = localStorage.getItem('activeTab');
+            if (savedTab) {{
+                const tabButton = document.querySelector(`.tab-button[onclick="switchTab('${{savedTab}}')"]`);
+                if (tabButton) {{
+                    document.querySelector('.tab-content.active').classList.remove('active');
+                    document.querySelector('.tab-button.active').classList.remove('active');
+                    document.getElementById(`tab-${{savedTab}}`).classList.add('active');
+                    tabButton.classList.add('active');
+                }}
+            }}
+        }});
+
+        // 玩家详情数据
+        const playersData = {players_data_json};
+
+        // 显示玩家详情
+        function showPlayerDetails(playerName) {{
+            const container = document.getElementById('player-details-container');
+
+            if (!playerName) {{
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">{select_player_prompt}</p>';
+                return;
+            }}
+
+            const playerData = playersData[playerName];
+            if (!playerData) {{
+                container.innerHTML = '<p style="text-align: center; color: #dc3545; padding: 40px;">未找到玩家数据</p>';
+                return;
+            }}
+
+            container.innerHTML = playerData;
+        }}
+
+        {additional_scripts}
+    </script>
+</body>
+</html>
