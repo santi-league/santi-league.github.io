@@ -814,6 +814,7 @@
             <button class="tab-button active" onclick="switchTab('recent')">{tab_recent}</button>
             <button class="tab-button" onclick="switchTab('honor')">{tab_honor}</button>
             <button class="tab-button" onclick="switchTab('ranking')">{tab_ranking}</button>
+            <button class="tab-button" onclick="switchTab('leaderboard')">{tab_leaderboard}</button>
             <button class="tab-button" onclick="switchTab('players')">{tab_players}</button>
         </div>
 
@@ -830,6 +831,11 @@
         <!-- 总排名标签页 -->
         <div id="tab-ranking" class="tab-content">
             {ranking_content}
+        </div>
+
+        <!-- 排行榜标签页 -->
+        <div id="tab-leaderboard" class="tab-content">
+            {leaderboard_content}
         </div>
 
         <!-- 玩家详情标签页 -->
