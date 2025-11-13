@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanma Honor Games - Santi League</title>
+    <style>
+        /* 三麻荣誉牌谱页面样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    background: #f5f5f5;
+    color: #333;
+}
+
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.header h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: white;
+    text-decoration: none;
+    opacity: 0.9;
+}
+
+.back-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.lang-switch {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+    color: white;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.lang-switch:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.honor-games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.honor-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-left: 5px solid;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.honor-card.yakuman {
+    border-left-color: #dc3545;
+    background: linear-gradient(135deg, #fff 0%, #ffe6e6 100%);
+}
+
+.honor-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+}
+
+.honor-type {
+    font-size: 20px;
+    font-weight: bold;
+    color: #dc3545;
+}
+
+.honor-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.honor-date {
+    font-size: 14px;
+    color: #666;
+}
+
+.honor-round {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.honor-winner {
+    font-size: 18px;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.honor-yaku {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+}
+
+.honor-replay-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.honor-replay-btn:hover {
+    background: #764ba2;
+}
+
+@media (max-width: 768px) {
+    .honor-games-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="sanma-honor.html" class="lang-switch">🌐 中文</a>
+        <h1>Sanma Honor Games</h1>
+        <a href="index-en.html" class="back-link">← Back to Home</a>
+    </div>
+
+    <div class="container">
+        <div class="honor-games-grid">
+            
+            <div class="honor-card yakuman">
+                <div class="honor-type">役満</div>
+                <div class="honor-info">
+                    <div class="honor-date">2025-11-11</div>
+                    <div class="honor-round">南2局0本场</div>
+                    <div class="honor-winner">Jwangta</div>
+                    <div class="honor-yaku">Blessing of Earth</div>
+                </div>
+                <a href="https://tenhou.net/5/#json={&quot;title&quot;:[&quot;Santi League -- Sanma&quot;,&quot;Jwangta的地和&quot;],&quot;name&quot;:[&quot;santi&quot;,&quot;Jwangta&quot;,&quot;小地鼠爱点炮&quot;,&quot;&quot;],&quot;rule&quot;:{&quot;disp&quot;:&quot;三人麻雀&quot;},&quot;log&quot;:[[[4,1,0],[122700,95500,81800,0],[27],[],[46,22,39,23,45,45,47,26,27,37,23,52,43],[26],[43],[22,43,37,26,32,24,28,36,33,35,31,27,43],[23],[],[34,11,26,31,46,41,27,41,22,21,24,11,38],[],[],[],[],[],[&quot;和了&quot;,[-20100,32200,-12100,0],[1,1,1,&quot;Yakuman 12000-20000点&quot;,&quot;Blessing of Earth(役満)&quot;]]]]}" target="_blank" class="honor-replay-btn">View Replay</a>
+            </div>
+            
+            <div class="honor-card yakuman">
+                <div class="honor-type">役満</div>
+                <div class="honor-info">
+                    <div class="honor-date">2025-11-11</div>
+                    <div class="honor-round">南1局0本场</div>
+                    <div class="honor-winner">小地鼠爱点炮</div>
+                    <div class="honor-yaku">Four Concealed Triplets</div>
+                </div>
+                <a href="https://tenhou.net/5/#json={&quot;title&quot;:[&quot;Santi League -- Sanma&quot;,&quot;小地鼠爱点炮的四暗刻&quot;],&quot;name&quot;:[&quot;santi&quot;,&quot;Jwangta&quot;,&quot;小地鼠爱点炮&quot;,&quot;&quot;],&quot;rule&quot;:{&quot;disp&quot;:&quot;三人麻雀&quot;},&quot;log&quot;:[[[6,0,0],[116600,119200,64200,0],[35],[22],[31,44,43,34,47,28,32,37,29,24,44,43,39],[44,21,21,23,22,33,11,36,27,36],[&quot;f44&quot;,&quot;f44&quot;,&quot;f44&quot;,31,47,29,28,39,60,11],[22,33,45,32,23,42,36,26,47,42,42,46,52],[29,29,28,21,34,11,19],[60,60,47,45,46,60,42],[35,44,27,26,53,11,45,41,38,27,24,38,35],[23,38,31,42,41,23,25,41,27],[&quot;f44&quot;,11,60,60,45,24,60,&quot;r26&quot;],[],[],[],[&quot;和了&quot;,[-24000,-24000,49000,0],[2,2,2,&quot;Yakuman 24000点∀&quot;,&quot;Four Concealed Triplets(役満)&quot;]]]]}" target="_blank" class="honor-replay-btn">View Replay</a>
+            </div>
+            
+            <div class="honor-card yakuman">
+                <div class="honor-type">Kazoe Yakuman</div>
+                <div class="honor-info">
+                    <div class="honor-date">2025-11-13</div>
+                    <div class="honor-round">南2局0本场</div>
+                    <div class="honor-winner">Samuel122</div>
+                    <div class="honor-yaku">Kazoe Yakuman (Pure Double Sequence (1 han), Full Flush (6 han), Fully Concealed Hand (1 han), Pinfu (1 han), Riichi (1 han), Ippatsu (1 han), Red Five (1 han), Ura Dora (2 han), Kita (1 han))</div>
+                </div>
+                <a href="https://tenhou.net/5/#json={&quot;title&quot;:[&quot;Santi League -- Sanma&quot;,&quot;Samuel122的一杯口, 清一色, 门前清自摸和, 平和, 立直, 一发, 赤宝牌, 里宝牌, 拔北&quot;],&quot;name&quot;:[&quot;小地鼠爱点炮&quot;,&quot;姫野婭也&quot;,&quot;Samuel122&quot;,&quot;&quot;],&quot;rule&quot;:{&quot;disp&quot;:&quot;三人麻雀&quot;},&quot;log&quot;:[[[1,1,0],[238100,189400,172500,0],[52],[31],[38,32,37,24,45,36,26,46,23,21,11,26,22],[31,42,29,44,21,37,21,41,22,19,11,22,38,19],[11,60,45,&quot;f44&quot;,29,46,&quot;r37&quot;,60,60,60,60,60,60,60],[24,44,19,41,36,25,26,39,11,43,43,23,27],[35,33,45,42,42,21,46,42,27,33,32,47,27,24,26],[&quot;f44&quot;,19,11,41,45,39,33,46,43,43,21,60,23,42,42],[47,39,38,32,43,29,22,45,39,29,41,34,36],[35,23,25,45,53,34,35,44,36,33,31,33,28,32,34],[41,43,45,60,47,25,29,&quot;f44&quot;,29,22,23,38,60,&quot;r35&quot;],[],[],[],[&quot;和了&quot;,[-8100,-16100,26200,0],[2,2,2,&quot;Kazoe Yakuman 8000-16000点&quot;,&quot;Pure Double Sequence(1飜)&quot;,&quot;Full Flush(6飜)&quot;,&quot;Fully Concealed Hand(1飜)&quot;,&quot;Pinfu(1飜)&quot;,&quot;Riichi(1飜)&quot;,&quot;Ippatsu(1飜)&quot;,&quot;Red Five(1飜)&quot;,&quot;Ura Dora(2飜)&quot;,&quot;Kita(1飜)&quot;]]]]}" target="_blank" class="honor-replay-btn">View Replay</a>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>

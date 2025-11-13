@@ -91,6 +91,9 @@ YAKU_TRANSLATION = {
     "Red Five": "赤宝牌",
     "Akadora": "赤宝牌",
 
+    # 三麻特有
+    "Kita": "拔北",
+
     # 其他可能的英文名
     "One Shot": "一发",
     "Tanyao": "断幺九",

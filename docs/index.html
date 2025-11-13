@@ -5,118 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>雀魂统计 - Santi League</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* 首页样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        body {
-            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
+body {
+    font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
 
-        .container {
-            text-align: center;
-            padding: 40px;
-        }
+.container {
+    text-align: center;
+    padding: 40px;
+}
 
-        .logo {
-            font-size: 72px;
-            margin-bottom: 20px;
-            animation: float 3s ease-in-out infinite;
-        }
+.logo {
+    font-size: 72px;
+    margin-bottom: 20px;
+    animation: float 3s ease-in-out infinite;
+}
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
 
-        h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
+h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
 
-        .subtitle {
-            font-size: 20px;
-            margin-bottom: 60px;
-            opacity: 0.9;
-        }
+.subtitle {
+    font-size: 20px;
+    margin-bottom: 60px;
+    opacity: 0.9;
+}
 
-        .links {
-            display: flex;
-            gap: 40px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
+.links {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
 
-        .link-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 40px 60px;
-            border-radius: 20px;
-            text-decoration: none;
-            color: white;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            min-width: 200px;
-        }
+.link-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 40px 60px;
+    border-radius: 20px;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    min-width: 200px;
+}
 
-        .link-card:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
+.link-card:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
 
-        .link-card .icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            display: block;
-        }
+.link-card .icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    display: block;
+}
 
-        .link-card .title {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
+.link-card .title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
 
-        .link-card .desc {
-            font-size: 14px;
-            opacity: 0.8;
-        }
+.link-card .desc {
+    font-size: 14px;
+    opacity: 0.8;
+}
 
-        footer {
-            position: fixed;
-            bottom: 20px;
-            font-size: 14px;
-            opacity: 0.7;
-        }
+footer {
+    position: fixed;
+    bottom: 20px;
+    font-size: 14px;
+    opacity: 0.7;
+}
 
-        .lang-switch {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            border-radius: 20px;
-            text-decoration: none;
-            color: white;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
+.lang-switch {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+    color: white;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
 
-        .lang-switch:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
+.lang-switch:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
     </style>
 </head>
 <body>
@@ -138,6 +140,12 @@
                 <span class="icon">🏆</span>
                 <div class="title">EMA</div>
                 <div class="desc">查看 EMA 数据统计</div>
+            </a>
+
+            <a href="sanma-honor.html" class="link-card">
+                <span class="icon">🎯</span>
+                <div class="title">三麻荣誉牌谱</div>
+                <div class="desc">查看三麻役满牌谱</div>
             </a>
         </div>
     </div>

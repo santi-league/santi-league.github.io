@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EMA - Santi League</title>
-    <style>
-        /* EMA页面样式 */
+/* EMA页面样式 */
 body {
     font-family: 'Microsoft YaHei', sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -48,15 +41,3 @@ a:hover {
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
-
-    </style>
-</head>
-<body>
-    <a href="ema-en.html" class="lang-switch">🌐 English</a>
-    <div>
-        <h1>🏆 EMA</h1>
-        <p>数据统计即将上线...</p>
-        <a href="index.html">← 返回首页</a>
-    </div>
-</body>
-</html>
