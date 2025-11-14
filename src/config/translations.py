@@ -104,7 +104,7 @@ TRANSLATIONS = {
         'r_after': '局后R',
         'table_avg_r': '桌平均R',
         # 标签页相关
-        'tab_recent': '最近牌谱',
+        'tab_recent': '牌谱历史',
         'tab_honor': '荣誉牌谱',
         'tab_ranking': '总排名',
         'tab_players': '玩家详情',
@@ -113,6 +113,9 @@ TRANSLATIONS = {
         'select_player_prompt': '请选择玩家查看详细数据',
         'qualified_players': '正式排名',
         'unqualified_players': '新人榜',
+        'all_players': '所有玩家',
+        'change_curve': '变化曲线',
+        'date_and_games': '日期（半庄数）',
     },
     'en': {
         'title': 'Mahjong Soul Stats - Santi League',
@@ -206,7 +209,7 @@ TRANSLATIONS = {
         'r_after': 'R After',
         'table_avg_r': 'Table Avg R',
         # Tab related
-        'tab_recent': 'Recent Games',
+        'tab_recent': 'Game History',
         'tab_honor': 'Honor Games',
         'tab_ranking': 'Rankings',
         'tab_players': 'Player Details',
@@ -215,6 +218,9 @@ TRANSLATIONS = {
         'select_player_prompt': 'Please select a player to view detailed stats',
         'qualified_players': 'Official Rankings',
         'unqualified_players': 'Newcomers',
+        'all_players': 'All Players',
+        'change_curve': 'Change Curve',
+        'date_and_games': 'Date (Games)',
     }
 }
 

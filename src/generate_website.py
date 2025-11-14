@@ -1374,42 +1374,90 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
     return html
 
 
-def generate_recent_games_content_for_tabs(recent_games, t, lang='zh'):
-    """生成最近牌谱内容"""
+def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh'):
+    """生成最近牌谱内容 - 带玩家筛选和Rating曲线图"""
     if not recent_games or len(recent_games) == 0:
         return f"<p style='text-align: center; color: #999; padding: 40px;'>{t.get('no_recent_games', '暂无最近牌谱')}</p>"
 
-    table_rows = ""
-    for game_idx, game in enumerate(recent_games, 1):
+    # 收集所有玩家信息并按半庄数排序
+    player_list = []
+    for player_name, data in stats_data.items():
+        if player_name == "_league_average":
+            continue
+        player_list.append({
+            'name': player_name,
+            'games': data['games']
+        })
+    player_list.sort(key=lambda x: -x['games'])
+
+    # 构建玩家选项卡
+    player_tabs = ""
+    all_text = t.get('all_players', '所有玩家')
+    player_tabs += f'<button class="player-filter-btn active" data-player="all">{all_text}</button>\n'
+    for player in player_list:
+        games_text = t.get('games', '局')
+        player_tabs += f'<button class="player-filter-btn" data-player="{player["name"]}">{player["name"]} ({player["games"]}{games_text})</button>\n'
+
+    # 构建游戏数据（JSON格式，供JavaScript使用）
+    games_data = []
+    player_rating_history = {}  # 每个玩家的rating历史
+
+    for game in recent_games:
         date_str = game['date'] if lang == 'zh' else game['date_en']
         table_avg_r = game.get('table_avg_r', 0)
         players_data = game.get('players_detail', [])
 
-        player_cells = ""
-        for p in players_data:
-            rank_class = f"rank-{p['rank']}"
-            player_cells += f"""
-                <td class="player-name {rank_class}">{p['name']}</td>
-                <td class="r-value">{p['r_before']}</td>
-                <td class="games-count">{p['games_before']}</td>
-                <td class="score-change">{p['score_change']:+.1f}</td>
-                <td class="r-correction">{p['r_correction']:+.2f}</td>
-                <td class="games-coef">{p['games_correction']:.3f}</td>
-                <td class="r-change">{p['r_change']:+.2f}</td>
-                <td class="r-value">{p['r_after']}</td>
-            """
+        game_data = {
+            'date': date_str,
+            'table_avg_r': table_avg_r,
+            'players': []
+        }
 
-        table_rows += f"""
-            <tr>
-                <td class="game-date">{date_str}</td>
-                <td class="table-avg-r">{table_avg_r:.2f}</td>
-                {player_cells}
-            </tr>
-        """
+        for p in players_data:
+            player_info = {
+                'name': p['name'],
+                'rank': p['rank'],
+                'r_before': p['r_before'],
+                'games_before': p['games_before'],
+                'score_change': p['score_change'],
+                'r_correction': p['r_correction'],
+                'games_correction': p['games_correction'],
+                'r_change': p['r_change'],
+                'r_after': p['r_after']
+            }
+            game_data['players'].append(player_info)
+
+            # 记录玩家的rating历史
+            pname = p['name']
+            if pname not in player_rating_history:
+                player_rating_history[pname] = []
+            player_rating_history[pname].append({
+                'date': date_str,
+                'games': p['games_before'],
+                'r_value': p['r_after']
+            })
+
+        games_data.append(game_data)
+
+    # 将数据转换为JSON
+    games_json = json.dumps(games_data, ensure_ascii=False)
+    rating_history_json = json.dumps(player_rating_history, ensure_ascii=False)
 
     html_content = f"""
+    <!-- 玩家筛选选项卡 -->
+    <div class="player-filter-tabs" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px;">
+        {player_tabs}
+    </div>
+
+    <!-- Rating曲线图容器 -->
+    <div id="ratingChartContainer" style="display: none; margin-bottom: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3 id="chartPlayerName" style="text-align: center; color: #667eea; margin-bottom: 20px;"></h3>
+        <canvas id="ratingChart" width="800" height="400"></canvas>
+    </div>
+
+    <!-- 牌谱表格 -->
     <div class="table-scroll">
-        <table class="recent-games-table">
+        <table class="recent-games-table" id="gamesTable">
             <thead>
                 <tr>
                     <th rowspan="2">{t['game_date']}</th>
@@ -1457,12 +1505,238 @@ def generate_recent_games_content_for_tabs(recent_games, t, lang='zh'):
                     <th>{t['r_after']}</th>
                 </tr>
             </thead>
-            <tbody>
-                {table_rows}
+            <tbody id="gamesTableBody">
             </tbody>
         </table>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 游戏数据
+        const gamesData = {games_json};
+        const ratingHistory = {rating_history_json};
+        let currentChart = null;
+
+        // 渲染表格
+        function renderGamesTable(filterPlayer = 'all') {{
+            const tbody = document.getElementById('gamesTableBody');
+            tbody.innerHTML = '';
+
+            const filteredGames = filterPlayer === 'all'
+                ? gamesData
+                : gamesData.filter(game => game.players.some(p => p.name === filterPlayer));
+
+            filteredGames.forEach(game => {{
+                const tr = document.createElement('tr');
+
+                // 添加日期和桌平均R
+                tr.innerHTML = `
+                    <td class="game-date">${{game.date}}</td>
+                    <td class="table-avg-r">${{game.table_avg_r.toFixed(2)}}</td>
+                `;
+
+                // 添加4个玩家的数据
+                game.players.forEach(p => {{
+                    const rankClass = `rank-${{p.rank}}`;
+                    const highlightClass = (filterPlayer !== 'all' && p.name === filterPlayer) ? 'highlight-player' : '';
+                    tr.innerHTML += `
+                        <td class="player-name ${{rankClass}} ${{highlightClass}}">${{p.name}}</td>
+                        <td class="r-value">${{p.r_before}}</td>
+                        <td class="games-count">${{p.games_before}}</td>
+                        <td class="score-change">${{p.score_change >= 0 ? '+' : ''}}${{p.score_change.toFixed(1)}}</td>
+                        <td class="r-correction">${{p.r_correction >= 0 ? '+' : ''}}${{p.r_correction.toFixed(2)}}</td>
+                        <td class="games-coef">${{p.games_correction.toFixed(3)}}</td>
+                        <td class="r-change">${{p.r_change >= 0 ? '+' : ''}}${{p.r_change.toFixed(2)}}</td>
+                        <td class="r-value">${{p.r_after}}</td>
+                    `;
+                }});
+
+                tbody.appendChild(tr);
+            }});
+        }}
+
+        // 绘制Rating曲线图
+        function drawRatingChart(playerName) {{
+            const container = document.getElementById('ratingChartContainer');
+            const chartTitle = document.getElementById('chartPlayerName');
+            const ctx = document.getElementById('ratingChart').getContext('2d');
+
+            if (!ratingHistory[playerName]) {{
+                container.style.display = 'none';
+                return;
+            }}
+
+            container.style.display = 'block';
+            chartTitle.textContent = `${{playerName}} - Rating {t.get('change_curve', '变化曲线')}`;
+
+            // 反转数据（从最早到最新）
+            const data = [...ratingHistory[playerName]].reverse();
+
+            // 准备图表数据
+            const labels = data.map((d, idx) => `${{d.date}}\\n(${{d.games}}{t.get('games', '局')})`);
+            const rValues = data.map(d => d.r_value);
+
+            // 销毁旧图表
+            if (currentChart) {{
+                currentChart.destroy();
+            }}
+
+            // 创建新图表
+            currentChart = new Chart(ctx, {{
+                type: 'line',
+                data: {{
+                    labels: labels,
+                    datasets: [{{
+                        label: 'Rating',
+                        data: rValues,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {{
+                        legend: {{
+                            display: false
+                        }},
+                        tooltip: {{
+                            callbacks: {{
+                                title: function(context) {{
+                                    const idx = context[0].dataIndex;
+                                    return `${{data[idx].date}} (${{data[idx].games}}{t.get('games', '局')})`;
+                                }},
+                                label: function(context) {{
+                                    return `Rating: ${{context.parsed.y.toFixed(2)}}`;
+                                }}
+                            }}
+                        }}
+                    }},
+                    scales: {{
+                        y: {{
+                            beginAtZero: false,
+                            title: {{
+                                display: true,
+                                text: 'Rating'
+                            }}
+                        }},
+                        x: {{
+                            title: {{
+                                display: true,
+                                text: '{t.get('date_and_games', '日期（半庄数）')}'
+                            }},
+                            ticks: {{
+                                maxRotation: 45,
+                                minRotation: 45,
+                                autoSkip: false,
+                                callback: function(value, index, ticks) {{
+                                    // 根据数据点数量动态决定显示间隔
+                                    const totalPoints = data.length;
+                                    let skipInterval;
+
+                                    if (totalPoints <= 20) {{
+                                        skipInterval = 1; // 显示所有
+                                    }} else if (totalPoints <= 40) {{
+                                        skipInterval = 2; // 每2个显示1个
+                                    }} else if (totalPoints <= 60) {{
+                                        skipInterval = 3; // 每3个显示1个
+                                    }} else if (totalPoints <= 80) {{
+                                        skipInterval = 4; // 每4个显示1个
+                                    }} else if (totalPoints <= 100) {{
+                                        skipInterval = 5; // 每5个显示1个
+                                    }} else if (totalPoints <= 120) {{
+                                        skipInterval = 6; // 每6个显示1个
+                                    }} else {{
+                                        skipInterval = 8; // 每8个显示1个
+                                    }}
+
+                                    // 总是显示第一个和最后一个标签
+                                    if (index === 0 || index === data.length - 1) {{
+                                        return labels[index];
+                                    }}
+
+                                    // 按间隔显示
+                                    if (index % skipInterval === 0) {{
+                                        return labels[index];
+                                    }}
+
+                                    return '';
+                                }}
+                            }}
+                        }}
+                    }}
+                }}
+            }});
+        }}
+
+        // 玩家筛选按钮点击事件
+        document.querySelectorAll('.player-filter-btn').forEach(btn => {{
+            btn.addEventListener('click', function() {{
+                // 更新按钮状态
+                document.querySelectorAll('.player-filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const playerName = this.getAttribute('data-player');
+
+                // 渲染表格
+                renderGamesTable(playerName);
+
+                // 绘制或隐藏图表
+                if (playerName === 'all') {{
+                    document.getElementById('ratingChartContainer').style.display = 'none';
+                    if (currentChart) {{
+                        currentChart.destroy();
+                        currentChart = null;
+                    }}
+                }} else {{
+                    drawRatingChart(playerName);
+                }}
+            }});
+        }});
+
+        // 初始化显示所有牌谱
+        renderGamesTable('all');
+    </script>
+
+    <style>
+        .player-filter-tabs {{
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }}
+
+        .player-filter-btn {{
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }}
+
+        .player-filter-btn:hover {{
+            background: #f0f0f0;
+        }}
+
+        .player-filter-btn.active {{
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }}
+
+        .highlight-player {{
+            background-color: #fff3cd !important;
+            font-weight: bold;
+        }}
+    </style>
     """
+
     return html_content
 
 
@@ -1851,6 +2125,263 @@ def generate_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
                         <td>{data['one_han_count']}</td>
                         <td>{data['total_rounds']}</td>
                         <td>{data['one_han_rate']:.2f}%</td>
+                    </tr>
+        '''
+
+    html += '''
+                </tbody>
+            </table>
+        </div>
+    </div>
+    '''
+
+    return html
+
+
+def generate_two_han_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
+    """生成排行榜内容 - 2番手牌频率排行"""
+    # 统计每个玩家的2番手牌次数和总小局数
+    two_han_counts = {}
+    total_rounds_played = {}
+
+    # 遍历所有牌谱文件统计2番手牌和小局数
+    for filepath in sorted_files:
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            # 获取玩家列表
+            names = data.get('name', [])
+
+            # 初始化这些玩家的计数器
+            for name in names:
+                if name not in total_rounds_played:
+                    total_rounds_played[name] = 0
+                if name not in two_han_counts:
+                    two_han_counts[name] = 0
+
+            # 遍历每个小局
+            for round_data in data.get('log', []):
+                if not isinstance(round_data, list) or len(round_data) < 3:
+                    continue
+
+                # 每个小局，所有参与玩家的小局数都+1
+                for name in names:
+                    total_rounds_played[name] = total_rounds_played.get(name, 0) + 1
+
+                # 检查最后一个元素是否为和了
+                last_action = round_data[-1]
+                if not isinstance(last_action, list) or len(last_action) < 3:
+                    continue
+
+                if last_action[0] == '和了':
+                    yaku_info = last_action[2]
+                    if len(yaku_info) >= 5:
+                        winner_seat = yaku_info[0]
+                        fan_str = str(yaku_info[3])  # 番数信息
+                        yaku_list = yaku_info[4:]    # 役种列表
+
+                        # 检查是否是2番（不是役满）
+                        is_yakuman = '役満' in fan_str or 'Yakuman' in fan_str
+                        if not is_yakuman and '2飜' in fan_str:
+                            winner_name = names[winner_seat] if winner_seat < len(names) else None
+                            if winner_name:
+                                two_han_counts[winner_name] = two_han_counts.get(winner_name, 0) + 1
+        except Exception as e:
+            continue
+
+    # 计算每个人和2番手牌的频率
+    leaderboard_data = []
+    for name, stats in stats_dict.items():
+        total_rounds = total_rounds_played.get(name, 0)
+
+        # 只统计玩过超过100小局的玩家
+        if total_rounds <= 100:
+            continue
+
+        # 获取2番手牌次数
+        two_han_count = two_han_counts.get(name, 0)
+        two_han_rate = (two_han_count / total_rounds) * 100 if total_rounds > 0 else 0
+
+        leaderboard_data.append({
+            'name': name,
+            'two_han_count': two_han_count,
+            'total_rounds': total_rounds,
+            'two_han_rate': two_han_rate
+        })
+
+    # 按照2番手牌频率从高到低排序
+    leaderboard_data.sort(key=lambda x: x['two_han_rate'], reverse=True)
+
+    # 生成HTML表格
+    if lang == 'zh':
+        header_name = '玩家'
+        header_count = '2番手牌次数'
+        header_total = '总小局数'
+        header_rate = '频率'
+        title = '2番手牌频率排行榜'
+    else:
+        header_name = 'Player'
+        header_count = '2-Han Wins'
+        header_total = 'Total Rounds Played'
+        header_rate = 'Rate'
+        title = '2-Han Win Rate Leaderboard'
+
+    html = f'''
+    <div class="leaderboard-section">
+        <h2>{title}</h2>
+        <div class="table-scroll">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>排名</th>
+                        <th>{header_name}</th>
+                        <th>{header_count}</th>
+                        <th>{header_total}</th>
+                        <th>{header_rate}</th>
+                    </tr>
+                </thead>
+                <tbody>
+    '''
+
+    for rank, data in enumerate(leaderboard_data, 1):
+        html += f'''
+                    <tr>
+                        <td>{rank}</td>
+                        <td><strong>{data['name']}</strong></td>
+                        <td>{data['two_han_count']}</td>
+                        <td>{data['total_rounds']}</td>
+                        <td>{data['two_han_rate']:.2f}%</td>
+                    </tr>
+        '''
+
+    html += '''
+                </tbody>
+            </table>
+        </div>
+    </div>
+    '''
+
+    return html
+
+
+def generate_three_han_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
+    """生成排行榜内容 - 3番以上不到满贯（3番60以下 + 4番20）"""
+    # 统计每个玩家的3番以上不到满贯手牌次数和总小局数
+    three_han_counts = {}
+    total_rounds_played = {}
+
+    # 遍历所有牌谱文件统计手牌和小局数
+    for filepath in sorted_files:
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            # 获取玩家列表
+            names = data.get('name', [])
+
+            # 初始化这些玩家的计数器
+            for name in names:
+                if name not in total_rounds_played:
+                    total_rounds_played[name] = 0
+                if name not in three_han_counts:
+                    three_han_counts[name] = 0
+
+            # 遍历每个小局
+            for round_data in data.get('log', []):
+                if not isinstance(round_data, list) or len(round_data) < 3:
+                    continue
+
+                # 每个小局，所有参与玩家的小局数都+1
+                for name in names:
+                    total_rounds_played[name] = total_rounds_played.get(name, 0) + 1
+
+                # 检查最后一个元素是否为和了
+                last_action = round_data[-1]
+                if not isinstance(last_action, list) or len(last_action) < 3:
+                    continue
+
+                if last_action[0] == '和了':
+                    yaku_info = last_action[2]
+                    if len(yaku_info) >= 5:
+                        winner_seat = yaku_info[0]
+                        fan_str = str(yaku_info[3])  # 番数信息
+                        yaku_list = yaku_info[4:]    # 役种列表
+
+                        # 检查是否是役满或满贯以上
+                        is_yakuman = '役満' in fan_str or 'Yakuman' in fan_str
+                        is_mangan_plus = 'Mangan' in fan_str or 'Haneman' in fan_str or 'Baiman' in fan_str or 'Sanbaiman' in fan_str or '满贯' in fan_str or '跳满' in fan_str or '倍满' in fan_str or '三倍满' in fan_str
+
+                        # 3番60以下（不到满贯）或 4番20（不到满贯）
+                        if not is_yakuman and not is_mangan_plus and ('3飜' in fan_str or '4飜' in fan_str):
+                            winner_name = names[winner_seat] if winner_seat < len(names) else None
+                            if winner_name:
+                                three_han_counts[winner_name] = three_han_counts.get(winner_name, 0) + 1
+        except Exception as e:
+            continue
+
+    # 计算每个人和3番以上不到满贯手牌的频率
+    leaderboard_data = []
+    for name, stats in stats_dict.items():
+        total_rounds = total_rounds_played.get(name, 0)
+
+        # 只统计玩过超过100小局的玩家
+        if total_rounds <= 100:
+            continue
+
+        # 获取手牌次数
+        three_han_count = three_han_counts.get(name, 0)
+        three_han_rate = (three_han_count / total_rounds) * 100 if total_rounds > 0 else 0
+
+        leaderboard_data.append({
+            'name': name,
+            'three_han_count': three_han_count,
+            'total_rounds': total_rounds,
+            'three_han_rate': three_han_rate
+        })
+
+    # 按照频率从高到低排序
+    leaderboard_data.sort(key=lambda x: x['three_han_rate'], reverse=True)
+
+    # 生成HTML表格
+    if lang == 'zh':
+        header_name = '玩家'
+        header_count = '次数'
+        header_total = '总小局数'
+        header_rate = '频率'
+        title = '3番以上不到满贯频率排行榜'
+    else:
+        header_name = 'Player'
+        header_count = 'Count'
+        header_total = 'Total Rounds Played'
+        header_rate = 'Rate'
+        title = '3+ Han (Below Mangan) Win Rate Leaderboard'
+
+    html = f'''
+    <div class="leaderboard-section">
+        <h2>{title}</h2>
+        <div class="table-scroll">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>排名</th>
+                        <th>{header_name}</th>
+                        <th>{header_count}</th>
+                        <th>{header_total}</th>
+                        <th>{header_rate}</th>
+                    </tr>
+                </thead>
+                <tbody>
+    '''
+
+    for rank, data in enumerate(leaderboard_data, 1):
+        html += f'''
+                    <tr>
+                        <td>{rank}</td>
+                        <td><strong>{data['name']}</strong></td>
+                        <td>{data['three_han_count']}</td>
+                        <td>{data['total_rounds']}</td>
+                        <td>{data['three_han_rate']:.2f}%</td>
                     </tr>
         '''
 
@@ -2379,16 +2910,18 @@ def generate_m_league_tabs_page(stats_dict, league_avg, honor_games, recent_game
     t = TRANSLATIONS[lang]
 
     # 生成各个标签页的内容
-    recent_content = generate_recent_games_content_for_tabs(recent_games, t, lang)
+    recent_content = generate_recent_games_content_for_tabs(recent_games, stats_dict, t, lang)
     honor_content = generate_honor_games_content_for_tabs(honor_games, t, lang)
     ranking_content = generate_ranking_content(stats_dict, t, league_avg)
 
-    # 生成排行榜内容（包含4个排行榜）
+    # 生成排行榜内容（包含6个排行榜）
     one_han_leaderboard = generate_leaderboard_content(stats_dict, sorted_files, t, lang)
+    two_han_leaderboard = generate_two_han_leaderboard_content(stats_dict, sorted_files, t, lang)
+    three_han_leaderboard = generate_three_han_leaderboard_content(stats_dict, sorted_files, t, lang)
     mangan_leaderboard = generate_mangan_leaderboard_content(stats_dict, sorted_files, t, lang)
     haneman_leaderboard = generate_haneman_leaderboard_content(stats_dict, sorted_files, t, lang)
     baiman_leaderboard = generate_baiman_leaderboard_content(stats_dict, sorted_files, t, lang)
-    leaderboard_content = one_han_leaderboard + mangan_leaderboard + haneman_leaderboard + baiman_leaderboard
+    leaderboard_content = one_han_leaderboard + two_han_leaderboard + three_han_leaderboard + mangan_leaderboard + haneman_leaderboard + baiman_leaderboard
 
     # 生成玩家详情内容
     sorted_players = sorted(stats_dict.items(), key=lambda x: (-x[1]["games"], x[0]))
@@ -2615,8 +3148,8 @@ def main():
         # 提取最新日期
         latest_date = extract_latest_date(files)
 
-        # 提取最近5个牌谱（使用按日期排序的文件）
-        recent_games = extract_recent_games(sorted_files, results, count=5)
+        # 提取所有牌谱（使用按日期排序的文件）
+        recent_games = extract_recent_games(sorted_files, results, count=len(sorted_files))
 
         stats = calculate_player_stats(results, round_counts)
         stats_dict = dict(stats)

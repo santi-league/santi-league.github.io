@@ -22,45 +22,89 @@ from generate_website import (
 )
 
 
-def generate_recent_games_content(recent_games, t, lang='zh'):
-    """生成最近牌谱内容"""
+def generate_recent_games_content(recent_games, stats_data, t, lang='zh'):
+    """生成最近牌谱内容 - 带玩家筛选和Rating曲线图"""
     if not recent_games or len(recent_games) == 0:
         return f"<p style='text-align: center; color: #999; padding: 40px;'>{t.get('no_recent_games', '暂无最近牌谱')}</p>"
 
-    table_rows = ""
-    for game_idx, game in enumerate(recent_games, 1):
+    # 收集所有玩家信息并按半庄数排序
+    player_list = []
+    for player_name, data in stats_data.items():
+        if player_name == "_league_average":
+            continue
+        player_list.append({
+            'name': player_name,
+            'games': data['games']
+        })
+    player_list.sort(key=lambda x: -x['games'])
+
+    # 构建玩家选项卡
+    player_tabs = ""
+    all_text = t.get('all_players', '所有玩家')
+    player_tabs += f'<button class="player-filter-btn active" data-player="all">{all_text}</button>\n'
+    for player in player_list:
+        player_tabs += f'<button class="player-filter-btn" data-player="{player["name"]}">{player["name"]} ({player["games"]}{t.get("games", "局")})</button>\n'
+
+    # 构建游戏数据（JSON格式，供JavaScript使用）
+    games_data = []
+    player_rating_history = {}  # 每个玩家的rating历史
+
+    for game in recent_games:
         date_str = game['date'] if lang == 'zh' else game['date_en']
         table_avg_r = game.get('table_avg_r', 0)
-
-        # 每一局占一行，包含日期、桌平均R和4个玩家的数据
         players_data = game.get('players_detail', [])
 
-        # 构建玩家数据单元格
-        player_cells = ""
-        for p in players_data:
-            rank_class = f"rank-{p['rank']}"
-            player_cells += f"""
-                <td class="player-name {rank_class}">{p['name']}</td>
-                <td class="r-value">{p['r_before']}</td>
-                <td class="games-count">{p['games_before']}</td>
-                <td class="score-change">{p['score_change']:+.1f}</td>
-                <td class="r-correction">{p['r_correction']:+.2f}</td>
-                <td class="games-coef">{p['games_correction']:.3f}</td>
-                <td class="r-change">{p['r_change']:+.2f}</td>
-                <td class="r-value">{p['r_after']}</td>
-            """
+        game_data = {
+            'date': date_str,
+            'table_avg_r': table_avg_r,
+            'players': []
+        }
 
-        table_rows += f"""
-            <tr>
-                <td class="game-date">{date_str}</td>
-                <td class="table-avg-r">{table_avg_r:.2f}</td>
-                {player_cells}
-            </tr>
-        """
+        for p in players_data:
+            player_info = {
+                'name': p['name'],
+                'rank': p['rank'],
+                'r_before': p['r_before'],
+                'games_before': p['games_before'],
+                'score_change': p['score_change'],
+                'r_correction': p['r_correction'],
+                'games_correction': p['games_correction'],
+                'r_change': p['r_change'],
+                'r_after': p['r_after']
+            }
+            game_data['players'].append(player_info)
+
+            # 记录玩家的rating历史
+            pname = p['name']
+            if pname not in player_rating_history:
+                player_rating_history[pname] = []
+            player_rating_history[pname].append({
+                'date': date_str,
+                'games': p['games_before'],
+                'r_value': p['r_after']
+            })
+
+        games_data.append(game_data)
+
+    # 将数据转换为JSON
+    games_json = json.dumps(games_data, ensure_ascii=False)
+    rating_history_json = json.dumps(player_rating_history, ensure_ascii=False)
 
     html_content = f"""
+    <!-- Rating曲线图容器 -->
+    <div id="ratingChartContainer" style="display: none; margin-bottom: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3 id="chartPlayerName" style="text-align: center; color: #667eea; margin-bottom: 20px;"></h3>
+        <canvas id="ratingChart" width="800" height="400"></canvas>
+    </div>
+
+    <!-- 玩家筛选选项卡 -->
+    <div class="player-filter-tabs" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px;">
+        {player_tabs}
+    </div>
+
+    <!-- 牌谱表格 -->
     <div class="table-scroll">
-        <table class="recent-games-table">
+        <table class="recent-games-table" id="gamesTable">
             <thead>
                 <tr>
                     <th rowspan="2">{t['game_date']}</th>
@@ -108,11 +152,198 @@ def generate_recent_games_content(recent_games, t, lang='zh'):
                     <th>{t['r_after']}</th>
                 </tr>
             </thead>
-            <tbody>
-                {table_rows}
+            <tbody id="gamesTableBody">
             </tbody>
         </table>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 游戏数据
+        const gamesData = {games_json};
+        const ratingHistory = {rating_history_json};
+        let currentChart = null;
+
+        // 渲染表格
+        function renderGamesTable(filterPlayer = 'all') {{
+            const tbody = document.getElementById('gamesTableBody');
+            tbody.innerHTML = '';
+
+            const filteredGames = filterPlayer === 'all'
+                ? gamesData
+                : gamesData.filter(game => game.players.some(p => p.name === filterPlayer));
+
+            filteredGames.forEach(game => {{
+                const tr = document.createElement('tr');
+
+                // 添加日期和桌平均R
+                tr.innerHTML = `
+                    <td class="game-date">${{game.date}}</td>
+                    <td class="table-avg-r">${{game.table_avg_r.toFixed(2)}}</td>
+                `;
+
+                // 添加4个玩家的数据
+                game.players.forEach(p => {{
+                    const rankClass = `rank-${{p.rank}}`;
+                    const highlightClass = (filterPlayer !== 'all' && p.name === filterPlayer) ? 'highlight-player' : '';
+                    tr.innerHTML += `
+                        <td class="player-name ${{rankClass}} ${{highlightClass}}">${{p.name}}</td>
+                        <td class="r-value">${{p.r_before}}</td>
+                        <td class="games-count">${{p.games_before}}</td>
+                        <td class="score-change">${{p.score_change >= 0 ? '+' : ''}}${{p.score_change.toFixed(1)}}</td>
+                        <td class="r-correction">${{p.r_correction >= 0 ? '+' : ''}}${{p.r_correction.toFixed(2)}}</td>
+                        <td class="games-coef">${{p.games_correction.toFixed(3)}}</td>
+                        <td class="r-change">${{p.r_change >= 0 ? '+' : ''}}${{p.r_change.toFixed(2)}}</td>
+                        <td class="r-value">${{p.r_after}}</td>
+                    `;
+                }});
+
+                tbody.appendChild(tr);
+            }});
+        }}
+
+        // 绘制Rating曲线图
+        function drawRatingChart(playerName) {{
+            const container = document.getElementById('ratingChartContainer');
+            const chartTitle = document.getElementById('chartPlayerName');
+            const ctx = document.getElementById('ratingChart').getContext('2d');
+
+            if (!ratingHistory[playerName]) {{
+                container.style.display = 'none';
+                return;
+            }}
+
+            container.style.display = 'block';
+            chartTitle.textContent = `${{playerName}} - Rating {t.get('change_curve', '变化曲线')}`;
+
+            // 反转数据（从最早到最新）
+            const data = [...ratingHistory[playerName]].reverse();
+
+            // 准备图表数据
+            const labels = data.map((d, idx) => `${{d.date}}\\n(${{d.games}}{t.get('games', '局')})`);
+            const rValues = data.map(d => d.r_value);
+
+            // 销毁旧图表
+            if (currentChart) {{
+                currentChart.destroy();
+            }}
+
+            // 创建新图表
+            currentChart = new Chart(ctx, {{
+                type: 'line',
+                data: {{
+                    labels: labels,
+                    datasets: [{{
+                        label: 'Rating',
+                        data: rValues,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {{
+                        legend: {{
+                            display: false
+                        }},
+                        tooltip: {{
+                            callbacks: {{
+                                title: function(context) {{
+                                    const idx = context[0].dataIndex;
+                                    return `${{data[idx].date}} (${{data[idx].games}}{t.get('games', '局')})`;
+                                }},
+                                label: function(context) {{
+                                    return `Rating: ${{context.parsed.y.toFixed(2)}}`;
+                                }}
+                            }}
+                        }}
+                    }},
+                    scales: {{
+                        y: {{
+                            beginAtZero: false,
+                            title: {{
+                                display: true,
+                                text: 'Rating'
+                            }}
+                        }},
+                        x: {{
+                            title: {{
+                                display: true,
+                                text: '{t.get('date_and_games', '日期（半庄数）')}'
+                            }}
+                        }}
+                    }}
+                }}
+            }});
+        }}
+
+        // 玩家筛选按钮点击事件
+        document.querySelectorAll('.player-filter-btn').forEach(btn => {{
+            btn.addEventListener('click', function() {{
+                // 更新按钮状态
+                document.querySelectorAll('.player-filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const playerName = this.getAttribute('data-player');
+
+                // 渲染表格
+                renderGamesTable(playerName);
+
+                // 绘制或隐藏图表
+                if (playerName === 'all') {{
+                    document.getElementById('ratingChartContainer').style.display = 'none';
+                    if (currentChart) {{
+                        currentChart.destroy();
+                        currentChart = null;
+                    }}
+                }} else {{
+                    drawRatingChart(playerName);
+                }}
+            }});
+        }});
+
+        // 初始化显示所有牌谱
+        renderGamesTable('all');
+    </script>
+
+    <style>
+        .player-filter-tabs {{
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }}
+
+        .player-filter-btn {{
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }}
+
+        .player-filter-btn:hover {{
+            background: #f0f0f0;
+        }}
+
+        .player-filter-btn.active {{
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }}
+
+        .highlight-player {{
+            background-color: #fff3cd !important;
+            font-weight: bold;
+        }}
+    </style>
     """
 
     return html_content
@@ -449,8 +680,8 @@ def generate_m_league_tabs_page(lang='zh'):
     # 提取最新日期
     latest_date = extract_latest_date(files)
 
-    # 提取最近5个牌谱
-    recent_games = extract_recent_games(sorted_files, results, count=5)
+    # 提取所有牌谱
+    recent_games = extract_recent_games(sorted_files, results, count=len(sorted_files))
 
     # 加载荣誉牌谱
     honor_games = []
@@ -465,7 +696,7 @@ def generate_m_league_tabs_page(lang='zh'):
             print(f"⚠ 加载荣誉牌谱失败: {e}", file=sys.stderr)
 
     # 生成各个标签页的内容
-    recent_content = generate_recent_games_content(recent_games, t, lang)
+    recent_content = generate_recent_games_content(recent_games, stats_dict, t, lang)
     honor_content = generate_honor_games_content(honor_games, t, lang)
     ranking_content = generate_ranking_content(stats_dict, t, league_avg)
 
