@@ -124,9 +124,9 @@ except ImportError as e:
     raise
 
 
-def calculate_tenhou_r_value(rank: int, games_played: int, player_r: float, table_avg_r: float, final_points: int) -> float:
+def calculate_tenhou_r_value(rank: int, games_played: int, player_r: float, table_avg_r: float, final_points: int, uma_config=None, origin_points=25000) -> float:
     """
-    计算天凤R值变动（M-League规则）
+    计算天凤R值变动
 
     参数:
     - rank: 名次 (1-4)
@@ -134,18 +134,24 @@ def calculate_tenhou_r_value(rank: int, games_played: int, player_r: float, tabl
     - player_r: 玩家当前R值
     - table_avg_r: 桌平均R值
     - final_points: 最终素点
+    - uma_config: Uma配置字典，默认为M-League规则 {1: 45000, 2: 5000, 3: -15000, 4: -35000}
+    - origin_points: 起始分数/返点，M-League为25000，EMA为30000
 
     返回: R值变动量
 
     计算公式：
     R值变动 = 试合数补正 × ((Uma + 素点差)/1000 + (桌平均R - 自己R)/40)
     """
-    # M-League Uma（单位：点）
-    uma_points = {1: 45000, 2: 5000, 3: -15000, 4: -35000}
+    # Uma（单位：点）
+    if uma_config is None:
+        # 默认M-League Uma
+        uma_points = {1: 45000, 2: 5000, 3: -15000, 4: -35000}
+    else:
+        uma_points = uma_config
     uma = uma_points.get(rank, 0)
 
     # 素点差（单位：点）
-    score_diff = final_points - 25000
+    score_diff = final_points - origin_points
 
     # 合计点数变化（转换为千点单位）
     total_change = (uma + score_diff) / 1000.0
@@ -169,9 +175,13 @@ def calculate_tenhou_r_value(rank: int, games_played: int, player_r: float, tabl
     return r_change
 
 
-def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: List[int]) -> Dict[str, Dict[str, Any]]:
+def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: List[int], uma_config=None, origin_points=25000) -> Dict[str, Dict[str, Any]]:
     """
     基于批量统计结果，计算每个玩家的综合数据
+
+    参数:
+    - uma_config: Uma配置字典，默认为M-League规则 {1: 45000, 2: 5000, 3: -15000, 4: -35000}
+    - origin_points: 起始分数/返点，M-League为25000，EMA为30000
 
     返回格式：
     {
@@ -255,6 +265,10 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
         }),
     })
 
+    # 设置默认UMA配置（M-League）
+    if uma_config is None:
+        uma_config = {1: 45000, 2: 5000, 3: -15000, 4: -35000}
+
     # 天凤R值追踪：{玩家名: 当前R值}
     player_r_values = defaultdict(lambda: 1500.0)
 
@@ -305,13 +319,12 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
             pd["rank_sum"] += player_stat.get("rank", 0)
             pd["final_points_sum"] += player_stat.get("final_points", 0)
 
-            # 计算总点数：(终局点数 - 25000) + 马点
-            final_points = player_stat.get("final_points", 25000)
+            # 计算总点数：(终局点数 - origin_points) + 马点
+            final_points = player_stat.get("final_points", origin_points)
             rank = player_stat.get("rank", 4)
 
-            # 马点：1位+45000, 2位+5000, 3位-15000, 4位-35000
-            uma_points = {1: 45000, 2: 5000, 3: -15000, 4: -35000}
-            score = (final_points - 25000) + uma_points.get(rank, 0)
+            # 使用传入的uma_config
+            score = (final_points - origin_points) + uma_config.get(rank, 0)
             pd["total_score"] += score
 
             # 名次统计
@@ -324,9 +337,9 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
             elif rank == 4:
                 pd["rank_4"] += 1
 
-            # 使用之前获取的 games_before 计算R值
+            # 使用之前获取的 games_before 计算R值（传入uma_config和origin_points）
             current_r = player_r_values[name]
-            r_change = calculate_tenhou_r_value(rank, games_before, current_r, table_avg_r, final_points)
+            r_change = calculate_tenhou_r_value(rank, games_before, current_r, table_avg_r, final_points, uma_config, origin_points)
             player_r_values[name] += r_change
             pd["current_r"] = player_r_values[name]
 
@@ -369,8 +382,8 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
 
             # 对战统计：计算与其他玩家的对战情况
             my_rank = player_stat.get("rank", 4)
-            my_final_points = player_stat.get("final_points", 25000)
-            my_score = (my_final_points - 25000) + uma_points.get(my_rank, 0)
+            my_final_points = player_stat.get("final_points", origin_points)
+            my_score = (my_final_points - origin_points) + uma_config.get(my_rank, 0)
 
             for other_player in summary:
                 other_name = other_player.get("name", "")
@@ -378,8 +391,8 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
                     continue
 
                 other_rank = other_player.get("rank", 4)
-                other_final_points = other_player.get("final_points", 25000)
-                other_score = (other_final_points - 25000) + uma_points.get(other_rank, 0)
+                other_final_points = other_player.get("final_points", origin_points)
+                other_score = (other_final_points - origin_points) + uma_config.get(other_rank, 0)
 
                 vs_stat = pd["vs_players"][other_name]
                 vs_stat["games"] += 1

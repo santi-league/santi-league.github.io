@@ -72,9 +72,14 @@ def extract_latest_date(files):
     return None
 
 
-def extract_recent_games(files, results, count=5, all_results=None):
+def extract_recent_games(files, results, count=5, all_results=None, uma_config=None, origin_points=25000):
     """
     提取最近的N个牌谱信息，包含R值计算详情
+
+    参数:
+    - uma_config: Uma配置字典，例如 {1: 15000, 2: 5000, 3: -5000, 4: -15000} (EMA)
+                 默认为 {1: 45000, 2: 5000, 3: -15000, 4: -35000} (M-League)
+    - origin_points: 起始分数/返点，M-League为25000，EMA为30000
 
     返回格式: [
         {
@@ -101,6 +106,10 @@ def extract_recent_games(files, results, count=5, all_results=None):
     """
     from collections import defaultdict
     from player_stats import calculate_tenhou_r_value
+
+    # 设置默认UMA配置（M-League）
+    if uma_config is None:
+        uma_config = {1: 45000, 2: 5000, 3: -15000, 4: -35000}
 
     # 创建文件和结果的映射，按时间顺序排序
     file_result_pairs = []
@@ -147,10 +156,9 @@ def extract_recent_games(files, results, count=5, all_results=None):
             games_before = player_games[name]
             r_before = player_r_values[name]
 
-            # 计算点数变化
-            uma_points = {1: 45000, 2: 5000, 3: -15000, 4: -35000}
-            uma = uma_points.get(rank, 0)
-            score_diff = final_points - 25000
+            # 计算点数变化（使用传入的uma_config和origin_points）
+            uma = uma_config.get(rank, 0)
+            score_diff = final_points - origin_points
             score_change = (uma + score_diff) / 1000.0
 
             # 计算R值补正
@@ -162,8 +170,8 @@ def extract_recent_games(files, results, count=5, all_results=None):
             else:
                 games_correction = 0.2
 
-            # 计算R值变动
-            r_change = calculate_tenhou_r_value(rank, games_before, r_before, table_avg_r, final_points)
+            # 计算R值变动（传入uma_config和origin_points）
+            r_change = calculate_tenhou_r_value(rank, games_before, r_before, table_avg_r, final_points, uma_config, origin_points)
             r_after = r_before + r_change
 
             players_detail.append({
@@ -1419,6 +1427,7 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
                 'rank': p['rank'],
                 'r_before': p['r_before'],
                 'games_before': p['games_before'],
+                'final_points': p['final_points'],
                 'score_change': p['score_change'],
                 'r_correction': p['r_correction'],
                 'games_correction': p['games_correction'],
@@ -1462,15 +1471,16 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
                 <tr>
                     <th rowspan="2">{t['game_date']}</th>
                     <th rowspan="2">{t['table_avg_r']}</th>
-                    <th colspan="8">{t['player']}1</th>
-                    <th colspan="8">{t['player']}2</th>
-                    <th colspan="8">{t['player']}3</th>
-                    <th colspan="8">{t['player']}4</th>
+                    <th colspan="9">{t['player']}1</th>
+                    <th colspan="9">{t['player']}2</th>
+                    <th colspan="9">{t['player']}3</th>
+                    <th colspan="9">{t['player']}4</th>
                 </tr>
                 <tr>
                     <th>{t['player']}</th>
                     <th>{t['r_before']}</th>
                     <th>{t['games_count']}</th>
+                    <th>{t['final_points']}</th>
                     <th>{t['score_change_pt']}</th>
                     <th>{t['r_correction']}</th>
                     <th>{t['games_coef']}</th>
@@ -1480,6 +1490,7 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
                     <th>{t['player']}</th>
                     <th>{t['r_before']}</th>
                     <th>{t['games_count']}</th>
+                    <th>{t['final_points']}</th>
                     <th>{t['score_change_pt']}</th>
                     <th>{t['r_correction']}</th>
                     <th>{t['games_coef']}</th>
@@ -1489,6 +1500,7 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
                     <th>{t['player']}</th>
                     <th>{t['r_before']}</th>
                     <th>{t['games_count']}</th>
+                    <th>{t['final_points']}</th>
                     <th>{t['score_change_pt']}</th>
                     <th>{t['r_correction']}</th>
                     <th>{t['games_coef']}</th>
@@ -1498,6 +1510,7 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
                     <th>{t['player']}</th>
                     <th>{t['r_before']}</th>
                     <th>{t['games_count']}</th>
+                    <th>{t['final_points']}</th>
                     <th>{t['score_change_pt']}</th>
                     <th>{t['r_correction']}</th>
                     <th>{t['games_coef']}</th>
@@ -1543,6 +1556,7 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
                         <td class="player-name ${{rankClass}} ${{highlightClass}}">${{p.name}}</td>
                         <td class="r-value">${{p.r_before}}</td>
                         <td class="games-count">${{p.games_before}}</td>
+                        <td class="final-points">${{p.final_points}}</td>
                         <td class="score-change">${{p.score_change >= 0 ? '+' : ''}}${{p.score_change.toFixed(1)}}</td>
                         <td class="r-correction">${{p.r_correction >= 0 ? '+' : ''}}${{p.r_correction.toFixed(2)}}</td>
                         <td class="games-coef">${{p.games_correction.toFixed(3)}}</td>
@@ -2905,8 +2919,13 @@ def generate_flush_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
     return html
 
 
-def generate_m_league_tabs_page(stats_dict, league_avg, honor_games, recent_games, sorted_files, results, latest_date, lang='zh'):
-    """生成M-League标签页页面（使用已加载的数据）"""
+def generate_league_tabs_page(stats_dict, league_avg, honor_games, recent_games, sorted_files, results, latest_date, lang='zh', league_name='m-league'):
+    """
+    生成联赛标签页页面（通用函数，支持M-League和EMA）
+
+    参数:
+    - league_name: 'm-league' 或 'ema'
+    """
     t = TRANSLATIONS[lang]
 
     # 生成各个标签页的内容
@@ -2937,17 +2956,29 @@ def generate_m_league_tabs_page(stats_dict, league_avg, honor_games, recent_game
         player_html = generate_player_details_html_for_tabs(name, data, t, lang, league_avg)
         players_data[name] = player_html
 
-    # 确定链接
-    if lang == 'zh':
-        other_stats_page = 'm-league-en.html'
-        current_index = 'index.html'
-        switch_lang_text = '🌐 English'
-        title = 'M-League 数据统计'
-    else:
-        other_stats_page = 'm-league.html'
-        current_index = 'index-en.html'
-        switch_lang_text = '🌐 中文'
-        title = 'M-League Statistics'
+    # 根据联赛类型确定链接和标题
+    if league_name == 'm-league':
+        if lang == 'zh':
+            other_stats_page = 'm-league-en.html'
+            current_index = 'index.html'
+            switch_lang_text = '🌐 English'
+            title = 'M-League 数据统计'
+        else:
+            other_stats_page = 'm-league.html'
+            current_index = 'index-en.html'
+            switch_lang_text = '🌐 中文'
+            title = 'M-League Statistics'
+    else:  # ema
+        if lang == 'zh':
+            other_stats_page = 'ema-en.html'
+            current_index = 'index.html'
+            switch_lang_text = '🌐 English'
+            title = 'EMA 数据统计'
+        else:
+            other_stats_page = 'ema.html'
+            current_index = 'index-en.html'
+            switch_lang_text = '🌐 中文'
+            title = 'EMA Statistics'
 
     # 日期信息
     date_info = f"{t['data_updated']}: {latest_date}" if latest_date else ""
@@ -2983,6 +3014,11 @@ def generate_m_league_tabs_page(stats_dict, league_avg, honor_games, recent_game
     )
 
     return html_content
+
+
+def generate_m_league_tabs_page(stats_dict, league_avg, honor_games, recent_games, sorted_files, results, latest_date, lang='zh'):
+    """生成M-League标签页页面（向后兼容的包装函数）"""
+    return generate_league_tabs_page(stats_dict, league_avg, honor_games, recent_games, sorted_files, results, latest_date, lang, league_name='m-league')
 
 
 def extract_sanma_yakuman(sanma_folder):
@@ -3192,16 +3228,92 @@ def main():
     else:
         print("⚠ 未找到 M-League 数据文件", file=sys.stderr)
 
-    # 生成 EMA 占位页面 - 使用新的模块化生成器
-    ema_html_zh = generate_ema_page(lang='zh')
-    with open("docs/ema.html", "w", encoding="utf-8") as f:
-        f.write(ema_html_zh)
-    print("✓ 已生成 docs/ema.html (中文)", file=sys.stderr)
+    # 生成 EMA 页面
+    print("正在处理 EMA 数据...", file=sys.stderr)
+    ema_folder = "game-logs/ema"
+    ema_files = scan_files(ema_folder, "*.json", recursive=True)
 
-    ema_html_en = generate_ema_page(lang='en')
-    with open("docs/ema-en.html", "w", encoding="utf-8") as f:
-        f.write(ema_html_en)
-    print("✓ 已生成 docs/ema-en.html (英文)", file=sys.stderr)
+    if ema_files:
+        # EMA的Uma配置：15-5-5-15
+        ema_uma_config = {1: 15000, 2: 5000, 3: -5000, 4: -15000}
+
+        # 按日期正确排序文件
+        sorted_ema_files = sort_files_by_date(ema_files)
+
+        ema_results = []
+        ema_round_counts = []
+        for fp in sorted_ema_files:
+            try:
+                with open(fp, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                summary = summarize_log(data)
+                ema_results.append(summary)
+                ema_round_counts.append(len(data.get("log", [])))
+            except Exception as ex:
+                print(f"  处理失败: {fp} - {ex}", file=sys.stderr)
+
+        # 提取最新日期
+        ema_latest_date = extract_latest_date(ema_files)
+
+        # 提取所有牌谱（使用EMA的Uma配置和起始分数30000）
+        ema_recent_games = extract_recent_games(sorted_ema_files, ema_results, count=len(sorted_ema_files), uma_config=ema_uma_config, origin_points=30000)
+
+        # 计算玩家统计数据（使用EMA的Uma配置和起始分数30000）
+        ema_stats = calculate_player_stats(ema_results, ema_round_counts, uma_config=ema_uma_config, origin_points=30000)
+        ema_stats_dict = dict(ema_stats)
+
+        # 提取league_average
+        ema_league_avg = ema_stats_dict.pop("_league_average", {})
+
+        # EMA暂时没有荣誉牌谱（可以后续添加）
+        ema_honor_games = []
+
+        # 生成中文版（使用通用的联赛标签页模板）
+        ema_html_zh = generate_league_tabs_page(
+            stats_dict=ema_stats_dict,
+            league_avg=ema_league_avg,
+            honor_games=ema_honor_games,
+            recent_games=ema_recent_games,
+            sorted_files=sorted_ema_files,
+            results=ema_results,
+            latest_date=ema_latest_date,
+            lang='zh',
+            league_name='ema'
+        )
+        with open("docs/ema.html", "w", encoding="utf-8") as f:
+            f.write(ema_html_zh)
+        print(f"✓ 已生成 docs/ema.html (中文, 处理了 {len(ema_results)} 个文件)", file=sys.stderr)
+
+        # 生成英文版（使用通用的联赛标签页模板）
+        ema_html_en = generate_league_tabs_page(
+            stats_dict=ema_stats_dict,
+            league_avg=ema_league_avg,
+            honor_games=ema_honor_games,
+            recent_games=ema_recent_games,
+            sorted_files=sorted_ema_files,
+            results=ema_results,
+            latest_date=ema_latest_date,
+            lang='en',
+            league_name='ema'
+        )
+        with open("docs/ema-en.html", "w", encoding="utf-8") as f:
+            f.write(ema_html_en)
+        print(f"✓ 已生成 docs/ema-en.html (英文, 处理了 {len(ema_results)} 个文件)", file=sys.stderr)
+
+        if ema_latest_date:
+            print(f"  最新牌谱日期: {ema_latest_date}", file=sys.stderr)
+    else:
+        # 如果没有EMA数据，生成占位页面
+        print("⚠ 未找到 EMA 数据文件，生成占位页面", file=sys.stderr)
+        ema_html_zh = generate_ema_page(lang='zh')
+        with open("docs/ema.html", "w", encoding="utf-8") as f:
+            f.write(ema_html_zh)
+        print("✓ 已生成 docs/ema.html (中文)", file=sys.stderr)
+
+        ema_html_en = generate_ema_page(lang='en')
+        with open("docs/ema-en.html", "w", encoding="utf-8") as f:
+            f.write(ema_html_en)
+        print("✓ 已生成 docs/ema-en.html (英文)", file=sys.stderr)
 
     # 生成三麻荣誉牌谱页面
     print("正在处理三麻数据...", file=sys.stderr)
