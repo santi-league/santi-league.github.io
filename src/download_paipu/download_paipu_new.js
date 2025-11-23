@@ -173,6 +173,14 @@
         if (!uuid)
             return "";
 
+        // 先尝试从混杂文本中提取出标准URL
+        const urlMatch = uuid.match(/https?:\/\/[^\s，,；;<>]+/);
+        if (urlMatch && urlMatch[0])
+            uuid = urlMatch[0];
+
+        // 去掉常见结尾标点
+        uuid = uuid.replace(/[，,。．；;：:？?！!]+$/, "");
+
         if (uuid.includes("="))
         {
             const linkParts = uuid.split("=");

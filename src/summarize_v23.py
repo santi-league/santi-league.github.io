@@ -344,6 +344,7 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
 
         if tag == "和了":
             is_tsumo = (len(winners) == 1 and len(losers) == 3)
+            deal_in_players = [] if is_tsumo else losers
 
             # ==== 新增：记录默听状态下的和了 ====
             for w in winners:
@@ -351,7 +352,7 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
                     hand_trackers[w].record_win()
 
             # ==== 新增：记录默听状态下的放铳 ====
-            for L in losers:
+            for L in deal_in_players:
                 if hand_trackers[L] is not None:
                     hand_trackers[L].record_deal_in()
 
@@ -376,7 +377,7 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
             pots = assign_pots_to_winners(
                 winners=winners,
                 east_seat=east,
-                losers=losers if not is_tsumo else [],
+                losers=deal_in_players,
                 honba=honba,
                 kyotaku=kyotaku,
                 policy="first_from_loser"  # 改为 "even" 可均分
@@ -431,8 +432,8 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
                     per[w]["yaku_count"][yaku] += 1
 
             # 放铳者：目标统计 + 放铳局数/总失点 + 立直后放铳 + 副露后放铳 + 详细点数
-            if not is_tsumo and losers:
-                for L in losers:
+            if deal_in_players:
+                for L in deal_in_players:
                     loss_points = 0
                     if isinstance(deltas, list) and deltas[L] < 0:
                         loss_points = -int(deltas[L])
