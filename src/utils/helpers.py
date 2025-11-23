@@ -5,35 +5,73 @@
 
 import os
 import re
+import json
 from datetime import datetime
 
 
 def sort_files_by_date(files):
     """
-    按日期和文件编号排序文件
+    按JSON文件内部的时间戳排序文件
     返回按时间顺序排序的文件列表（从旧到新）
+
+    时间戳位置：json['title'][1]
+    格式："MM/DD/YYYY, HH:MM:SS AM/PM"
+    例如："10/15/2025, 12:25:03 AM"
+
+    如果有任何文件缺失时间戳，会抛出ValueError异常并列出所有缺失时间戳的文件
     """
     file_with_dates = []
+    files_without_timestamp = []
+
     for fp in files:
-        filename = os.path.basename(fp)
-        match = re.match(r'(\d+)_(\d+)_(\d+)', filename)
-        number_match = re.search(r'\((\d+)\)', filename)
+        timestamp = None
+        error_reason = None
 
-        if match:
-            month = int(match.group(1))
-            day = int(match.group(2))
-            year = int(match.group(3))
-            number = int(number_match.group(1)) if number_match else 0
+        # 尝试从JSON文件中读取时间戳
+        try:
+            with open(fp, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                # 获取 title[1] 中的时间戳
+                title = data.get('title', [])
+                if isinstance(title, list) and len(title) > 1:
+                    timestamp_str = title[1]
+                    # 解析时间戳："MM/DD/YYYY, HH:MM:SS AM/PM"
+                    timestamp = datetime.strptime(timestamp_str, "%m/%d/%Y, %I:%M:%S %p")
+                else:
+                    error_reason = "title字段不存在或格式错误"
+        except json.JSONDecodeError as e:
+            error_reason = f"JSON解析失败: {str(e)}"
+        except ValueError as e:
+            error_reason = f"时间戳格式错误: {str(e)}"
+        except Exception as e:
+            error_reason = f"读取失败: {str(e)}"
 
-            try:
-                date_obj = datetime(year, month, day)
-                file_with_dates.append((fp, date_obj, number))
-            except ValueError:
-                continue
+        # 如果无法从JSON获取时间戳，记录错误
+        if timestamp is None:
+            files_without_timestamp.append({
+                'path': fp,
+                'filename': os.path.basename(fp),
+                'reason': error_reason or "未知原因"
+            })
+        else:
+            file_with_dates.append((fp, timestamp))
 
-    # 按日期和编号排序（从旧到新）
-    file_with_dates.sort(key=lambda x: (x[1], x[2]))
-    return [fp for fp, _, _ in file_with_dates]
+    # 如果有文件缺失时间戳，抛出异常
+    if files_without_timestamp:
+        error_msg = f"\n{'='*80}\n❌ 错误：发现 {len(files_without_timestamp)} 个牌谱文件缺失时间戳\n{'='*80}\n"
+        for i, file_info in enumerate(files_without_timestamp, 1):
+            error_msg += f"\n{i}. 文件：{file_info['filename']}\n"
+            error_msg += f"   路径：{file_info['path']}\n"
+            error_msg += f"   原因：{file_info['reason']}\n"
+        error_msg += f"\n{'='*80}\n"
+        error_msg += "请确保所有牌谱JSON文件都包含有效的时间戳：json['title'][1]\n"
+        error_msg += "格式：\"MM/DD/YYYY, HH:MM:SS AM/PM\"\n"
+        error_msg += f"{'='*80}\n"
+        raise ValueError(error_msg)
+
+    # 按时间戳排序（从旧到新）
+    file_with_dates.sort(key=lambda x: x[1])
+    return [fp for fp, _ in file_with_dates]
 
 
 def format_percentage(value, decimal_places=1):

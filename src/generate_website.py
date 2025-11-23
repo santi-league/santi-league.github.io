@@ -113,22 +113,55 @@ def extract_recent_games(files, results, count=5, all_results=None, uma_config=N
 
     # 创建文件和结果的映射，按时间顺序排序
     file_result_pairs = []
-    for fp, result in zip(files, results):
-        filename = os.path.basename(fp)
-        match = re.match(r'(\d+)_(\d+)_(\d+)', filename)
-        number_match = re.search(r'\((\d+)\)', filename)
-        file_number = int(number_match.group(1)) if number_match else 0
+    files_without_timestamp = []
 
-        if match:
-            month, day, year = match.groups()
-            try:
-                date_obj = datetime(int(year), int(month), int(day))
-                file_result_pairs.append((date_obj, file_number, fp, result))
-            except ValueError:
-                continue
+    for fp, result in zip(files, results):
+        # 尝试从JSON中读取完整的时间戳
+        timestamp = None
+        error_reason = None
+
+        try:
+            with open(fp, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                title = data.get('title', [])
+                if isinstance(title, list) and len(title) > 1:
+                    timestamp_str = title[1]
+                    # 解析时间戳："MM/DD/YYYY, HH:MM:SS AM/PM"
+                    timestamp = datetime.strptime(timestamp_str, "%m/%d/%Y, %I:%M:%S %p")
+                else:
+                    error_reason = "title字段不存在或格式错误"
+        except json.JSONDecodeError as e:
+            error_reason = f"JSON解析失败: {str(e)}"
+        except ValueError as e:
+            error_reason = f"时间戳格式错误: {str(e)}"
+        except Exception as e:
+            error_reason = f"读取失败: {str(e)}"
+
+        # 如果无法从JSON获取时间戳，记录错误
+        if timestamp is None:
+            files_without_timestamp.append({
+                'path': fp,
+                'filename': os.path.basename(fp),
+                'reason': error_reason or "未知原因"
+            })
+        else:
+            file_result_pairs.append((timestamp, fp, result))
+
+    # 如果有文件缺失时间戳，抛出异常
+    if files_without_timestamp:
+        error_msg = f"\n{'='*80}\n❌ 错误：发现 {len(files_without_timestamp)} 个牌谱文件缺失时间戳\n{'='*80}\n"
+        for i, file_info in enumerate(files_without_timestamp, 1):
+            error_msg += f"\n{i}. 文件：{file_info['filename']}\n"
+            error_msg += f"   路径：{file_info['path']}\n"
+            error_msg += f"   原因：{file_info['reason']}\n"
+        error_msg += f"\n{'='*80}\n"
+        error_msg += "请确保所有牌谱JSON文件都包含有效的时间戳：json['title'][1]\n"
+        error_msg += "格式：\"MM/DD/YYYY, HH:MM:SS AM/PM\"\n"
+        error_msg += f"{'='*80}\n"
+        raise ValueError(error_msg)
 
     # 按时间升序排序（从旧到新）
-    file_result_pairs.sort(key=lambda x: (x[0], x[1]))
+    file_result_pairs.sort(key=lambda x: x[0])
 
     # 追踪所有玩家的R值和场数
     player_r_values = defaultdict(lambda: 1500.0)
@@ -137,7 +170,7 @@ def extract_recent_games(files, results, count=5, all_results=None, uma_config=N
     # 计算所有游戏的R值（为了得到最近几场的R值状态）
     all_game_details = []
 
-    for date_obj, file_number, fp, result in file_result_pairs:
+    for timestamp, fp, result in file_result_pairs:
         summary = result.get('summary', [])
 
         # 计算这局的桌平均R值
@@ -156,8 +189,14 @@ def extract_recent_games(files, results, count=5, all_results=None, uma_config=N
             games_before = player_games[name]
             r_before = player_r_values[name]
 
-            # 计算点数变化（使用传入的uma_config和origin_points）
-            uma = uma_config.get(rank, 0)
+            # 使用平均uma（如果有的话），否则回退到按名次查表
+            avg_uma = player_stat.get('avg_uma')
+            if avg_uma is not None:
+                uma = avg_uma
+            else:
+                # 回退方案：按名次查表
+                uma = uma_config.get(rank, 0)
+
             score_diff = final_points - origin_points
             score_change = (uma + score_diff) / 1000.0
 
@@ -170,8 +209,8 @@ def extract_recent_games(files, results, count=5, all_results=None, uma_config=N
             else:
                 games_correction = 0.2
 
-            # 计算R值变动（传入uma_config和origin_points）
-            r_change = calculate_tenhou_r_value(rank, games_before, r_before, table_avg_r, final_points, uma_config, origin_points)
+            # 计算R值变动（传入uma_config、origin_points和avg_uma）
+            r_change = calculate_tenhou_r_value(rank, games_before, r_before, table_avg_r, final_points, uma_config, origin_points, avg_uma=uma)
             r_after = r_before + r_change
 
             players_detail.append({
@@ -195,8 +234,8 @@ def extract_recent_games(files, results, count=5, all_results=None, uma_config=N
         players_detail.sort(key=lambda x: x['rank'])
 
         all_game_details.append({
-            'date': date_obj.strftime("%Y年%m月%d日"),
-            'date_en': date_obj.strftime("%Y-%m-%d"),
+            'date': timestamp.strftime("%Y年%m月%d日 %H:%M"),
+            'date_en': timestamp.strftime("%Y-%m-%d %H:%M"),
             'players_detail': players_detail,
             'table_avg_r': round(table_avg_r, 2)
         })

@@ -493,14 +493,49 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
     for i in range(N):
         per[i]["final_points"] = finals[i]
 
+    # 计算名次和平均马点
     order = sorted(range(N), key=lambda i: (-finals[i], i))
     prev = None
     current_rank = 0
+
+    # 先计算每个人的名次
     for pos, i in enumerate(order):
         if prev is None or finals[i] < prev:
             current_rank = pos + 1
             prev = finals[i]
         per[i]["rank"] = current_rank
+
+    # 计算平均马点（M-League uma配置）
+    uma_config = {1: 45000, 2: 5000, 3: -15000, 4: -35000}
+
+    # 找出同分组，计算平均uma
+    score_groups = {}  # {分数: [玩家索引列表]}
+    for i in range(N):
+        score = finals[i]
+        if score not in score_groups:
+            score_groups[score] = []
+        score_groups[score].append(i)
+
+    # 为每个同分组计算平均uma
+    for score, group in score_groups.items():
+        if len(group) == 1:
+            # 单独一人，直接按名次拿uma
+            i = group[0]
+            rank = per[i]["rank"]
+            per[i]["avg_uma"] = uma_config.get(rank, 0)
+        else:
+            # 多人同分，平分这些名次对应的uma
+            ranks = [per[i]["rank"] for i in group]
+            min_rank = min(ranks)
+            max_rank = min_rank + len(group) - 1
+
+            # 计算这几个名次的uma总和
+            total_uma = sum(uma_config.get(r, 0) for r in range(min_rank, max_rank + 1))
+            avg_uma = total_uma / len(group)
+
+            # 分配给每个人
+            for i in group:
+                per[i]["avg_uma"] = avg_uma
 
     return {
         "ref": v23.get("ref"),

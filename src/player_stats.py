@@ -124,7 +124,7 @@ except ImportError as e:
     raise
 
 
-def calculate_tenhou_r_value(rank: int, games_played: int, player_r: float, table_avg_r: float, final_points: int, uma_config=None, origin_points=25000) -> float:
+def calculate_tenhou_r_value(rank: int, games_played: int, player_r: float, table_avg_r: float, final_points: int, uma_config=None, origin_points=25000, avg_uma=None) -> float:
     """
     计算天凤R值变动
 
@@ -136,6 +136,7 @@ def calculate_tenhou_r_value(rank: int, games_played: int, player_r: float, tabl
     - final_points: 最终素点
     - uma_config: Uma配置字典，默认为M-League规则 {1: 45000, 2: 5000, 3: -15000, 4: -35000}
     - origin_points: 起始分数/返点，M-League为25000，EMA为30000
+    - avg_uma: 平均uma值（用于同分情况），如果提供则优先使用
 
     返回: R值变动量
 
@@ -143,12 +144,15 @@ def calculate_tenhou_r_value(rank: int, games_played: int, player_r: float, tabl
     R值变动 = 试合数补正 × ((Uma + 素点差)/1000 + (桌平均R - 自己R)/40)
     """
     # Uma（单位：点）
-    if uma_config is None:
+    if avg_uma is not None:
+        # 如果提供了平均uma，使用它（同分平分uma的情况）
+        uma = avg_uma
+    elif uma_config is None:
         # 默认M-League Uma
         uma_points = {1: 45000, 2: 5000, 3: -15000, 4: -35000}
+        uma = uma_points.get(rank, 0)
     else:
-        uma_points = uma_config
-    uma = uma_points.get(rank, 0)
+        uma = uma_config.get(rank, 0)
 
     # 素点差（单位：点）
     score_diff = final_points - origin_points
