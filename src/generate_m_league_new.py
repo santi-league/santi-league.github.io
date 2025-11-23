@@ -719,12 +719,12 @@ def generate_m_league_tabs_page(lang='zh'):
     if lang == 'zh':
         other_stats_page = 'm-league-test-en.html'
         current_index = 'index.html'
-        switch_lang_text = '🌐 English'
+        switch_lang_text = 'English'
         title = 'M-League 数据统计'
     else:
         other_stats_page = 'm-league-test.html'
         current_index = 'index-en.html'
-        switch_lang_text = '🌐 中文'
+        switch_lang_text = '中文'
         title = 'M-League Statistics'
 
     # 日期信息

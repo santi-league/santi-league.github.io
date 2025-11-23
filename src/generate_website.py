@@ -3000,23 +3000,23 @@ def generate_league_tabs_page(stats_dict, league_avg, honor_games, recent_games,
         if lang == 'zh':
             other_stats_page = 'm-league-en.html'
             current_index = 'index.html'
-            switch_lang_text = '🌐 English'
+            switch_lang_text = 'English'
             title = 'M-League 数据统计'
         else:
             other_stats_page = 'm-league.html'
             current_index = 'index-en.html'
-            switch_lang_text = '🌐 中文'
+            switch_lang_text = '中文'
             title = 'M-League Statistics'
     else:  # ema
         if lang == 'zh':
             other_stats_page = 'ema-en.html'
             current_index = 'index.html'
-            switch_lang_text = '🌐 English'
+            switch_lang_text = 'English'
             title = 'EMA 数据统计'
         else:
             other_stats_page = 'ema.html'
             current_index = 'index-en.html'
-            switch_lang_text = '🌐 中文'
+            switch_lang_text = '中文'
             title = 'EMA Statistics'
 
     # 日期信息
