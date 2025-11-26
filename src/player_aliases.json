@@ -1,0 +1,9 @@
+{
+  "_comment": "玩家别名映射配置文件 - Player Alias Configuration",
+  "_instructions": "键为主ID（最终显示的名字），值为该玩家使用过的所有ID列表（包括主ID本身）",
+  "_example_format": {
+    "主ID": ["主ID", "别名1", "别名2"]
+  },
+
+  "RinshanNomi": ["RinshanNomi", "叶片dd"]
+}

@@ -17,11 +17,109 @@ Mahjong Soul v2.3 牌谱 → 对局总结 JSON
 import sys
 import json
 import re
+import os
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple
 
 # 导入手牌分析模块
 from mahjong_hand_analyzer import HandTracker
+
+# ---------- 玩家别名映射 ----------
+def load_player_aliases():
+    """
+    加载玩家别名配置，返回别名->主ID的映射字典
+
+    配置文件格式：
+    {
+      "santi": ["santi", "santi_alt", "圣地"],
+      "RinshanNomi": ["RinshanNomi", "Rinshan"]
+    }
+
+    返回：{
+      "santi": "santi",
+      "santi_alt": "santi",
+      "圣地": "santi",
+      "RinshanNomi": "RinshanNomi",
+      "Rinshan": "RinshanNomi"
+    }
+    """
+    alias_file = os.path.join(os.path.dirname(__file__), 'player_aliases.json')
+    if not os.path.exists(alias_file):
+        return {}
+
+    try:
+        with open(alias_file, 'r', encoding='utf-8') as f:
+            aliases_config = json.load(f)
+
+        # 创建反向映射：任何别名 -> 主ID
+        alias_map = {}
+        for main_id, alias_list in aliases_config.items():
+            # 跳过注释字段
+            if main_id.startswith('_'):
+                continue
+            if not isinstance(alias_list, list):
+                continue
+            for alias in alias_list:
+                alias_map[alias] = main_id
+
+        return alias_map
+    except Exception as e:
+        print(f"警告：加载玩家别名配置失败: {e}", file=sys.stderr)
+        return {}
+
+def normalize_player_name(name, alias_map):
+    """将玩家名转换为主ID"""
+    return alias_map.get(name, name)
+
+def get_player_display_name(name, alias_map=None, show_aliases=True):
+    """
+    获取玩家的显示名称
+
+    参数：
+    - name: 玩家名（可能是主ID或别名）
+    - alias_map: 别名映射字典
+    - show_aliases: 是否显示所有别名
+
+    返回：
+    - 如果 show_aliases=True: "主ID (别名1, 别名2, ...)"
+    - 如果 show_aliases=False: "主ID"
+    """
+    if alias_map is None:
+        alias_map = PLAYER_ALIAS_MAP
+
+    # 找到主ID
+    main_id = normalize_player_name(name, alias_map)
+
+    if not show_aliases:
+        return main_id
+
+    # 反向查找：找出这个主ID对应的所有别名
+    all_aliases = []
+    alias_file = os.path.join(os.path.dirname(__file__), 'player_aliases.json')
+
+    try:
+        with open(alias_file, 'r', encoding='utf-8') as f:
+            aliases_config = json.load(f)
+
+        for mid, alias_list in aliases_config.items():
+            if mid.startswith('_'):
+                continue
+            if not isinstance(alias_list, list):
+                continue
+            if mid == main_id:
+                all_aliases = alias_list
+                break
+    except:
+        pass
+
+    # 如果找到了多个别名，显示括号
+    if len(all_aliases) > 1:
+        return f"{main_id} ({', '.join(all_aliases)})"
+    else:
+        return main_id
+
+# 全局加载别名映射
+PLAYER_ALIAS_MAP = load_player_aliases()
 
 # ---------- 役/点数解析 ----------
 YAKU_LINE   = re.compile(r'^\d+符\d+飜')
@@ -171,6 +269,7 @@ def assign_pots_to_winners(
 
 # ---------- 主统计 ----------
 def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
+    # 保持原始玩家名（不转换），对局历史中显示原始ID
     names = v23.get("name", ["P0","P1","P2","P3"])
     N = 4
 

@@ -26,6 +26,16 @@ import argparse
 from collections import defaultdict
 from typing import Dict, List, Any
 
+# 导入别名处理函数
+try:
+    from summarize_v23 import load_player_aliases, normalize_player_name
+except ImportError:
+    # 如果导入失败，使用空的别名映射
+    def load_player_aliases():
+        return {}
+    def normalize_player_name(name, alias_map):
+        return name
+
 # 手役英文到中文的映射
 YAKU_TRANSLATION = {
     # 1番役
@@ -211,6 +221,11 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
         }
     }
     """
+    # 加载玩家别名配置
+    alias_map = load_player_aliases()
+    # 跟踪每个主ID使用过的所有原始名称
+    name_aliases_used = defaultdict(set)
+
     player_data = defaultdict(lambda: {
         "games": 0,          # 游戏场数（半庄数）
         "total_rounds": 0,   # 总小局数
@@ -283,16 +298,23 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
         rounds_in_game = round_counts[idx] if idx < len(round_counts) else 0
 
         # 计算这一局的桌平均R值（在游戏开始前）
-        table_players = [p.get("name", "") for p in summary if p.get("name")]
+        # 使用归一化后的玩家名
+        raw_table_players = [p.get("name", "") for p in summary if p.get("name")]
+        table_players = [normalize_player_name(name, alias_map) for name in raw_table_players]
         table_avg_r = sum(player_r_values[name] for name in table_players) / len(table_players) if table_players else 1500.0
 
-        # 构建本局玩家名次映射
-        player_ranks = {p.get("name"): p.get("rank", 4) for p in summary if p.get("name")}
+        # 构建本局玩家名次映射（使用归一化后的名字）
+        player_ranks = {normalize_player_name(p.get("name"), alias_map): p.get("rank", 4) for p in summary if p.get("name")}
 
         for player_stat in summary:
-            name = player_stat.get("name", "")
-            if not name:
+            raw_name = player_stat.get("name", "")
+            if not raw_name:
                 continue
+
+            # 归一化玩家名到主ID
+            name = normalize_player_name(raw_name, alias_map)
+            # 跟踪这个主ID使用过的原始名称
+            name_aliases_used[name].add(raw_name)
 
             pd = player_data[name]
 
@@ -356,17 +378,19 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
             pd["riichi_ryuukyoku"] += player_stat.get("riichi_ryuukyoku", 0)
             pd["furo_ryuukyoku"] += player_stat.get("furo_ryuukyoku", 0)
 
-            # 放铳目标统计
+            # 放铳目标统计（归一化目标玩家名）
             targets = player_stat.get("deal_in_targets", {})
             for target, count in targets.items():
                 if count > 0:
-                    pd["deal_in_targets"][target] += count
+                    normalized_target = normalize_player_name(target, alias_map)
+                    pd["deal_in_targets"][normalized_target] += count
 
-            # 放铳详细点数统计
+            # 放铳详细点数统计（归一化目标玩家名）
             deal_in_detail = player_stat.get("deal_in_points_detail", {})
             for target, points_list in deal_in_detail.items():
                 if points_list:
-                    pd["deal_in_points_to_players"][target].extend(points_list)
+                    normalized_target = normalize_player_name(target, alias_map)
+                    pd["deal_in_points_to_players"][normalized_target].extend(points_list)
 
             # 手役统计（合并役牌）
             yaku_count = player_stat.get("yaku_count", {})
@@ -390,8 +414,14 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
             my_score = (my_final_points - origin_points) + uma_config.get(my_rank, 0)
 
             for other_player in summary:
-                other_name = other_player.get("name", "")
-                if not other_name or other_name == name:
+                other_raw_name = other_player.get("name", "")
+                if not other_raw_name:
+                    continue
+
+                # 归一化对手玩家名
+                other_name = normalize_player_name(other_raw_name, alias_map)
+                # 跳过与自己的对战（比较归一化后的名字）
+                if other_name == name:
                     continue
 
                 other_rank = other_player.get("rank", 4)
@@ -406,14 +436,19 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
                     vs_stat["wins"] += 1
 
                 # 从对方和了获得的点数（对方放铳给自己）
+                # 需要检查对方的deal_in_points_detail中是否有归一化后的自己名字
                 other_deal_in_detail = other_player.get("deal_in_points_detail", {})
-                if name in other_deal_in_detail:
-                    vs_stat["win_points"] += sum(other_deal_in_detail[name])
+                # 遍历所有放铳目标，归一化后与自己比较
+                for target, points in other_deal_in_detail.items():
+                    if normalize_player_name(target, alias_map) == name:
+                        vs_stat["win_points"] += sum(points)
 
                 # 放铳给对方的点数
+                # 需要检查自己的deal_in_points_detail中是否有归一化后的对方名字
                 my_deal_in_detail = player_stat.get("deal_in_points_detail", {})
-                if other_name in my_deal_in_detail:
-                    vs_stat["lose_points"] += sum(my_deal_in_detail[other_name])
+                for target, points in my_deal_in_detail.items():
+                    if normalize_player_name(target, alias_map) == other_name:
+                        vs_stat["lose_points"] += sum(points)
 
                 # 总得点差值（自己的得分 - 对方的得分）
                 vs_stat["score_diff"] += (my_score - other_score)
@@ -426,13 +461,26 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
         if games == 0:
             continue
 
+        # 构建显示名称：主ID + 所有使用过的别名
+        aliases_used = name_aliases_used.get(name, {name})
+        if len(aliases_used) > 1:
+            # 多个别名：显示为 "主ID (别名1, 别名2, ...)"
+            # 排除主ID本身，只显示其他别名
+            other_aliases = sorted(aliases_used - {name})
+            display_name = f"{name} ({', '.join(other_aliases)})"
+        else:
+            # 只有一个名字，直接显示
+            display_name = name
+
         win_hands = pd["win_hands"]
         riichi_win_hands = pd["riichi_win_hands"]
         deal_in_hands = pd["deal_in_hands"]
         furo_hands = pd["furo_hands"]
         riichi_hands = pd["riichi_hands"]
 
-        stats[name] = {
+        stats[display_name] = {
+            # 保存主ID用于内部引用
+            "main_id": name,
             # 基础数据
             "games": games,
             "total_rounds": total_rounds,

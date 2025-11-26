@@ -167,6 +167,26 @@
         return statusDiv;
     }
 
+    function extractAllUuids(input)
+    {
+        // 按"https"分段，然后从每段中提取UUID
+        const segments = input.split('https');
+        const uuids = [];
+
+        // UUID格式: 251125-7c9b5806-bb5b-4cf3-81f4-8cdf1f60bc37
+        const uuidPattern = /\d{6}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g;
+
+        segments.forEach(segment => {
+            // 用全局匹配，一段里可能有多个UUID
+            const matches = segment.match(uuidPattern);
+            if (matches) {
+                uuids.push(...matches);
+            }
+        });
+
+        return uuids;
+    }
+
     function normalizeUuid(input)
     {
         let uuid = input.trim();
@@ -174,7 +194,8 @@
             return "";
 
         // 先尝试从混杂文本中提取出标准URL
-        const urlMatch = uuid.match(/https?:\/\/[^\s，,；;<>]+/);
+        // 只匹配URL中合法的字符，避免将中文等字符也包含进来
+        const urlMatch = uuid.match(/https?:\/\/[a-zA-Z0-9.\-_?=&#%/]+/);
         if (urlMatch && urlMatch[0])
             uuid = urlMatch[0];
 
@@ -197,15 +218,32 @@
     {
         if (paipulinks.length === 0)
         {
-            const input = prompt("请输入多个牌谱链接或UUID（使用逗号或换行分隔）");
+            const input = prompt("请输入多个牌谱链接或UUID（使用逗号、换行或其他分隔符）");
             if (!input || input.trim() === "")
                 return;
-            paipulinks = input.split(/[,\n]/).map(link => link.trim()).filter(link => link !== "");
+
+            // 先尝试直接提取所有UUID（支持各种混杂格式）
+            let allUuids = extractAllUuids(input);
+
+            // 如果提取到了UUID，直接使用
+            if (allUuids.length > 0)
+            {
+                paipulinks = allUuids;
+            }
+            // 否则按原来的方式分隔后再提取
+            else
+            {
+                paipulinks = input.split(/[,\n]/).map(link => link.trim()).filter(link => link !== "");
+            }
         }
         if (paipulinks.length === 0)
             return;
 
-        const uuids = paipulinks.map(normalizeUuid).filter(Boolean);
+        // 如果paipulinks还不是纯UUID，则需要normalize
+        const uuids = paipulinks.every(p => /^\d{6}-[0-9a-f-]+$/.test(p))
+            ? paipulinks  // 已经是UUID格式，直接使用
+            : paipulinks.map(normalizeUuid).filter(Boolean);  // 否则需要提取
+
         if (!uuids.length)
             return alert("未找到有效的牌谱链接或UUID。");
 
@@ -231,10 +269,26 @@
             const reader = new FileReader();
             reader.onload = function(e)
             {
-                const links = e.target.result.split(/[\r\n,]+/).map(link => link.trim()).filter(link => link !== "");
+                let links = [];
+                const content = e.target.result;
+
+                // 先尝试直接提取所有UUID
+                const allUuids = extractAllUuids(content);
+
+                // 如果提取到了UUID，直接使用
+                if (allUuids.length > 0)
+                {
+                    links = allUuids;
+                }
+                // 否则按传统方式分割
+                else
+                {
+                    links = content.split(/[\r\n,]+/).map(link => link.trim()).filter(link => link !== "");
+                }
+
                 if (!links.length)
                     return alert("文件中未找到有效的链接或UUID。");
-                if (confirm(`找到 ${links.length} 个链接/UUID，确认下载？`))
+                if (confirm(`找到 ${links.length} 个UUID，确认下载？`))
                     GetPaipusJSON(links);
             };
             reader.readAsText(file);

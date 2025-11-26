@@ -13,6 +13,18 @@ import re
 import html as html_module
 from datetime import datetime
 from player_stats import calculate_player_stats, scan_files, summarize_log, YAKU_TRANSLATION
+
+# 导入别名处理函数
+try:
+    from summarize_v23 import load_player_aliases, normalize_player_name, get_player_display_name
+except ImportError:
+    # 如果导入失败，使用空的别名映射
+    def load_player_aliases():
+        return {}
+    def normalize_player_name(name, alias_map):
+        return name
+    def get_player_display_name(name, alias_map=None, show_aliases=True):
+        return name
 from template_renderer import render_m_league_tabs
 from generate_m_league_tabs import generate_ranking_content
 
@@ -167,6 +179,9 @@ def extract_recent_games(files, results, count=5, all_results=None, uma_config=N
     player_r_values = defaultdict(lambda: 1500.0)
     player_games = defaultdict(int)
 
+    # 加载玩家别名配置
+    alias_map = load_player_aliases()
+
     # 计算所有游戏的R值（为了得到最近几场的R值状态）
     all_game_details = []
 
@@ -174,8 +189,10 @@ def extract_recent_games(files, results, count=5, all_results=None, uma_config=N
         summary = result.get('summary', [])
 
         # 计算这局的桌平均R值
+        # 使用归一化后的玩家名来计算桌平均R
         table_players = [p.get('name', '') for p in summary if p.get('name')]
-        table_avg_r = sum(player_r_values[name] for name in table_players) / len(table_players) if table_players else 1500.0
+        normalized_table_players = [normalize_player_name(name, alias_map) for name in table_players]
+        table_avg_r = sum(player_r_values[name] for name in normalized_table_players) / len(normalized_table_players) if normalized_table_players else 1500.0
 
         # 计算每个玩家的R值变化
         players_detail = []
@@ -184,10 +201,13 @@ def extract_recent_games(files, results, count=5, all_results=None, uma_config=N
             if not name:
                 continue
 
+            # 归一化玩家名用于R值追踪（别名合并统计）
+            normalized_name = normalize_player_name(name, alias_map)
+
             rank = player_stat.get('rank', 4)
             final_points = player_stat.get('final_points', 25000)
-            games_before = player_games[name]
-            r_before = player_r_values[name]
+            games_before = player_games[normalized_name]
+            r_before = player_r_values[normalized_name]
 
             # 使用平均uma（如果有的话），否则回退到按名次查表
             avg_uma = player_stat.get('avg_uma')
@@ -226,9 +246,9 @@ def extract_recent_games(files, results, count=5, all_results=None, uma_config=N
                 'r_after': round(r_after, 2)
             })
 
-            # 更新玩家R值和场数
-            player_r_values[name] = r_after
-            player_games[name] += 1
+            # 更新玩家R值和场数（使用归一化后的名字）
+            player_r_values[normalized_name] = r_after
+            player_games[normalized_name] += 1
 
         # 按名次排序
         players_detail.sort(key=lambda x: x['rank'])
@@ -1421,18 +1441,25 @@ def generate_stats_html(title, stats_data, league_name, latest_date=None, lang='
     return html
 
 
-def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh'):
+def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh', alias_map=None):
     """生成最近牌谱内容 - 带玩家筛选和Rating曲线图"""
     if not recent_games or len(recent_games) == 0:
         return f"<p style='text-align: center; color: #999; padding: 40px;'>{t.get('no_recent_games', '暂无最近牌谱')}</p>"
+
+    # 加载别名映射（如果没有传入）
+    if alias_map is None:
+        alias_map = load_player_aliases()
 
     # 收集所有玩家信息并按半庄数排序
     player_list = []
     for player_name, data in stats_data.items():
         if player_name == "_league_average":
             continue
+        # 从stats_data中提取main_id（如果有的话）
+        main_id = data.get('main_id', player_name)
         player_list.append({
-            'name': player_name,
+            'name': player_name,  # 显示名称（带别名）
+            'main_id': main_id,   # 主ID（用于数据筛选）
             'games': data['games']
         })
     player_list.sort(key=lambda x: -x['games'])
@@ -1443,11 +1470,12 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
     player_tabs += f'<button class="player-filter-btn active" data-player="all">{all_text}</button>\n'
     for player in player_list:
         games_text = t.get('games', '局')
-        player_tabs += f'<button class="player-filter-btn" data-player="{player["name"]}">{player["name"]} ({player["games"]}{games_text})</button>\n'
+        # 使用main_id作为data-player属性，显示名称作为按钮文本
+        player_tabs += f'<button class="player-filter-btn" data-player="{player["main_id"]}">{player["name"]} ({player["games"]}{games_text})</button>\n'
 
     # 构建游戏数据（JSON格式，供JavaScript使用）
     games_data = []
-    player_rating_history = {}  # 每个玩家的rating历史
+    player_rating_history = {}  # 每个玩家的rating历史（按主ID存储）
 
     for game in recent_games:
         date_str = game['date'] if lang == 'zh' else game['date_en']
@@ -1461,8 +1489,13 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
         }
 
         for p in players_data:
+            # 获取原始玩家名并归一化为主ID
+            original_name = p['name']
+            main_id = normalize_player_name(original_name, alias_map)
+
             player_info = {
-                'name': p['name'],
+                'name': main_id,  # 使用主ID，确保JavaScript可以正确匹配
+                'original_name': original_name,  # 保留原始名称用于显示
                 'rank': p['rank'],
                 'r_before': p['r_before'],
                 'games_before': p['games_before'],
@@ -1475,11 +1508,10 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
             }
             game_data['players'].append(player_info)
 
-            # 记录玩家的rating历史
-            pname = p['name']
-            if pname not in player_rating_history:
-                player_rating_history[pname] = []
-            player_rating_history[pname].append({
+            # 记录玩家的rating历史（使用主ID作为key）
+            if main_id not in player_rating_history:
+                player_rating_history[main_id] = []
+            player_rating_history[main_id].append({
                 'date': date_str,
                 'games': p['games_before'],
                 'r_value': p['r_after']
@@ -1501,6 +1533,89 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
     <div id="ratingChartContainer" style="display: none; margin-bottom: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <h3 id="chartPlayerName" style="text-align: center; color: #667eea; margin-bottom: 20px;"></h3>
         <canvas id="ratingChart" width="800" height="400"></canvas>
+    </div>
+
+    <!-- Rating计算公式说明 -->
+    <div class="rating-formula-section" style="margin-bottom: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleFormula()">
+            <h3 style="color: white; margin: 0; font-size: 18px; font-weight: 600;">
+                <span style="margin-right: 10px;">📊</span>Rating值计算公式
+            </h3>
+            <span id="formulaToggle" style="color: white; font-size: 20px; transition: transform 0.3s;">▼</span>
+        </div>
+
+        <div id="formulaContent" style="display: none; margin-top: 20px; background: white; padding: 20px; border-radius: 8px;">
+            <!-- 主公式 -->
+            <div style="background: #f8f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; margin-bottom: 20px;">
+                <h4 style="color: #667eea; margin: 0 0 10px 0; font-size: 16px;">主公式</h4>
+                <div style="font-family: 'Courier New', monospace; font-size: 15px; color: #333; background: white; padding: 12px; border-radius: 6px; text-align: center;">
+                    <strong style="color: #764ba2;">Rating变动</strong> = <strong style="color: #667eea;">试合数补正</strong> × (<strong style="color: #f093fb;">得点变化</strong> + <strong style="color: #4facfe;">Rating补正</strong>)
+                </div>
+            </div>
+
+            <!-- 详细步骤 -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                <!-- 步骤1 -->
+                <div style="background: #fff5f5; padding: 15px; border-radius: 8px; border-left: 4px solid #f093fb;">
+                    <h5 style="color: #f093fb; margin: 0 0 8px 0; font-size: 14px;">① 得点变化（千点单位）</h5>
+                    <div style="font-size: 13px; color: #555; line-height: 1.6;">
+                        <code style="background: white; padding: 4px 8px; border-radius: 4px; display: block; margin-bottom: 8px;">
+                            (Uma + 素点差) / 1000
+                        </code>
+                        <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                            <strong>Uma：</strong><br>
+                            • M-League: 1位=+45k, 2位=+5k, 3位=-15k, 4位=-35k<br>
+                            • EMA: 1位=+15k, 2位=+5k, 3位=-5k, 4位=-15k<br>
+                            <strong>素点差：</strong>最终点数 - 起始点数
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤2 -->
+                <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #4facfe;">
+                    <h5 style="color: #4facfe; margin: 0 0 8px 0; font-size: 14px;">② Rating补正</h5>
+                    <div style="font-size: 13px; color: #555; line-height: 1.6;">
+                        <code style="background: white; padding: 4px 8px; border-radius: 4px; display: block; margin-bottom: 8px;">
+                            (桌平均Rating - 自己的Rating) / 40
+                        </code>
+                        <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                            • 对手强：补正为正<br>
+                            • 对手弱：补正为负<br>
+                            <em>→ 强者输少赢多，弱者输多赢少</em>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3 -->
+                <div style="background: #f5f3ff; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <h5 style="color: #667eea; margin: 0 0 8px 0; font-size: 14px;">③ 试合数补正</h5>
+                    <div style="font-size: 13px; color: #555; line-height: 1.6;">
+                        <code style="background: white; padding: 4px 8px; border-radius: 4px; display: block; margin-bottom: 8px;">
+                            试合数 < 400: 1 - 试合数 × 0.002<br>
+                            试合数 ≥ 400: 0.2
+                        </code>
+                        <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                            • 初期：Rating波动大<br>
+                            • 后期：Rating稳定（固定0.2）
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 示例 -->
+            <div style="margin-top: 20px; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); padding: 15px; border-radius: 8px;">
+                <h5 style="color: #d35400; margin: 0 0 10px 0; font-size: 14px;">💡 计算示例</h5>
+                <div style="font-size: 12px; color: #555; line-height: 1.8; background: white; padding: 12px; border-radius: 6px;">
+                    <strong>条件：</strong>第1名，终局38000点，当前Rating=1650，桌平均Rating=1600，已打50场<br>
+                    <strong>计算：</strong><br>
+                    • 得点变化 = (45000 + 13000) / 1000 = 58<br>
+                    • Rating补正 = (1600 - 1650) / 40 = -1.25<br>
+                    • 试合数补正 = 1 - 50 × 0.002 = 0.9<br>
+                    • Rating变动 = 0.9 × (58 - 1.25) = <strong style="color: #d35400;">+51.08</strong><br>
+                    <strong style="color: #27ae60;">→ 新Rating：1701.08</strong>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 牌谱表格 -->
@@ -1569,6 +1684,20 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
         const ratingHistory = {rating_history_json};
         let currentChart = null;
 
+        // 切换公式显示/隐藏
+        function toggleFormula() {{
+            const content = document.getElementById('formulaContent');
+            const toggle = document.getElementById('formulaToggle');
+
+            if (content.style.display === 'none') {{
+                content.style.display = 'block';
+                toggle.style.transform = 'rotate(180deg)';
+            }} else {{
+                content.style.display = 'none';
+                toggle.style.transform = 'rotate(0deg)';
+            }}
+        }}
+
         // 渲染表格
         function renderGamesTable(filterPlayer = 'all') {{
             const tbody = document.getElementById('gamesTableBody');
@@ -1591,8 +1720,10 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
                 game.players.forEach(p => {{
                     const rankClass = `rank-${{p.rank}}`;
                     const highlightClass = (filterPlayer !== 'all' && p.name === filterPlayer) ? 'highlight-player' : '';
+                    // 显示原始玩家名（保持牌谱历史的真实性）
+                    const displayName = p.original_name || p.name;
                     tr.innerHTML += `
-                        <td class="player-name ${{rankClass}} ${{highlightClass}}">${{p.name}}</td>
+                        <td class="player-name ${{rankClass}} ${{highlightClass}}">${{displayName}}</td>
                         <td class="r-value">${{p.r_before}}</td>
                         <td class="games-count">${{p.games_before}}</td>
                         <td class="final-points">${{p.final_points}}</td>

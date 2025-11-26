@@ -840,6 +840,89 @@
         <canvas id="ratingChart" width="800" height="400"></canvas>
     </div>
 
+    <!-- Rating计算公式说明 -->
+    <div class="rating-formula-section" style="margin-bottom: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleFormula()">
+            <h3 style="color: white; margin: 0; font-size: 18px; font-weight: 600;">
+                <span style="margin-right: 10px;">📊</span>Rating值计算公式
+            </h3>
+            <span id="formulaToggle" style="color: white; font-size: 20px; transition: transform 0.3s;">▼</span>
+        </div>
+
+        <div id="formulaContent" style="display: none; margin-top: 20px; background: white; padding: 20px; border-radius: 8px;">
+            <!-- 主公式 -->
+            <div style="background: #f8f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; margin-bottom: 20px;">
+                <h4 style="color: #667eea; margin: 0 0 10px 0; font-size: 16px;">主公式</h4>
+                <div style="font-family: 'Courier New', monospace; font-size: 15px; color: #333; background: white; padding: 12px; border-radius: 6px; text-align: center;">
+                    <strong style="color: #764ba2;">Rating变动</strong> = <strong style="color: #667eea;">试合数补正</strong> × (<strong style="color: #f093fb;">得点变化</strong> + <strong style="color: #4facfe;">Rating补正</strong>)
+                </div>
+            </div>
+
+            <!-- 详细步骤 -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                <!-- 步骤1 -->
+                <div style="background: #fff5f5; padding: 15px; border-radius: 8px; border-left: 4px solid #f093fb;">
+                    <h5 style="color: #f093fb; margin: 0 0 8px 0; font-size: 14px;">① 得点变化（千点单位）</h5>
+                    <div style="font-size: 13px; color: #555; line-height: 1.6;">
+                        <code style="background: white; padding: 4px 8px; border-radius: 4px; display: block; margin-bottom: 8px;">
+                            (Uma + 素点差) / 1000
+                        </code>
+                        <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                            <strong>Uma：</strong><br>
+                            • M-League: 1位=+45k, 2位=+5k, 3位=-15k, 4位=-35k<br>
+                            • EMA: 1位=+15k, 2位=+5k, 3位=-5k, 4位=-15k<br>
+                            <strong>素点差：</strong>最终点数 - 起始点数
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤2 -->
+                <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #4facfe;">
+                    <h5 style="color: #4facfe; margin: 0 0 8px 0; font-size: 14px;">② Rating补正</h5>
+                    <div style="font-size: 13px; color: #555; line-height: 1.6;">
+                        <code style="background: white; padding: 4px 8px; border-radius: 4px; display: block; margin-bottom: 8px;">
+                            (桌平均Rating - 自己的Rating) / 40
+                        </code>
+                        <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                            • 对手强：补正为正<br>
+                            • 对手弱：补正为负<br>
+                            <em>→ 强者输少赢多，弱者输多赢少</em>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3 -->
+                <div style="background: #f5f3ff; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <h5 style="color: #667eea; margin: 0 0 8px 0; font-size: 14px;">③ 试合数补正</h5>
+                    <div style="font-size: 13px; color: #555; line-height: 1.6;">
+                        <code style="background: white; padding: 4px 8px; border-radius: 4px; display: block; margin-bottom: 8px;">
+                            试合数 < 400: 1 - 试合数 × 0.002<br>
+                            试合数 ≥ 400: 0.2
+                        </code>
+                        <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                            • 初期：Rating波动大<br>
+                            • 后期：Rating稳定（固定0.2）
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 示例 -->
+            <div style="margin-top: 20px; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); padding: 15px; border-radius: 8px;">
+                <h5 style="color: #d35400; margin: 0 0 10px 0; font-size: 14px;">💡 计算示例</h5>
+                <div style="font-size: 12px; color: #555; line-height: 1.8; background: white; padding: 12px; border-radius: 6px;">
+                    <strong>条件：</strong>第1名，终局38000点，当前Rating=1650，桌平均Rating=1600，已打50场<br>
+                    <strong>计算：</strong><br>
+                    • 得点变化 = (45000 + 13000) / 1000 = 58<br>
+                    • Rating补正 = (1600 - 1650) / 40 = -1.25<br>
+                    • 试合数补正 = 1 - 50 × 0.002 = 0.9<br>
+                    • Rating变动 = 0.9 × (58 - 1.25) = <strong style="color: #d35400;">+51.08</strong><br>
+                    <strong style="color: #27ae60;">→ 新Rating：1701.08</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 牌谱表格 -->
     <div class="table-scroll">
         <table class="recent-games-table" id="gamesTable">
@@ -902,9 +985,23 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // 游戏数据
-        const gamesData = [{"date": "2025年11月18日 00:42", "table_avg_r": 1498.53, "players": [{"name": "加賀百万石", "rank": 1, "r_before": 1442.08, "games_before": 1, "final_points": 39600, "score_change": 54.6, "r_correction": 1.41, "games_correction": 0.998, "r_change": 55.9, "r_after": 1497.98}, {"name": "RinshanNomi", "rank": 2, "r_before": 1480.88, "games_before": 1, "final_points": 36700, "score_change": 11.7, "r_correction": 0.44, "games_correction": 0.998, "r_change": 12.12, "r_after": 1493.0}, {"name": "Jwangta", "rank": 3, "r_before": 1500.0, "games_before": 0, "final_points": 23300, "score_change": -21.7, "r_correction": -0.04, "games_correction": 1.0, "r_change": -21.73, "r_after": 1478.27}, {"name": "姫野婭也", "rank": 4, "r_before": 1571.15, "games_before": 2, "final_points": 20400, "score_change": -44.6, "r_correction": -1.82, "games_correction": 0.996, "r_change": -46.22, "r_after": 1524.93}]}, {"date": "2025年11月17日 23:57", "table_avg_r": 1490.93, "players": [{"name": "姫野婭也", "rank": 1, "r_before": 1508.31, "games_before": 1, "final_points": 48400, "score_change": 63.4, "r_correction": -0.43, "games_correction": 0.998, "r_change": 62.84, "r_after": 1571.15}, {"name": "santi", "rank": 2, "r_before": 1455.4, "games_before": 1, "final_points": 38200, "score_change": 13.2, "r_correction": 0.89, "games_correction": 0.998, "r_change": 14.07, "r_after": 1469.47}, {"name": "RinshanNomi", "rank": 3, "r_before": 1500.0, "games_before": 0, "final_points": 26100, "score_change": -18.9, "r_correction": -0.23, "games_correction": 1.0, "r_change": -19.12, "r_after": 1480.88}, {"name": "加賀百万石", "rank": 4, "r_before": 1500.0, "games_before": 0, "final_points": 7300, "score_change": -57.7, "r_correction": -0.23, "games_correction": 1.0, "r_change": -57.92, "r_after": 1442.08}]}, {"date": "2025年10月13日 01:45", "table_avg_r": 1500.0, "players": [{"name": "小地鼠爱点炮", "rank": 1, "r_before": 1500.0, "games_before": 0, "final_points": 36300, "score_change": 51.3, "r_correction": 0.0, "games_correction": 1.0, "r_change": 51.3, "r_after": 1551.3}, {"name": "姫野婭也", "rank": 2, "r_before": 1500.0, "games_before": 0, "final_points": 33300, "score_change": 8.3, "r_correction": 0.0, "games_correction": 1.0, "r_change": 8.31, "r_after": 1508.31}, {"name": "南美雀后", "rank": 3, "r_before": 1500.0, "games_before": 0, "final_points": 30000, "score_change": -15.0, "r_correction": 0.0, "games_correction": 1.0, "r_change": -15.0, "r_after": 1485.0}, {"name": "santi", "rank": 4, "r_before": 1500.0, "games_before": 0, "final_points": 20400, "score_change": -44.6, "r_correction": 0.0, "games_correction": 1.0, "r_change": -44.6, "r_after": 1455.4}]}];
+        const gamesData = [{"date": "2025年11月18日 00:42", "table_avg_r": 1498.53, "players": [{"name": "加賀百万石", "original_name": "加賀百万石", "rank": 1, "r_before": 1442.08, "games_before": 1, "final_points": 39600, "score_change": 54.6, "r_correction": 1.41, "games_correction": 0.998, "r_change": 55.9, "r_after": 1497.98}, {"name": "RinshanNomi", "original_name": "RinshanNomi", "rank": 2, "r_before": 1480.88, "games_before": 1, "final_points": 36700, "score_change": 11.7, "r_correction": 0.44, "games_correction": 0.998, "r_change": 12.12, "r_after": 1493.0}, {"name": "Jwangta", "original_name": "Jwangta", "rank": 3, "r_before": 1500.0, "games_before": 0, "final_points": 23300, "score_change": -21.7, "r_correction": -0.04, "games_correction": 1.0, "r_change": -21.73, "r_after": 1478.27}, {"name": "姫野婭也", "original_name": "姫野婭也", "rank": 4, "r_before": 1571.15, "games_before": 2, "final_points": 20400, "score_change": -44.6, "r_correction": -1.82, "games_correction": 0.996, "r_change": -46.22, "r_after": 1524.93}]}, {"date": "2025年11月17日 23:57", "table_avg_r": 1490.93, "players": [{"name": "姫野婭也", "original_name": "姫野婭也", "rank": 1, "r_before": 1508.31, "games_before": 1, "final_points": 48400, "score_change": 63.4, "r_correction": -0.43, "games_correction": 0.998, "r_change": 62.84, "r_after": 1571.15}, {"name": "santi", "original_name": "santi", "rank": 2, "r_before": 1455.4, "games_before": 1, "final_points": 38200, "score_change": 13.2, "r_correction": 0.89, "games_correction": 0.998, "r_change": 14.07, "r_after": 1469.47}, {"name": "RinshanNomi", "original_name": "RinshanNomi", "rank": 3, "r_before": 1500.0, "games_before": 0, "final_points": 26100, "score_change": -18.9, "r_correction": -0.23, "games_correction": 1.0, "r_change": -19.12, "r_after": 1480.88}, {"name": "加賀百万石", "original_name": "加賀百万石", "rank": 4, "r_before": 1500.0, "games_before": 0, "final_points": 7300, "score_change": -57.7, "r_correction": -0.23, "games_correction": 1.0, "r_change": -57.92, "r_after": 1442.08}]}, {"date": "2025年10月13日 01:45", "table_avg_r": 1500.0, "players": [{"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 1, "r_before": 1500.0, "games_before": 0, "final_points": 36300, "score_change": 51.3, "r_correction": 0.0, "games_correction": 1.0, "r_change": 51.3, "r_after": 1551.3}, {"name": "姫野婭也", "original_name": "姫野婭也", "rank": 2, "r_before": 1500.0, "games_before": 0, "final_points": 33300, "score_change": 8.3, "r_correction": 0.0, "games_correction": 1.0, "r_change": 8.31, "r_after": 1508.31}, {"name": "南美雀后", "original_name": "南美雀后", "rank": 3, "r_before": 1500.0, "games_before": 0, "final_points": 30000, "score_change": -15.0, "r_correction": 0.0, "games_correction": 1.0, "r_change": -15.0, "r_after": 1485.0}, {"name": "santi", "original_name": "santi", "rank": 4, "r_before": 1500.0, "games_before": 0, "final_points": 20400, "score_change": -44.6, "r_correction": 0.0, "games_correction": 1.0, "r_change": -44.6, "r_after": 1455.4}]}];
         const ratingHistory = {"加賀百万石": [{"date": "2025年11月18日 00:42", "games": 1, "r_value": 1497.98}, {"date": "2025年11月17日 23:57", "games": 0, "r_value": 1442.08}], "RinshanNomi": [{"date": "2025年11月18日 00:42", "games": 1, "r_value": 1493.0}, {"date": "2025年11月17日 23:57", "games": 0, "r_value": 1480.88}], "Jwangta": [{"date": "2025年11月18日 00:42", "games": 0, "r_value": 1478.27}], "姫野婭也": [{"date": "2025年11月18日 00:42", "games": 2, "r_value": 1524.93}, {"date": "2025年11月17日 23:57", "games": 1, "r_value": 1571.15}, {"date": "2025年10月13日 01:45", "games": 0, "r_value": 1508.31}], "santi": [{"date": "2025年11月17日 23:57", "games": 1, "r_value": 1469.47}, {"date": "2025年10月13日 01:45", "games": 0, "r_value": 1455.4}], "小地鼠爱点炮": [{"date": "2025年10月13日 01:45", "games": 0, "r_value": 1551.3}], "南美雀后": [{"date": "2025年10月13日 01:45", "games": 0, "r_value": 1485.0}]};
         let currentChart = null;
+
+        // 切换公式显示/隐藏
+        function toggleFormula() {
+            const content = document.getElementById('formulaContent');
+            const toggle = document.getElementById('formulaToggle');
+
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                toggle.style.transform = 'rotate(180deg)';
+            } else {
+                content.style.display = 'none';
+                toggle.style.transform = 'rotate(0deg)';
+            }
+        }
 
         // 渲染表格
         function renderGamesTable(filterPlayer = 'all') {
@@ -928,8 +1025,10 @@
                 game.players.forEach(p => {
                     const rankClass = `rank-${p.rank}`;
                     const highlightClass = (filterPlayer !== 'all' && p.name === filterPlayer) ? 'highlight-player' : '';
+                    // 显示原始玩家名（保持牌谱历史的真实性）
+                    const displayName = p.original_name || p.name;
                     tr.innerHTML += `
-                        <td class="player-name ${rankClass} ${highlightClass}">${p.name}</td>
+                        <td class="player-name ${rankClass} ${highlightClass}">${displayName}</td>
                         <td class="r-value">${p.r_before}</td>
                         <td class="games-count">${p.games_before}</td>
                         <td class="final-points">${p.final_points}</td>
