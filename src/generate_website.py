@@ -2199,7 +2199,10 @@ def generate_player_details_html_for_tabs(name, data, t, lang='zh', league_avg=N
 
 def generate_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
     """生成排行榜内容 - 1番手牌频率排行"""
-    # 统计每个玩家的1番手牌次数和总小局数
+    # 加载别名映射
+    alias_map = load_player_aliases()
+
+    # 统计每个玩家的1番手牌次数和总小局数（使用主ID）
     one_han_counts = {}
     total_rounds_played = {}
 
@@ -2209,24 +2212,25 @@ def generate_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
-            # 获取玩家列表
-            names = data.get('name', [])
+            # 获取玩家列表并归一化为主ID
+            raw_names = data.get('name', [])
+            main_ids = [normalize_player_name(name, alias_map) for name in raw_names]
 
-            # 初始化这些玩家的计数器
-            for name in names:
-                if name not in total_rounds_played:
-                    total_rounds_played[name] = 0
-                if name not in one_han_counts:
-                    one_han_counts[name] = 0
+            # 初始化这些玩家的计数器（使用主ID）
+            for main_id in main_ids:
+                if main_id not in total_rounds_played:
+                    total_rounds_played[main_id] = 0
+                if main_id not in one_han_counts:
+                    one_han_counts[main_id] = 0
 
             # 遍历每个小局
             for round_data in data.get('log', []):
                 if not isinstance(round_data, list) or len(round_data) < 3:
                     continue
 
-                # 每个小局，所有参与玩家的小局数都+1
-                for name in names:
-                    total_rounds_played[name] = total_rounds_played.get(name, 0) + 1
+                # 每个小局，所有参与玩家的小局数都+1（使用主ID）
+                for main_id in main_ids:
+                    total_rounds_played[main_id] = total_rounds_played.get(main_id, 0) + 1
 
                 # 检查最后一个元素是否为和了
                 last_action = round_data[-1]
@@ -2243,27 +2247,30 @@ def generate_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
                         # 检查是否是1番（不是役满）
                         is_yakuman = '役満' in fan_str or 'Yakuman' in fan_str
                         if not is_yakuman and ('1飜' in fan_str or '30符1飜' in fan_str or '40符1飜' in fan_str or '50符1飜' in fan_str):
-                            winner_name = names[winner_seat] if winner_seat < len(names) else None
-                            if winner_name:
-                                one_han_counts[winner_name] = one_han_counts.get(winner_name, 0) + 1
+                            # 使用主ID统计
+                            winner_main_id = main_ids[winner_seat] if winner_seat < len(main_ids) else None
+                            if winner_main_id:
+                                one_han_counts[winner_main_id] = one_han_counts.get(winner_main_id, 0) + 1
         except Exception as e:
             continue
 
     # 计算每个人和1番手牌的频率
     leaderboard_data = []
     for name, stats in stats_dict.items():
-        total_rounds = total_rounds_played.get(name, 0)
+        # 获取主ID用于匹配统计数据
+        main_id = stats.get('main_id', name)
+        total_rounds = total_rounds_played.get(main_id, 0)
 
         # 只统计玩过超过100小局的玩家
         if total_rounds <= 100:
             continue
 
-        # 获取1番手牌次数
-        one_han_count = one_han_counts.get(name, 0)
+        # 获取1番手牌次数（使用主ID查询）
+        one_han_count = one_han_counts.get(main_id, 0)
         one_han_rate = (one_han_count / total_rounds) * 100 if total_rounds > 0 else 0
 
         leaderboard_data.append({
-            'name': name,
+            'name': name,  # 显示名称（带括号的完整格式）
             'one_han_count': one_han_count,
             'total_rounds': total_rounds,
             'one_han_rate': one_han_rate
@@ -2286,7 +2293,7 @@ def generate_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
 
     html = f'''
     <div class="leaderboard-section">
-        <h2>1番手牌频率排行榜</h2>
+        <h2>1番手牌频率</h2>
         <div class="table-scroll">
             <table class="leaderboard-table">
                 <thead>
@@ -2324,7 +2331,10 @@ def generate_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
 
 def generate_two_han_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
     """生成排行榜内容 - 2番手牌频率排行"""
-    # 统计每个玩家的2番手牌次数和总小局数
+    # 加载别名映射
+    alias_map = load_player_aliases()
+
+    # 统计每个玩家的2番手牌次数和总小局数（使用主ID）
     two_han_counts = {}
     total_rounds_played = {}
 
@@ -2334,24 +2344,25 @@ def generate_two_han_leaderboard_content(stats_dict, sorted_files, t, lang='zh')
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
-            # 获取玩家列表
-            names = data.get('name', [])
+            # 获取玩家列表并归一化为主ID
+            raw_names = data.get('name', [])
+            main_ids = [normalize_player_name(name, alias_map) for name in raw_names]
 
-            # 初始化这些玩家的计数器
-            for name in names:
-                if name not in total_rounds_played:
-                    total_rounds_played[name] = 0
-                if name not in two_han_counts:
-                    two_han_counts[name] = 0
+            # 初始化这些玩家的计数器（使用主ID）
+            for main_id in main_ids:
+                if main_id not in total_rounds_played:
+                    total_rounds_played[main_id] = 0
+                if main_id not in two_han_counts:
+                    two_han_counts[main_id] = 0
 
             # 遍历每个小局
             for round_data in data.get('log', []):
                 if not isinstance(round_data, list) or len(round_data) < 3:
                     continue
 
-                # 每个小局，所有参与玩家的小局数都+1
-                for name in names:
-                    total_rounds_played[name] = total_rounds_played.get(name, 0) + 1
+                # 每个小局，所有参与玩家的小局数都+1（使用主ID）
+                for main_id in main_ids:
+                    total_rounds_played[main_id] = total_rounds_played.get(main_id, 0) + 1
 
                 # 检查最后一个元素是否为和了
                 last_action = round_data[-1]
@@ -2368,27 +2379,30 @@ def generate_two_han_leaderboard_content(stats_dict, sorted_files, t, lang='zh')
                         # 检查是否是2番（不是役满）
                         is_yakuman = '役満' in fan_str or 'Yakuman' in fan_str
                         if not is_yakuman and '2飜' in fan_str:
-                            winner_name = names[winner_seat] if winner_seat < len(names) else None
-                            if winner_name:
-                                two_han_counts[winner_name] = two_han_counts.get(winner_name, 0) + 1
+                            # 使用主ID统计
+                            winner_main_id = main_ids[winner_seat] if winner_seat < len(main_ids) else None
+                            if winner_main_id:
+                                two_han_counts[winner_main_id] = two_han_counts.get(winner_main_id, 0) + 1
         except Exception as e:
             continue
 
     # 计算每个人和2番手牌的频率
     leaderboard_data = []
     for name, stats in stats_dict.items():
-        total_rounds = total_rounds_played.get(name, 0)
+        # 获取主ID用于匹配统计数据
+        main_id = stats.get('main_id', name)
+        total_rounds = total_rounds_played.get(main_id, 0)
 
         # 只统计玩过超过100小局的玩家
         if total_rounds <= 100:
             continue
 
-        # 获取2番手牌次数
-        two_han_count = two_han_counts.get(name, 0)
+        # 获取2番手牌次数（使用主ID查询）
+        two_han_count = two_han_counts.get(main_id, 0)
         two_han_rate = (two_han_count / total_rounds) * 100 if total_rounds > 0 else 0
 
         leaderboard_data.append({
-            'name': name,
+            'name': name,  # 显示名称（带括号的完整格式）
             'two_han_count': two_han_count,
             'total_rounds': total_rounds,
             'two_han_rate': two_han_rate
@@ -2403,13 +2417,13 @@ def generate_two_han_leaderboard_content(stats_dict, sorted_files, t, lang='zh')
         header_count = '2番手牌次数'
         header_total = '总小局数'
         header_rate = '频率'
-        title = '2番手牌频率排行榜'
+        title = '2番手牌频率'
     else:
         header_name = 'Player'
         header_count = '2-Han Wins'
         header_total = 'Total Rounds Played'
         header_rate = 'Rate'
-        title = '2-Han Win Rate Leaderboard'
+        title = '2-Han Win Rate'
 
     html = f'''
     <div class="leaderboard-section">
@@ -2451,7 +2465,10 @@ def generate_two_han_leaderboard_content(stats_dict, sorted_files, t, lang='zh')
 
 def generate_three_han_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
     """生成排行榜内容 - 3番以上不到满贯（3番60以下 + 4番20）"""
-    # 统计每个玩家的3番以上不到满贯手牌次数和总小局数
+    # 加载别名映射
+    alias_map = load_player_aliases()
+
+    # 统计每个玩家的3番以上不到满贯手牌次数和总小局数（使用主ID）
     three_han_counts = {}
     total_rounds_played = {}
 
@@ -2461,24 +2478,25 @@ def generate_three_han_leaderboard_content(stats_dict, sorted_files, t, lang='zh
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
-            # 获取玩家列表
-            names = data.get('name', [])
+            # 获取玩家列表并归一化为主ID
+            raw_names = data.get('name', [])
+            main_ids = [normalize_player_name(name, alias_map) for name in raw_names]
 
-            # 初始化这些玩家的计数器
-            for name in names:
-                if name not in total_rounds_played:
-                    total_rounds_played[name] = 0
-                if name not in three_han_counts:
-                    three_han_counts[name] = 0
+            # 初始化这些玩家的计数器（使用主ID）
+            for main_id in main_ids:
+                if main_id not in total_rounds_played:
+                    total_rounds_played[main_id] = 0
+                if main_id not in three_han_counts:
+                    three_han_counts[main_id] = 0
 
             # 遍历每个小局
             for round_data in data.get('log', []):
                 if not isinstance(round_data, list) or len(round_data) < 3:
                     continue
 
-                # 每个小局，所有参与玩家的小局数都+1
-                for name in names:
-                    total_rounds_played[name] = total_rounds_played.get(name, 0) + 1
+                # 每个小局，所有参与玩家的小局数都+1（使用主ID）
+                for main_id in main_ids:
+                    total_rounds_played[main_id] = total_rounds_played.get(main_id, 0) + 1
 
                 # 检查最后一个元素是否为和了
                 last_action = round_data[-1]
@@ -2498,27 +2516,30 @@ def generate_three_han_leaderboard_content(stats_dict, sorted_files, t, lang='zh
 
                         # 3番60以下（不到满贯）或 4番20（不到满贯）
                         if not is_yakuman and not is_mangan_plus and ('3飜' in fan_str or '4飜' in fan_str):
-                            winner_name = names[winner_seat] if winner_seat < len(names) else None
-                            if winner_name:
-                                three_han_counts[winner_name] = three_han_counts.get(winner_name, 0) + 1
+                            # 使用主ID统计
+                            winner_main_id = main_ids[winner_seat] if winner_seat < len(main_ids) else None
+                            if winner_main_id:
+                                three_han_counts[winner_main_id] = three_han_counts.get(winner_main_id, 0) + 1
         except Exception as e:
             continue
 
     # 计算每个人和3番以上不到满贯手牌的频率
     leaderboard_data = []
     for name, stats in stats_dict.items():
-        total_rounds = total_rounds_played.get(name, 0)
+        # 获取主ID用于匹配统计数据
+        main_id = stats.get('main_id', name)
+        total_rounds = total_rounds_played.get(main_id, 0)
 
         # 只统计玩过超过100小局的玩家
         if total_rounds <= 100:
             continue
 
-        # 获取手牌次数
-        three_han_count = three_han_counts.get(name, 0)
+        # 获取手牌次数（使用主ID查询）
+        three_han_count = three_han_counts.get(main_id, 0)
         three_han_rate = (three_han_count / total_rounds) * 100 if total_rounds > 0 else 0
 
         leaderboard_data.append({
-            'name': name,
+            'name': name,  # 显示名称（带括号的完整格式）
             'three_han_count': three_han_count,
             'total_rounds': total_rounds,
             'three_han_rate': three_han_rate
@@ -2533,13 +2554,13 @@ def generate_three_han_leaderboard_content(stats_dict, sorted_files, t, lang='zh
         header_count = '次数'
         header_total = '总小局数'
         header_rate = '频率'
-        title = '3番以上不到满贯频率排行榜'
+        title = '3番以上不到满贯频率'
     else:
         header_name = 'Player'
         header_count = 'Count'
         header_total = 'Total Rounds Played'
         header_rate = 'Rate'
-        title = '3+ Han (Below Mangan) Win Rate Leaderboard'
+        title = '3+ Han (Below Mangan) Win Rate'
 
     html = f'''
     <div class="leaderboard-section">
@@ -2581,7 +2602,10 @@ def generate_three_han_leaderboard_content(stats_dict, sorted_files, t, lang='zh
 
 def generate_mangan_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
     """生成满贯以上手牌频率排行榜"""
-    # 统计每个玩家的满贯以上手牌次数和总小局数
+    # 加载别名映射
+    alias_map = load_player_aliases()
+
+    # 统计每个玩家的满贯以上手牌次数和总小局数（使用主ID）
     mangan_counts = {}
     total_rounds_played = {}
 
@@ -2591,24 +2615,25 @@ def generate_mangan_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
-            # 获取玩家列表
-            names = data.get('name', [])
+            # 获取玩家列表并归一化为主ID
+            raw_names = data.get('name', [])
+            main_ids = [normalize_player_name(name, alias_map) for name in raw_names]
 
-            # 初始化这些玩家的计数器
-            for name in names:
-                if name not in total_rounds_played:
-                    total_rounds_played[name] = 0
-                if name not in mangan_counts:
-                    mangan_counts[name] = 0
+            # 初始化这些玩家的计数器（使用主ID）
+            for main_id in main_ids:
+                if main_id not in total_rounds_played:
+                    total_rounds_played[main_id] = 0
+                if main_id not in mangan_counts:
+                    mangan_counts[main_id] = 0
 
             # 遍历每个小局
             for round_data in data.get('log', []):
                 if not isinstance(round_data, list) or len(round_data) < 3:
                     continue
 
-                # 每个小局，所有参与玩家的小局数都+1
-                for name in names:
-                    total_rounds_played[name] = total_rounds_played.get(name, 0) + 1
+                # 每个小局，所有参与玩家的小局数都+1（使用主ID）
+                for main_id in main_ids:
+                    total_rounds_played[main_id] = total_rounds_played.get(main_id, 0) + 1
 
                 # 检查最后一个元素是否为和了
                 last_action = round_data[-1]
@@ -2652,27 +2677,30 @@ def generate_mangan_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
                             is_mangan_plus = True
 
                         if is_mangan_plus:
-                            winner_name = names[winner_seat] if winner_seat < len(names) else None
-                            if winner_name:
-                                mangan_counts[winner_name] = mangan_counts.get(winner_name, 0) + 1
+                            # 使用主ID统计
+                            winner_main_id = main_ids[winner_seat] if winner_seat < len(main_ids) else None
+                            if winner_main_id:
+                                mangan_counts[winner_main_id] = mangan_counts.get(winner_main_id, 0) + 1
         except Exception as e:
             continue
 
     # 计算每个人和满贯以上手牌的频率
     leaderboard_data = []
     for name, stats in stats_dict.items():
-        total_rounds = total_rounds_played.get(name, 0)
+        # 获取主ID用于匹配统计数据
+        main_id = stats.get('main_id', name)
+        total_rounds = total_rounds_played.get(main_id, 0)
 
         # 只统计玩过超过100小局的玩家
         if total_rounds <= 100:
             continue
 
-        # 获取满贯以上手牌次数
-        mangan_count = mangan_counts.get(name, 0)
+        # 获取满贯以上手牌次数（使用主ID查询）
+        mangan_count = mangan_counts.get(main_id, 0)
         mangan_rate = (mangan_count / total_rounds) * 100 if total_rounds > 0 else 0
 
         leaderboard_data.append({
-            'name': name,
+            'name': name,  # 显示名称（带括号的完整格式）
             'mangan_count': mangan_count,
             'total_rounds': total_rounds,
             'mangan_rate': mangan_rate
@@ -2687,13 +2715,13 @@ def generate_mangan_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
         header_count = '满贯以上次数'
         header_total = '总小局数'
         header_rate = '频率'
-        title = '满贯以上手牌频率排行榜'
+        title = '满贯以上手牌频率'
     else:
         header_name = 'Player'
         header_count = 'Mangan+ Wins'
         header_total = 'Total Rounds Played'
         header_rate = 'Rate'
-        title = 'Mangan+ Hand Rate Leaderboard'
+        title = 'Mangan+ Hand Rate'
 
     html = f'''
     <div class="leaderboard-section">
@@ -2735,7 +2763,10 @@ def generate_mangan_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
 
 def generate_haneman_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
     """生成跳满以上手牌频率排行榜（6番以上）"""
-    # 统计每个玩家的跳满以上手牌次数和总小局数
+    # 加载别名映射
+    alias_map = load_player_aliases()
+
+    # 统计每个玩家的跳满以上手牌次数和总小局数（使用主ID）
     haneman_counts = {}
     total_rounds_played = {}
 
@@ -2745,19 +2776,22 @@ def generate_haneman_leaderboard_content(stats_dict, sorted_files, t, lang='zh')
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
-            names = data.get('name', [])
-            for name in names:
-                if name not in total_rounds_played:
-                    total_rounds_played[name] = 0
-                if name not in haneman_counts:
-                    haneman_counts[name] = 0
+            # 获取玩家列表并归一化为主ID
+            raw_names = data.get('name', [])
+            main_ids = [normalize_player_name(name, alias_map) for name in raw_names]
+
+            for main_id in main_ids:
+                if main_id not in total_rounds_played:
+                    total_rounds_played[main_id] = 0
+                if main_id not in haneman_counts:
+                    haneman_counts[main_id] = 0
 
             for round_data in data.get('log', []):
                 if not isinstance(round_data, list) or len(round_data) < 3:
                     continue
 
-                for name in names:
-                    total_rounds_played[name] = total_rounds_played.get(name, 0) + 1
+                for main_id in main_ids:
+                    total_rounds_played[main_id] = total_rounds_played.get(main_id, 0) + 1
 
                 last_action = round_data[-1]
                 if not isinstance(last_action, list) or len(last_action) < 3:
@@ -2782,20 +2816,23 @@ def generate_haneman_leaderboard_content(stats_dict, sorted_files, t, lang='zh')
                             is_haneman_plus = True
 
                         if is_haneman_plus:
-                            winner_name = names[winner_seat] if winner_seat < len(names) else None
-                            if winner_name:
-                                haneman_counts[winner_name] = haneman_counts.get(winner_name, 0) + 1
+                            # 使用主ID统计
+                            winner_main_id = main_ids[winner_seat] if winner_seat < len(main_ids) else None
+                            if winner_main_id:
+                                haneman_counts[winner_main_id] = haneman_counts.get(winner_main_id, 0) + 1
         except Exception as e:
             continue
 
     # 计算频率
     leaderboard_data = []
     for name, stats in stats_dict.items():
-        total_rounds = total_rounds_played.get(name, 0)
+        # 获取主ID用于匹配统计数据
+        main_id = stats.get('main_id', name)
+        total_rounds = total_rounds_played.get(main_id, 0)
         if total_rounds <= 100:
             continue
 
-        haneman_count = haneman_counts.get(name, 0)
+        haneman_count = haneman_counts.get(main_id, 0)  # 使用主ID查询
         haneman_rate = (haneman_count / total_rounds) * 100 if total_rounds > 0 else 0
 
         leaderboard_data.append({
@@ -2808,10 +2845,10 @@ def generate_haneman_leaderboard_content(stats_dict, sorted_files, t, lang='zh')
     leaderboard_data.sort(key=lambda x: x['haneman_rate'], reverse=True)
 
     if lang == 'zh':
-        title = '跳满以上手牌频率排行榜'
+        title = '跳满以上手牌频率'
         header_count = '跳满以上次数'
     else:
-        title = 'Haneman+ Hand Rate Leaderboard'
+        title = 'Haneman+ Hand Rate'
         header_count = 'Haneman+ Wins'
 
     html = f'''
@@ -2854,7 +2891,10 @@ def generate_haneman_leaderboard_content(stats_dict, sorted_files, t, lang='zh')
 
 def generate_baiman_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
     """生成倍满以上手牌频率排行榜（8番以上）"""
-    # 统计每个玩家的倍满以上手牌次数和总小局数
+    # 加载别名映射
+    alias_map = load_player_aliases()
+
+    # 统计每个玩家的倍满以上手牌次数和总小局数（使用主ID）
     baiman_counts = {}
     total_rounds_played = {}
 
@@ -2864,19 +2904,24 @@ def generate_baiman_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
-            names = data.get('name', [])
-            for name in names:
-                if name not in total_rounds_played:
-                    total_rounds_played[name] = 0
-                if name not in baiman_counts:
-                    baiman_counts[name] = 0
+            # 获取玩家列表并归一化为主ID
+            raw_names = data.get('name', [])
+            main_ids = [normalize_player_name(name, alias_map) for name in raw_names]
+
+            # 初始化这些玩家的计数器（使用主ID）
+            for main_id in main_ids:
+                if main_id not in total_rounds_played:
+                    total_rounds_played[main_id] = 0
+                if main_id not in baiman_counts:
+                    baiman_counts[main_id] = 0
 
             for round_data in data.get('log', []):
                 if not isinstance(round_data, list) or len(round_data) < 3:
                     continue
 
-                for name in names:
-                    total_rounds_played[name] = total_rounds_played.get(name, 0) + 1
+                # 每个小局，所有参与玩家的小局数都+1（使用主ID）
+                for main_id in main_ids:
+                    total_rounds_played[main_id] = total_rounds_played.get(main_id, 0) + 1
 
                 last_action = round_data[-1]
                 if not isinstance(last_action, list) or len(last_action) < 3:
@@ -2899,24 +2944,28 @@ def generate_baiman_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
                             is_baiman_plus = True
 
                         if is_baiman_plus:
-                            winner_name = names[winner_seat] if winner_seat < len(names) else None
-                            if winner_name:
-                                baiman_counts[winner_name] = baiman_counts.get(winner_name, 0) + 1
+                            # 使用主ID统计
+                            winner_main_id = main_ids[winner_seat] if winner_seat < len(main_ids) else None
+                            if winner_main_id:
+                                baiman_counts[winner_main_id] = baiman_counts.get(winner_main_id, 0) + 1
         except Exception as e:
             continue
 
-    # 计算频率
+    # 计算每个人和倍满以上手牌的频率
     leaderboard_data = []
     for name, stats in stats_dict.items():
-        total_rounds = total_rounds_played.get(name, 0)
+        # 获取主ID用于匹配统计数据
+        main_id = stats.get('main_id', name)
+        total_rounds = total_rounds_played.get(main_id, 0)
         if total_rounds <= 100:
             continue
 
-        baiman_count = baiman_counts.get(name, 0)
+        # 获取倍满以上手牌次数（使用主ID查询）
+        baiman_count = baiman_counts.get(main_id, 0)
         baiman_rate = (baiman_count / total_rounds) * 100 if total_rounds > 0 else 0
 
         leaderboard_data.append({
-            'name': name,
+            'name': name,  # 显示名称（带括号的完整格式）
             'baiman_count': baiman_count,
             'total_rounds': total_rounds,
             'baiman_rate': baiman_rate
@@ -2925,10 +2974,10 @@ def generate_baiman_leaderboard_content(stats_dict, sorted_files, t, lang='zh'):
     leaderboard_data.sort(key=lambda x: x['baiman_rate'], reverse=True)
 
     if lang == 'zh':
-        title = '倍满以上手牌频率排行榜'
+        title = '倍满以上手牌频率'
         header_count = '倍满以上次数'
     else:
-        title = 'Baiman+ Hand Rate Leaderboard'
+        title = 'Baiman+ Hand Rate'
         header_count = 'Baiman+ Wins'
 
     html = f'''
