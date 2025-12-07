@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tyr - Session Tracker</title>
+    <style>
+        /* Tyr Theme Variables */
+        :root {
+            --page-bg: #bbb;
+            --element-bg: #ddd;
+            --element-highlight: #bbb;
+            --panels-bg: #ddd;
+            --color-text-primary: #222;
+            --color-text-slight: #666;
+            --color-text-contrast: #ddd;
+            --border-color: #333;
+            --border-color-disabled: #888;
+            --color-success: #0da678;
+            --color-danger: #d32b2b;
+            --color-action: #75e;
+            --color-riichi: #d32b2b;
+            --font-sm: 14px;
+            --font-md: 18px;
+            --font-lg: 22px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 16px;
+            background: var(--page-bg);
+            color: var(--color-text-primary);
+            user-select: none;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .app-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Views */
+        .view {
+            display: none;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .view.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #mainView.active {
+            /* Ensure bottom panel is always visible */
+            position: relative;
+        }
+
+        /* Main View - Four Sided */
+        .main-area {
+            position: relative;
+            overflow: hidden;
+            height: calc(100vh - 80px); /* Fixed height, reserve space for bottom panel */
+            width: 100%;
+        }
+
+        .main-area svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .center-area, .top-area, .left-area, .right-area, .bottom-area {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .center-area {
+            left: -50%;
+            top: -50%;
+            height: 100%;
+            width: 100%;
+        }
+
+        .top-area {
+            transform: rotate(180deg);
+            transform-origin: top;
+            left: -50%;
+            top: 100%;
+            height: 100%;
+            width: 100%;
+            align-items: flex-end;
+        }
+
+        .left-area {
+            transform: rotate(90deg);
+            transform-origin: top;
+            left: -25%;
+            top: 0;
+            height: calc(100% - 16px);
+            width: 100%;
+            align-items: flex-end;
+            padding-bottom: 10px;
+        }
+
+        .right-area {
+            transform: rotate(-90deg);
+            transform-origin: top;
+            left: -75%;
+            top: 0;
+            height: calc(100% - 16px);
+            width: 100%;
+            align-items: flex-end;
+        }
+
+        .bottom-area {
+            left: -50%;
+            top: -100%;
+            height: 100%;
+            width: 100%;
+            align-items: flex-end;
+        }
+
+        .player-place {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .player-role-buttons {
+            display: none;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .player-role-buttons.show {
+            display: flex;
+        }
+
+        .inline-role-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--element-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.05s;
+        }
+
+        .inline-role-btn.selected {
+            background: var(--color-action);
+            border-color: var(--color-action);
+            color: white;
+        }
+
+        .inline-role-btn.riichi.selected {
+            background: var(--color-riichi);
+            border-color: var(--color-riichi);
+        }
+
+        .inline-role-btn:active {
+            transform: scale(0.95);
+        }
+
+        .player-name {
+            font-size: var(--font-md);
+            font-weight: 600;
+        }
+
+        .player-points {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+        }
+
+        .player-points.positive { color: var(--color-success); }
+        .player-points.negative { color: var(--color-danger); }
+        .player-points.active { color: var(--color-action); }
+
+        .wind-indicator {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: var(--font-sm);
+            margin-left: 4px;
+        }
+
+        .wind-east { background: #d38282; }
+        .wind-south { background: #ded789; }
+        .wind-west { background: #86cb86; }
+        .wind-north { background: #a1a1d9; }
+
+        .table-status {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 20px;
+        }
+
+        .round-index {
+            font-size: 36px;
+            font-weight: 600;
+        }
+
+        .sticks {
+            display: flex;
+            gap: 20px;
+            font-size: var(--font-lg);
+        }
+
+        .stick-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Bottom Panel */
+        .bottom-panel {
+            background: var(--panels-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 -2px 7px 0 rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+            min-height: 80px;
+            position: relative;
+            z-index: 100; /* Ensure it's above the SVG */
+        }
+
+        .bottom-panel-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .outcome-hint {
+            text-align: center;
+            font-size: var(--font-sm);
+            color: var(--color-text-slight);
+            display: none;
+        }
+
+        .outcome-hint.show {
+            display: block;
+        }
+
+        .bottom-btn {
+            flex: 1;
+            height: 60px;
+            background: var(--element-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 32px;
+            transition: all 0.05s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bottom-btn:active {
+            background: var(--color-action);
+            color: var(--color-text-contrast);
+        }
+
+        /* Outcome Selection View */
+        .outcome-view {
+            background: var(--panels-bg);
+            padding: 20px;
+        }
+
+        .outcome-title {
+            font-size: var(--font-lg);
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .outcome-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .outcome-btn {
+            padding: 20px;
+            background: var(--element-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: var(--font-lg);
+            transition: all 0.05s ease-out;
+        }
+
+        .outcome-btn:active {
+            background: var(--color-action);
+            color: var(--color-text-contrast);
+        }
+
+        /* Player Role Selection View */
+        .role-view {
+            background: var(--panels-bg);
+            padding: 20px;
+        }
+
+        .role-title {
+            font-size: var(--font-lg);
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .role-hint {
+            font-size: var(--font-sm);
+            color: var(--color-text-slight);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .player-role-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--element-bg);
+            border-radius: 5px;
+        }
+
+        .player-role-name {
+            flex: 1;
+            font-size: var(--font-md);
+            font-weight: 600;
+        }
+
+        .role-btn {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.05s;
+        }
+
+        .role-btn.selected {
+            background: var(--color-action);
+            border-color: var(--color-action);
+            color: white;
+        }
+
+        .role-btn.riichi.selected {
+            background: var(--color-riichi);
+            border-color: var(--color-riichi);
+        }
+
+        .continue-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--color-action);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: var(--font-lg);
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .continue-btn:disabled {
+            background: var(--border-color-disabled);
+            cursor: not-allowed;
+        }
+
+        /* Hand Selection View (Like game_recorder) */
+        .hand-view {
+            display: flex;
+            flex-direction: column;
+            background: var(--panels-bg);
+            height: 100%;
+        }
+
+        .hand-header {
+            background: var(--element-bg);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hand-title {
+            font-size: var(--font-lg);
+            font-weight: 600;
+        }
+
+        .back-link {
+            color: var(--color-action);
+            text-decoration: none;
+            font-size: var(--font-sm);
+            cursor: pointer;
+        }
+
+        .open-hand-toggle {
+            margin: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 6px 14px;
+            background: var(--element-bg);
+            color: var(--color-text-primary);
+            text-align: center;
+            cursor: pointer;
+            font-size: var(--font-lg);
+            transition: all 0.05s ease-out;
+        }
+
+        .open-hand-toggle:active,
+        .open-hand-toggle.active {
+            background: var(--color-action);
+            color: var(--color-text-contrast);
+        }
+
+        .yaku-scroll-wrapper {
+            position: relative;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .before-yaku {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            box-shadow: 0 2px 7px 0 rgba(0, 0, 0, 0.2);
+            background-color: var(--page-bg);
+            transition: all 0.3s ease-in-out;
+            z-index: 1;
+        }
+
+        .before-yaku.no-shadow {
+            box-shadow: none;
+        }
+
+        .yaku-list {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: stretch;
+            align-content: flex-start;
+            gap: 4px;
+            overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .yaku-list::-webkit-scrollbar {
+            display: none;
+        }
+
+        .yaku-toggle {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 4px 10px;
+            transition: all 0.05s ease-out;
+            background: var(--element-bg);
+            color: var(--color-text-primary);
+            cursor: pointer;
+            justify-content: center;
+            font-size: var(--font-lg);
+            flex: 1;
+            min-width: calc(50% - 2px);
+            max-width: calc(50% - 2px);
+        }
+
+        .yaku-toggle.selected {
+            background: var(--color-action);
+            color: var(--color-text-contrast);
+        }
+
+        .yaku-toggle.disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .bottom-section {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 -2px 7px 0 rgba(0, 0, 0, 0.2);
+            background: var(--panels-bg);
+        }
+
+        .selectors {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .number-select {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            user-select: none;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--element-bg);
+            flex: 1;
+        }
+
+        .number-select.disabled {
+            border: 1px solid var(--border-color-disabled);
+            opacity: 0.5;
+        }
+
+        .number-btn {
+            color: var(--color-text-primary);
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+        }
+
+        .number-btn:active {
+            background: var(--element-highlight);
+        }
+
+        .number-value {
+            flex: 1;
+            text-align: center;
+            font-size: var(--font-md);
+            color: var(--color-text-primary);
+        }
+
+        .stats {
+            width: 100%;
+            text-align: center;
+            font-size: var(--font-lg);
+            font-weight: 600;
+            padding: 8px;
+            background: var(--element-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .submit-hand-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--color-success);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: var(--font-lg);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .submit-hand-btn:disabled {
+            background: var(--border-color-disabled);
+            cursor: not-allowed;
+        }
+
+        /* Mobile specific fixes */
+        @media (max-width: 768px) {
+            .main-area {
+                height: calc(100vh - 80px);
+                height: calc(var(--vh, 1vh) * 100 - 80px); /* Use custom vh for mobile */
+            }
+
+            .bottom-panel {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+            }
+
+            #mainView.active {
+                padding-bottom: 80px; /* Space for fixed bottom panel */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Main View: Four-sided display -->
+        <div class="view active" id="mainView">
+            <div class="main-area">
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                    <foreignObject id="center" x="50%" y="50%" width="60%" height="60%" style="overflow: visible;">
+                        <div class="center-area">
+                            <div class="table-status">
+                                <div class="round-index" id="roundIndex">東1</div>
+                                <div class="sticks">
+                                    <div class="stick-item">
+                                        <span>🀫</span>
+                                        <span id="riichiCount">0</span>
+                                    </div>
+                                    <div class="stick-item">
+                                        <span>本</span>
+                                        <span id="honbaCount">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </foreignObject>
+                    <foreignObject id="top" x="50%" y="0" style="overflow: visible; height: 25%; width: 100%;">
+                        <div class="top-area">
+                            <div class="player-place" id="player0"></div>
+                        </div>
+                    </foreignObject>
+                    <foreignObject id="left" x="0%" y="50%" style="overflow: visible; height: 25vw; width: 100%;">
+                        <div class="left-area">
+                            <div class="player-place" id="player3"></div>
+                        </div>
+                    </foreignObject>
+                    <foreignObject id="right" x="100%" y="50%" style="overflow: visible; height: 25vw; width: 100%;">
+                        <div class="right-area">
+                            <div class="player-place" id="player1"></div>
+                        </div>
+                    </foreignObject>
+                    <foreignObject id="bottom" x="50%" y="100%" style="overflow: visible; height: 25%; width: 100%;">
+                        <div class="bottom-area">
+                            <div class="player-place" id="player2"></div>
+                        </div>
+                    </foreignObject>
+                </svg>
+            </div>
+            <div class="bottom-panel" id="mainBottomPanel">
+                <div class="outcome-hint" id="outcomeHint"></div>
+                <div class="bottom-panel-row" id="mainButtons">
+                    <button class="bottom-btn" onclick="showOutcomeSelection()">+</button>
+                    <button class="bottom-btn">-</button>
+                </div>
+                <div class="bottom-panel-row" id="continueButtons" style="display: none;">
+                    <button class="bottom-btn" onclick="cancelRoleSelection()" style="background: var(--border-color);">取消</button>
+                    <button class="bottom-btn" id="continueToHandBtn" onclick="continueToHandSelection()" disabled style="background: var(--color-success); color: white;">继续</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Outcome Selection View -->
+        <div class="view" id="outcomeView">
+            <div class="outcome-view">
+                <div class="outcome-title">选择结果类型</div>
+                <div class="outcome-buttons">
+                    <button class="outcome-btn" onclick="selectOutcomeType('ron')">荣和 Ron</button>
+                    <button class="outcome-btn" onclick="selectOutcomeType('tsumo')">自摸 Tsumo</button>
+                    <button class="outcome-btn" onclick="selectOutcomeType('draw')">流局 Draw</button>
+                    <button class="outcome-btn" onclick="selectOutcomeType('nagashi')">流满 Nagashi</button>
+                </div>
+                <button class="continue-btn" onclick="backToMain()" style="background: var(--border-color); margin-top: 40px;">取消</button>
+            </div>
+        </div>
+
+        <!-- Player Role Selection View -->
+        <div class="view" id="roleView">
+            <div class="role-view">
+                <div class="role-title" id="roleTitle">选择玩家</div>
+                <div class="role-hint" id="roleHint"></div>
+                <div id="roleList"></div>
+                <button class="continue-btn" id="continueBtn" onclick="continueToHandSelection()" disabled>继续</button>
+                <button class="continue-btn" onclick="backToOutcome()" style="background: var(--border-color); margin-top: 10px;">返回</button>
+            </div>
+        </div>
+
+        <!-- Hand Selection View -->
+        <div class="view" id="handView">
+            <div class="hand-view">
+                <div class="hand-header">
+                    <div class="hand-title">选择役</div>
+                    <a class="back-link" onclick="backToRoleSelection()">返回</a>
+                </div>
+
+                <div class="open-hand-toggle" id="openHandToggle" onclick="toggleOpenHand()">
+                    <span id="openHandText">門前 (Menzen)</span>
+                </div>
+
+                <div class="yaku-scroll-wrapper">
+                    <div class="before-yaku" id="topShadow"></div>
+                    <div class="yaku-list" id="yakuList" onscroll="handleScroll()"></div>
+                </div>
+
+                <div class="bottom-section" id="bottomSection">
+                    <div class="selectors">
+                        <div class="number-select" id="fuSelector">
+                            <button class="number-btn" onclick="changeFu(-1)">‹</button>
+                            <div class="number-value" id="fuValue">30 符</div>
+                            <button class="number-btn" onclick="changeFu(1)">›</button>
+                        </div>
+                        <div class="number-select">
+                            <button class="number-btn" onclick="changeDora(-1)">‹</button>
+                            <div class="number-value" id="doraValue">Dora 0</div>
+                            <button class="number-btn" onclick="changeDora(1)">›</button>
+                        </div>
+                    </div>
+                    <div class="stats" id="statsDisplay">0 han</div>
+                    <button class="submit-hand-btn" id="submitHandBtn" onclick="submitHand()" disabled>确认并记录</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game_logic.js"></script>
+</body>
+</html>
