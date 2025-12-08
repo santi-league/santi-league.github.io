@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玩家卡片生成器测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-radius: 10px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .player-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .player-card h3 {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-value.large {
+            font-size: 32px;
+        }
+
+        .section {
+            margin-top: 25px;
+        }
+
+        .section h4 {
+            color: #555;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
+        .section p {
+            line-height: 1.8;
+            color: #666;
+        }
+
+        .section ul {
+            margin-left: 20px;
+            line-height: 1.8;
+            color: #666;
+        }
+
+        .rank-bars {
+            margin-top: 10px;
+        }
+
+        .rank-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .rank-label {
+            width: 50px;
+            font-weight: bold;
+        }
+
+        .bar-container {
+            flex: 1;
+            position: relative;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 5px;
+        }
+
+        .bar-1 { background: linear-gradient(90deg, #28a745, #5cb85c); }
+        .bar-2 { background: linear-gradient(90deg, #17a2b8, #5bc0de); }
+        .bar-3 { background: linear-gradient(90deg, #ffc107, #ffda6a); }
+        .bar-4 { background: linear-gradient(90deg, #dc3545, #e66a73); }
+
+        .bar-text {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .yaku-list {
+            columns: 2;
+            column-gap: 20px;
+        }
+
+        .yaku-list li {
+            break-inside: avoid;
+            margin-bottom: 5px;
+        }
+
+        .vs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .vs-table th {
+            background: #667eea;
+            color: white;
+            padding: 10px 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .vs-table td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .vs-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .vs-table .opponent-name {
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .vs-table .opponent-link {
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .vs-table .opponent-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .vs-table .positive {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .vs-table .negative {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .vs-table .neutral {
+            color: #666;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            border-left: 4px solid #667eea;
+        }
+
+        .summary-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .summary-value.negative {
+            color: #dc3545;
+        }
+
+        .league-avg {
+            font-size: 13px;
+            color: #888;
+            margin-left: 8px;
+            font-weight: normal;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .stats-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stats-table th {
+            color: white;
+            padding: 12px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .stats-table td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 16px;
+        }
+
+        .stats-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .stats-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .stats-table .type-label {
+            font-weight: 600;
+            color: #555;
+            text-align: left;
+        }
+
+        .stats-table .points-value {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .stats-table .special-stats {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stats-table .rate-good {
+            color: #28a745;
+            font-weight: 600;
+            font-size: 17px;
+        }
+
+        .stats-table .rate-bad {
+            color: #dc3545;
+            font-weight: 600;
+            font-size: 17px;
+        }
+
+        .stats-table .rate-neutral {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .test-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .test-controls button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .test-controls button:hover {
+            background: #764ba2;
+        }
+
+        .test-controls button:active {
+            transform: translateY(1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>玩家卡片生成器测试</h1>
+        <p>测试 player-card-generator.js 函数</p>
+    </div>
+
+    <div class="container">
+        <div class="test-controls">
+            <h3>测试控制</h3>
+            <button onclick="testFullCard()">测试完整卡片</button>
+            <button onclick="testStatsGrid()">测试统计网格</button>
+            <button onclick="testRankBars()">测试名次分布</button>
+            <button onclick="testWinStats()">测试和了统计</button>
+            <button onclick="testRiichiMeld()">测试立直副露</button>
+            <button onclick="testMatchups()">测试对战表格</button>
+            <button onclick="clearOutput()">清空输出</button>
+        </div>
+
+        <div id="output"></div>
+    </div>
+
+    <!-- 引入生成器脚本 -->
+    <script src="player-card-generator.js"></script>
+
+    <script>
+        // 测试数据
+        const testData = {
+            playerName: "santi",
+            basicStats: {
+                rValue: 1561.16,
+                totalPoints: 102300,
+                avgRank: 2.46,
+                gameCount: 185
+            },
+            rankDistribution: {
+                rank1: { count: 48, percentage: 25.95 },
+                rank2: { count: 42, percentage: 22.7 },
+                rank3: { count: 56, percentage: 30.27 },
+                rank4: { count: 39, percentage: 21.08 }
+            },
+            winStats: {
+                overall: {
+                    count: 455,
+                    rate: 21.2,
+                    avgPoints: 6355,
+                    leagueAvgRate: 21.4,
+                    leagueAvgPoints: 6298
+                },
+                riichi: {
+                    count: 234,
+                    avgPoints: 7505,
+                    leagueAvgPoints: 7706,
+                    ippatsu: {
+                        count: 39,
+                        rate: 16.7,
+                        leagueAvgRate: 20.4
+                    },
+                    uraDora: {
+                        count: 77,
+                        rate: 32.9,
+                        leagueAvgRate: 30.6
+                    }
+                },
+                meld: {
+                    count: 177,
+                    avgPoints: 4633,
+                    leagueAvgPoints: 4640
+                },
+                damaten: {
+                    count: 44,
+                    avgPoints: 7166,
+                    leagueAvgPoints: 6736
+                },
+                // 测试可选字段
+                tsumoOnly: {
+                    count: 3,
+                    avgPoints: 10300,
+                    leagueAvgPoints: 4890
+                }
+            },
+            riichiAndMeld: {
+                riichi: {
+                    count: 488,
+                    rate: 22.8,
+                    leagueAvgRate: 21.8,
+                    winRate: 48.0,
+                    drawRate: 12.3,
+                    dealInRate: 15.8,
+                    sideRate: 24.0,
+                    leagueAvgWinRate: 46.3,
+                    leagueAvgDealInRate: 15.3
+                },
+                meld: {
+                    count: 689,
+                    rate: 32.1,
+                    leagueAvgRate: 31.7,
+                    winRate: 25.7,
+                    drawRate: 17.1,
+                    dealInRate: 13.9,
+                    sideRate: 43.2,
+                    leagueAvgWinRate: 29.2,
+                    leagueAvgDealInRate: 13.1
+                }
+            },
+            dealInStats: {
+                count: 284,
+                rate: 13.2,
+                avgPoints: 5392,
+                leagueAvgRate: 13.3,
+                leagueAvgPoints: 5655
+            },
+            matchups: [
+                {
+                    opponent: "姫野婭也",
+                    gameCount: 106,
+                    winRate: 56.6,
+                    winPoints: 369700,
+                    dealInPoints: 296000,
+                    netWinDealIn: 73700,
+                    totalPointDiff: 472100,
+                    hasLink: false
+                },
+                {
+                    opponent: "南美雀后",
+                    gameCount: 97,
+                    winRate: 51.5,
+                    winPoints: 311900,
+                    dealInPoints: 187900,
+                    netWinDealIn: 124000,
+                    totalPointDiff: 507800,
+                    hasLink: true
+                },
+                {
+                    opponent: "RinshanNomi",
+                    gameCount: 95,
+                    winRate: 44.2,
+                    winPoints: 332100,
+                    dealInPoints: 342400,
+                    netWinDealIn: -10300,
+                    totalPointDiff: -876700,
+                    hasLink: false
+                }
+            ],
+            yakuStats: [
+                { name: "立直", count: 233, rate: 51.21, leagueAvgRate: 46.79 },
+                { name: "役牌", count: 160, rate: 35.16, leagueAvgRate: 40.7 },
+                { name: "断幺九", count: 101, rate: 22.2, leagueAvgRate: 20.12 },
+                { name: "门前清自摸和", count: 98, rate: 21.54, leagueAvgRate: 23.52 },
+                { name: "平和", count: 95, rate: 20.88, leagueAvgRate: 21.3 },
+                { name: "一杯口", count: 19, rate: 4.18, leagueAvgRate: 4.44 },
+                { name: "七对子", count: 18, rate: 3.96, leagueAvgRate: 2.87 },
+                { name: "混一色", count: 16, rate: 3.52, leagueAvgRate: 5.87 },
+                { name: "三色同顺", count: 10, rate: 2.2, leagueAvgRate: 2.93 },
+                { name: "对对和", count: 5, rate: 1.1, leagueAvgRate: 2.5 }
+            ],
+            exhaustiveDraw: {
+                totalDraws: 284,
+                tenpaCount: 136,
+                tenpaRate: 47.9,
+                leagueAvgTenpaRate: 46.3
+            }
+        };
+
+        const output = document.getElementById('output');
+
+        function testFullCard() {
+            console.log('测试完整卡片');
+            const html = createPlayerCard(testData);
+            output.innerHTML = html;
+        }
+
+        function testStatsGrid() {
+            console.log('测试统计网格');
+            const html = createStatsGrid(testData.basicStats);
+            output.innerHTML = `<div class="player-card"><h3>基本统计测试</h3>${html}</div>`;
+        }
+
+        function testRankBars() {
+            console.log('测试名次分布');
+            const html = createRankBars(testData.rankDistribution);
+            output.innerHTML = `<div class="player-card"><h3>名次分布测试</h3><div class="section"><h4>名次分布</h4>${html}</div></div>`;
+        }
+
+        function testWinStats() {
+            console.log('测试和了统计');
+            const html = createWinStatsSection(testData.winStats);
+            output.innerHTML = `<div class="player-card"><h3>和了统计测试</h3>${html}</div>`;
+        }
+
+        function testRiichiMeld() {
+            console.log('测试立直副露');
+            const html = createRiichiMeldSection(testData.riichiAndMeld);
+            output.innerHTML = `<div class="player-card"><h3>立直副露测试</h3>${html}</div>`;
+        }
+
+        function testMatchups() {
+            console.log('测试对战表格');
+            const html = createMatchupsTable(testData.matchups);
+            output.innerHTML = `<div class="player-card"><h3>对战情况测试</h3><div class="section"><h4>对战情况</h4>${html}</div></div>`;
+        }
+
+        function clearOutput() {
+            output.innerHTML = '';
+        }
+
+        // 页面加载时自动显示完整卡片
+        window.onload = function() {
+            testFullCard();
+        };
+    </script>
+</body>
+</html>

@@ -237,9 +237,12 @@ def extract_honor_games(folder, recursive=True):
                         finish_text = '自摸' if is_tsumo else '荣和'
 
                         # 构造主要役信息
-                        main_desc = '三倍满'
-                        honor_type = 'yakuman' if ('役満' in point_desc or 'Yakuman' in point_desc) else 'sanbaiman'
-                        if honor_type == 'yakuman':
+                        # 特殊处理：Kazoe Yakuman 应该显示为三倍满
+                        if 'Kazoe Yakuman' in point_desc:
+                            main_desc = '三倍满'
+                            honor_type = 'sanbaiman'
+                        elif '役満' in point_desc or 'Yakuman' in point_desc:
+                            honor_type = 'yakuman'
                             base_name = None
                             for yaku in yaku_list:
                                 base = yaku.split('(')[0]
@@ -250,6 +253,10 @@ def extract_honor_games(folder, recursive=True):
                                 main_desc = f"{base_name}役满"
                             else:
                                 main_desc = "役满"
+                        else:
+                            main_desc = '三倍满'
+                            honor_type = 'sanbaiman'
+
                         title_suffix = f"{winner}的{main_desc}{finish_text}"
 
                         # 生成天凤URL（需要深拷贝以避免修改原始数据）

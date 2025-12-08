@@ -1931,15 +1931,65 @@ def generate_honor_games_content_for_tabs(honor_games, t, lang='zh'):
 
     honor_cards = ""
     for game in honor_games:
+        # 翻译役种，对宝牌保留飜数
         yaku_list = game.get('yaku_list', [])
-        if lang == 'zh':
-            translated_yaku = ', '.join([YAKU_TRANSLATION.get(y.split('(')[0], y) for y in yaku_list])
-        else:
-            translated_yaku = ', '.join([YAKU_TRANSLATION_EN.get(y.split('(')[0], y) if '(' in y else y for y in yaku_list])
+        translated_yaku_parts = []
+        total_han = 0  # 计算总番数
 
+        for y in yaku_list:
+            if '(' in y:
+                yaku_name = y.split('(')[0]
+                yaku_han = y.split('(')[1].rstrip(')')  # 提取飜数，如 "5飜"
+
+                # 提取数字部分并累加
+                han_num_str = yaku_han.replace('飜', '').replace('番', '').replace('役満', '')
+                if han_num_str and han_num_str.isdigit():
+                    total_han += int(han_num_str)
+
+                # 对于宝牌类型，保留飜数显示
+                if yaku_name in ['Dora', 'Ura Dora', 'Red Five']:
+                    if lang == 'zh':
+                        translated_name = YAKU_TRANSLATION.get(yaku_name, yaku_name)
+                        # 提取数字部分
+                        han_num = yaku_han.replace('飜', '').replace('番', '')
+                        translated_yaku_parts.append(f"{translated_name}x{han_num}")
+                    else:
+                        translated_name = YAKU_TRANSLATION_EN.get(yaku_name, yaku_name)
+                        han_num = yaku_han.replace('飜', '').replace('番', '')
+                        translated_yaku_parts.append(f"{translated_name}x{han_num}")
+                else:
+                    # 其他役种不显示飜数
+                    if lang == 'zh':
+                        translated_yaku_parts.append(YAKU_TRANSLATION.get(yaku_name, yaku_name))
+                    else:
+                        translated_yaku_parts.append(YAKU_TRANSLATION_EN.get(yaku_name, yaku_name))
+            else:
+                # 没有飜数的役种
+                if lang == 'zh':
+                    translated_yaku_parts.append(YAKU_TRANSLATION.get(y, y))
+                else:
+                    translated_yaku_parts.append(YAKU_TRANSLATION_EN.get(y, y))
+
+        # 添加总番数（如果有的话）
+        if total_han > 0:
+            han_text = f"{total_han}番" if lang == 'zh' else f"{total_han}han"
+            translated_yaku = f"{han_text}: " + ', '.join(translated_yaku_parts)
+        else:
+            translated_yaku = ', '.join(translated_yaku_parts)
+
+        # 处理 game_type，将 Kazoe Yakuman 视为三倍满
+        point_desc = game.get('point_desc', '')
         game_type = game.get('type', 'yakuman')
-        game_type_text = t['yakuman'] if game_type == 'yakuman' else t['sanbaiman']
-        game_type_class = 'yakuman' if game_type == 'yakuman' else 'sanbaiman'
+
+        # 如果 point_desc 包含 "Kazoe Yakuman"，替换为三倍满
+        if 'Kazoe Yakuman' in point_desc:
+            game_type = 'sanbaiman'
+            game_type_text = t['sanbaiman']  # "三倍满"
+            game_type_class = 'sanbaiman'
+        else:
+            game_type_text = t['yakuman'] if game_type == 'yakuman' else t['sanbaiman']
+            game_type_class = 'yakuman' if game_type == 'yakuman' else 'sanbaiman'
+
         escaped_url = html_module.escape(game['tenhou_url'], quote=True)
 
         honor_cards += f"""
