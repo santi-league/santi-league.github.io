@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="{lang_code}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <style>
+{css_content}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="{other_stats_page}" class="lang-switch">{switch_lang_text}</a>
+        <h1>{title}</h1>
+        {date_info}
+        <a href="{current_index}" class="back-link">{back_home_text}</a>
+    </div>
+
+    <div class="container">
+        <!-- 标签页导航 -->
+        <div class="tabs-nav">
+            <button class="tab-button active" onclick="switchTab('recent')">{tab_recent}</button>
+            <button class="tab-button" onclick="switchTab('honor')">{tab_honor}</button>
+            <button class="tab-button" onclick="switchTab('ranking')">{tab_ranking}</button>
+            <button class="tab-button" onclick="switchTab('leaderboard')">{tab_leaderboard}</button>
+            <button class="tab-button" onclick="switchTab('players')">{tab_players}</button>
+        </div>
+
+        <!-- 牌谱历史标签页 -->
+        <div id="tab-recent" class="tab-content active">
+            {recent_content}
+        </div>
+
+        <!-- 荣誉牌谱标签页 -->
+        <div id="tab-honor" class="tab-content">
+            {honor_content}
+        </div>
+
+        <!-- 总排名标签页 -->
+        <div id="tab-ranking" class="tab-content">
+            {ranking_content}
+        </div>
+
+        <!-- 排行榜标签页 -->
+        <div id="tab-leaderboard" class="tab-content">
+            {leaderboard_content}
+        </div>
+
+        <!-- 玩家详情标签页 -->
+        <div id="tab-players" class="tab-content">
+            <div class="player-selector">
+                <label for="playerSelect">{select_player_label}:</label>
+                <select id="playerSelect" onchange="showPlayerDetails()">
+                    <option value="">{choose_player}</option>
+                    {player_options}
+                </select>
+            </div>
+
+            <div id="playerDetailsContainer">
+                <p class="select-player-prompt">{select_player_prompt}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 玩家数据
+        const playersData = {players_data_json};
+
+        // 标签页切换功能
+        function switchTab(tabName) {{
+            // 隐藏所有标签页内容
+            const allContents = document.querySelectorAll('.tab-content');
+            allContents.forEach(content => {{
+                content.classList.remove('active');
+            }});
+
+            // 移除所有按钮的active类
+            const allButtons = document.querySelectorAll('.tab-button');
+            allButtons.forEach(button => {{
+                button.classList.remove('active');
+            }});
+
+            // 显示选中的标签页
+            document.getElementById(`tab-${{tabName}}`).classList.add('active');
+            event.target.classList.add('active');
+
+            // 保存当前标签到localStorage
+            localStorage.setItem('activeTab', tabName);
+        }}
+
+        // 显示玩家详情
+        function showPlayerDetails() {{
+            const selectElement = document.getElementById('playerSelect');
+            const playerName = selectElement.value;
+            const container = document.getElementById('playerDetailsContainer');
+
+            if (!playerName) {{
+                container.innerHTML = '<p class="select-player-prompt">{select_player_prompt}</p>';
+                return;
+            }}
+
+            const playerHTML = playersData[playerName];
+            if (playerHTML) {{
+                container.innerHTML = playerHTML;
+            }}
+        }}
+
+        // 页面加载时恢复上次选择的标签
+        window.addEventListener('DOMContentLoaded', function() {{
+            const savedTab = localStorage.getItem('activeTab');
+            if (savedTab) {{
+                const tabButton = document.querySelector(`.tab-button[onclick="switchTab('${{savedTab}}')"]`);
+                if (tabButton) {{
+                    document.querySelector('.tab-content.active').classList.remove('active');
+                    document.querySelector('.tab-button.active').classList.remove('active');
+                    document.getElementById(`tab-${{savedTab}}`).classList.add('active');
+                    tabButton.classList.add('active');
+                }}
+            }}
+        }});
+    </script>
+</body>
+</html>

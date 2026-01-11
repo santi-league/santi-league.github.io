@@ -52,6 +52,7 @@ YAKU_DICT = {
     "Half Outside Hand": "混全帯幺九",
     "Fully Outside Hand": "純全帯幺九",
     "After a Kan": "嶺上開花",
+    "Robbing a Kan": "搶槓",
     "Under the Sea": "海底摸月",
     "Under the River": "河底撈魚",
     "Half Flush": "混一色",
@@ -71,6 +72,12 @@ YAKU_DICT = {
     "Nine Gates": "九蓮宝燈",
     "Four Winds": "四風連打",
     "Four Kans": "四槓子"
+}
+
+# 稀有役种列表（除了役满和三倍满之外的特殊役）
+RARE_YAKU = {
+    "Robbing a Kan",                # 抢杠
+    "Twice Pure Double Sequence",  # 两杯口
 }
 
 # 役种英文到中文（简体）名称，用于标题
@@ -93,6 +100,9 @@ YAKU_NAME_CN = {
     "Seven Pairs": "七对子",
     "Little Four Winds": "小四喜",
     "Big Four Winds": "大四喜",
+    "Robbing a Kan": "抢杠",
+    "After a Kan": "岭上开花",
+    "Twice Pure Double Sequence": "两杯口",
 }
 
 def parse_round_name(round_info):
@@ -178,8 +188,9 @@ def generate_tenhou_url(round_data, game_data, title_suffix=None):
     return f"https://tenhou.net/5/#json={json_str}"
 
 def extract_honor_games(folder, recursive=True):
-    """提取所有役满和三倍满的牌谱"""
-    honor_games = []
+    """提取所有役满、三倍满和稀有役种的牌谱"""
+    yakuman_sanbaiman_games = []  # 役满和三倍满
+    rare_yaku_games = []  # 稀有役种
 
     # 扫描所有JSON文件
     if recursive:
@@ -218,25 +229,37 @@ def extract_honor_games(folder, recursive=True):
                     win_info = last_element[2]
                     point_desc = win_info[3] if len(win_info) > 3 else ''
 
+                    winner_idx = win_info[0]
+                    winner = players[winner_idx] if winner_idx < len(players) else 'Unknown'
+
+                    # 提取役种
+                    yaku_list = win_info[4:] if len(win_info) > 4 else []
+                    yaku_str = ', '.join(yaku_list)
+
+                    # 判断自摸或荣和
+                    deltas = last_element[1] if len(last_element) > 1 else []
+                    is_tsumo = False
+                    if isinstance(deltas, list):
+                        negatives = sum(1 for d in deltas if isinstance(d, (int, float)) and d < 0)
+                        is_tsumo = negatives >= 3
+
+                    finish_text = '自摸' if is_tsumo else '荣和'
+
+                    # 检查是否包含稀有役种
+                    has_rare_yaku = False
+                    rare_yaku_found = []
+                    for yaku in yaku_list:
+                        base = yaku.split('(')[0]
+                        if base in RARE_YAKU:
+                            has_rare_yaku = True
+                            rare_yaku_found.append(base)
+
                     # 检查是否是役满或三倍满
-                    if '役満' in point_desc or 'Yakuman' in point_desc or 'Sanbaiman' in point_desc:
-                        winner_idx = win_info[0]
-                        winner = players[winner_idx] if winner_idx < len(players) else 'Unknown'
+                    is_yakuman_or_sanbaiman = '役満' in point_desc or 'Yakuman' in point_desc or 'Sanbaiman' in point_desc
 
-                        # 提取役种
-                        yaku_list = win_info[4:] if len(win_info) > 4 else []
-                        yaku_str = ', '.join(yaku_list)
-
-                        # 判断自摸或荣和
-                        deltas = last_element[1] if len(last_element) > 1 else []
-                        is_tsumo = False
-                        if isinstance(deltas, list):
-                            negatives = sum(1 for d in deltas if isinstance(d, (int, float)) and d < 0)
-                            is_tsumo = negatives >= 3
-
-                        finish_text = '自摸' if is_tsumo else '荣和'
-
-                        # 构造主要役信息
+                    # 分类处理
+                    if is_yakuman_or_sanbaiman:
+                        # 役满和三倍满
                         # 特殊处理：Kazoe Yakuman 应该显示为三倍满
                         if 'Kazoe Yakuman' in point_desc:
                             main_desc = '三倍满'
@@ -278,34 +301,84 @@ def extract_honor_games(folder, recursive=True):
                             'type': honor_type
                         }
 
-                        honor_games.append(honor_game)
-                        print(f"✓ {date_str} {round_name} {winner} - {point_desc}", file=sys.stderr)
+                        yakuman_sanbaiman_games.append(honor_game)
+                        print(f"✓ [役满/三倍满] {date_str} {round_name} {winner} - {point_desc}", file=sys.stderr)
+
+                    elif has_rare_yaku:
+                        # 稀有役种（不是役满或三倍满）
+                        # 找出主要的稀有役
+                        main_rare_yaku = rare_yaku_found[0] if rare_yaku_found else None
+                        if main_rare_yaku and main_rare_yaku in YAKU_NAME_CN:
+                            main_desc = YAKU_NAME_CN[main_rare_yaku]
+                        else:
+                            main_desc = '稀有役种'
+
+                        title_suffix = f"{winner}的{main_desc}{finish_text}"
+
+                        # 生成天凤URL
+                        round_data_copy = copy.deepcopy(round_data)
+                        tenhou_url = generate_tenhou_url(round_data_copy, game_data, title_suffix=title_suffix)
+
+                        honor_game = {
+                            'date': date_str,
+                            'filename': filename,
+                            'round': round_name,
+                            'round_idx': round_idx,
+                            'winner': winner,
+                            'point_desc': point_desc,
+                            'yaku': yaku_str,
+                            'yaku_list': yaku_list,
+                            'is_tsumo': is_tsumo,
+                            'title_suffix': title_suffix,
+                            'tenhou_url': tenhou_url,
+                            'type': 'rare_yaku',
+                            'rare_yaku': rare_yaku_found
+                        }
+
+                        rare_yaku_games.append(honor_game)
+                        print(f"✓ [稀有役种] {date_str} {round_name} {winner} - {main_desc}", file=sys.stderr)
 
     # 按日期排序（最新的在前）
-    honor_games.sort(key=lambda x: x['date'], reverse=True)
+    yakuman_sanbaiman_games.sort(key=lambda x: x['date'], reverse=True)
+    rare_yaku_games.sort(key=lambda x: x['date'], reverse=True)
 
-    return honor_games
+    return {
+        'yakuman_sanbaiman': yakuman_sanbaiman_games,
+        'rare_yaku': rare_yaku_games
+    }
 
 def main():
-    ap = argparse.ArgumentParser(description="提取役满和三倍满的牌谱")
+    ap = argparse.ArgumentParser(description="提取役满、三倍满和稀有役种的牌谱")
     ap.add_argument("folder", help="包含牌谱 JSON 的文件夹路径")
     ap.add_argument("-o", "--output", default="honor_games.json", help="输出文件路径")
     ap.add_argument("--no-recursive", action="store_true", help="不递归扫描子目录")
     args = ap.parse_args()
 
     folder = os.path.abspath(args.folder)
-    honor_games = extract_honor_games(folder, recursive=not args.no_recursive)
+    result = extract_honor_games(folder, recursive=not args.no_recursive)
 
-    print(f"\n找到 {len(honor_games)} 个荣誉牌谱", file=sys.stderr)
-    print(f"- 役满: {sum(1 for g in honor_games if g['type'] == 'yakuman')} 个", file=sys.stderr)
-    print(f"- 三倍满: {sum(1 for g in honor_games if g['type'] == 'sanbaiman')} 个", file=sys.stderr)
+    yakuman_sanbaiman_games = result['yakuman_sanbaiman']
+    rare_yaku_games = result['rare_yaku']
 
-    # 保存结果
+    # 统计信息
+    yakuman_count = sum(1 for g in yakuman_sanbaiman_games if g['type'] == 'yakuman')
+    sanbaiman_count = sum(1 for g in yakuman_sanbaiman_games if g['type'] == 'sanbaiman')
+    rare_yaku_count = len(rare_yaku_games)
+    total = len(yakuman_sanbaiman_games) + rare_yaku_count
+
+    print(f"\n找到 {total} 个荣誉牌谱", file=sys.stderr)
+    print(f"- 役满: {yakuman_count} 个", file=sys.stderr)
+    print(f"- 三倍满: {sanbaiman_count} 个", file=sys.stderr)
+    print(f"- 稀有役种: {rare_yaku_count} 个", file=sys.stderr)
+
+    # 保存结果（新的数据结构）
     output = {
-        'total': len(honor_games),
-        'yakuman_count': sum(1 for g in honor_games if g['type'] == 'yakuman'),
-        'sanbaiman_count': sum(1 for g in honor_games if g['type'] == 'sanbaiman'),
-        'games': honor_games
+        'total': total,
+        'yakuman_count': yakuman_count,
+        'sanbaiman_count': sanbaiman_count,
+        'rare_yaku_count': rare_yaku_count,
+        'yakuman_sanbaiman_games': yakuman_sanbaiman_games,
+        'rare_yaku_games': rare_yaku_games
     }
 
     with open(args.output, 'w', encoding='utf-8') as f:

@@ -6,13 +6,14 @@
 import sys
 import os
 import re
+import json
 import html as html_module
 
 # 添加父目录到路径以便导入其他模块
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config.translations import TRANSLATIONS, YAKU_TRANSLATION, YAKU_TRANSLATION_EN
-from templates.template_loader import render_template
+from templates.template_loader import load_html_template, load_css
 
 
 def generate_index_page(lang='zh'):
@@ -30,9 +31,10 @@ def generate_index_page(lang='zh'):
     other_lang = 'en' if lang == 'zh' else 'zh'
     other_index = 'index-en.html' if lang == 'zh' else 'index.html'
 
-    return render_template(
-        'index.html',
-        'index.css',
+    html_template = load_html_template('index.html')
+    css_content = load_css('index.css')
+
+    return html_template.format(
         lang_code=lang_code,
         title=t['title'],
         subtitle=t['subtitle'],
@@ -47,7 +49,8 @@ def generate_index_page(lang='zh'):
         sanma_honor_link='sanma-honor-en.html' if lang == 'en' else 'sanma-honor.html',
         sanma_honor=t['sanma_honor'],
         view_sanma_honor=t['view_sanma_honor'],
-        generated_by=t['generated_by']
+        generated_by=t['generated_by'],
+        css_content=css_content
     )
 
 
@@ -67,15 +70,17 @@ def generate_ema_page(lang='zh'):
     home_page = 'index.html' if lang == 'zh' else 'index-en.html'
     other_lang = 'en' if lang == 'zh' else 'zh'
 
-    return render_template(
-        'ema.html',
-        'ema.css',
+    html_template = load_html_template('ema.html')
+    css_content = load_css('ema.css')
+
+    return html_template.format(
         lang_code=lang_code,
         other_page=other_page,
         switch_lang=t['switch_to_' + other_lang],
         coming_soon=t['coming_soon'],
         home_page=home_page,
-        back_home=t['back_home']
+        back_home=t['back_home'],
+        css_content=css_content
     )
 
 
@@ -184,14 +189,100 @@ def generate_sanma_honor_page(yakuman_games, lang='zh'):
     else:
         honor_cards = f"<p style='text-align: center; color: #999; padding: 40px;'>{'暂无役满牌谱' if lang == 'zh' else 'No yakuman games yet'}</p>"
 
-    return render_template(
-        'sanma_honor.html',
-        'sanma_honor.css',
+    # 创建一个简化的 render_template 函数调用
+    html_template = load_html_template('sanma_honor.html')
+    css_content = load_css('sanma_honor.css')
+
+    return html_template.format(
         lang_code=lang_code,
         title=title,
         other_page=other_page,
         switch_lang=t['switch_to_' + other_lang],
         home_page=home_page,
         back_home=t['back_home'],
-        honor_cards=honor_cards
+        honor_cards=honor_cards,
+        css_content=css_content
     )
+
+
+def generate_m_league_page(
+    lang='zh',
+    title='',
+    date_info='',
+    other_stats_page='',
+    current_index='',
+    switch_lang_text='',
+    back_home_text='',
+    tab_texts={},
+    recent_content='',
+    honor_content='',
+    ranking_content='',
+    leaderboard_content='',
+    player_options='',
+    players_data={},
+    select_player_label='',
+    choose_player='',
+    select_player_prompt=''
+):
+    """
+    生成M-League标签页页面
+
+    Args:
+        lang: 语言代码 (zh/en)
+        title: 页面标题
+        date_info: 日期信息HTML
+        other_stats_page: 语言切换链接
+        current_index: 返回首页链接
+        switch_lang_text: 切换语言文本
+        back_home_text: 返回首页文本
+        tab_texts: 标签页文本字典 {recent, honor, ranking, leaderboard, players}
+        recent_content: 最近牌谱内容HTML
+        honor_content: 荣誉牌谱内容HTML
+        ranking_content: 总排名内容HTML
+        leaderboard_content: 排行榜内容HTML
+        player_options: 玩家选择器选项HTML
+        players_data: 玩家详情数据字典
+        select_player_label: "选择玩家"标签文本
+        choose_player: "请选择"文本
+        select_player_prompt: "请选择玩家查看详细数据"提示文本
+
+    Returns:
+        str: 渲染后的HTML
+    """
+    # 加载模板和CSS
+    html_template = load_html_template('m_league.html')
+    css_content = load_css('m_league.css')
+
+    # 语言代码
+    lang_code = 'zh-CN' if lang == 'zh' else 'en'
+
+    # 将玩家数据转换为JSON
+    players_data_json = json.dumps(players_data, ensure_ascii=False)
+
+    # 渲染模板
+    html = html_template.format(
+        lang_code=lang_code,
+        title=title,
+        date_info=date_info,
+        other_stats_page=other_stats_page,
+        current_index=current_index,
+        switch_lang_text=switch_lang_text,
+        back_home_text=back_home_text,
+        tab_recent=tab_texts.get('recent', '最近牌谱'),
+        tab_honor=tab_texts.get('honor', '荣誉牌谱'),
+        tab_ranking=tab_texts.get('ranking', '总排名'),
+        tab_leaderboard=tab_texts.get('leaderboard', '排行榜' if lang == 'zh' else 'Leaderboard'),
+        tab_players=tab_texts.get('players', '玩家详情'),
+        recent_content=recent_content,
+        honor_content=honor_content,
+        ranking_content=ranking_content,
+        leaderboard_content=leaderboard_content,
+        player_options=player_options,
+        players_data_json=players_data_json,
+        select_player_label=select_player_label,
+        choose_player=choose_player,
+        select_player_prompt=select_player_prompt,
+        css_content=css_content
+    )
+
+    return html
