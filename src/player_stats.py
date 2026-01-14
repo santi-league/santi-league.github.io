@@ -363,9 +363,10 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
             elif rank == 4:
                 pd["rank_4"] += 1
 
-            # 使用之前获取的 games_before 计算R值（传入uma_config和origin_points）
+            # 使用之前获取的 games_before 计算R值（传入uma_config、origin_points和avg_uma）
             current_r = player_r_values[name]
-            r_change = calculate_tenhou_r_value(rank, games_before, current_r, table_avg_r, final_points, uma_config, origin_points)
+            avg_uma = player_stat.get('avg_uma')
+            r_change = calculate_tenhou_r_value(rank, games_before, current_r, table_avg_r, final_points, uma_config, origin_points, avg_uma=avg_uma)
             player_r_values[name] += r_change
             pd["current_r"] = player_r_values[name]
 
