@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上传牌谱 - Santi League</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .upload-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .form-group input[type="text"],
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9ff;
+        }
+
+        .file-upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
+        }
+
+        .file-upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8e9ff;
+            transform: scale(1.02);
+        }
+
+        .file-upload-area .icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+
+        .file-upload-area p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-area .hint {
+            font-size: 14px;
+            color: #999;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-item .file-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .file-item .file-size {
+            color: #999;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .file-item .remove-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .file-item .remove-btn:hover {
+            background: #cc0000;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .loading .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .quota-info {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quota-info .quota-text {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .quota-info .quota-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .quota-info .quota-number.low {
+            color: #ff9800;
+        }
+
+        .quota-info .quota-number.zero {
+            color: #f44336;
+        }
+
+        .quota-info .quota-label {
+            font-size: 14px;
+            color: #999;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+
+        <div class="header">
+            <h1>📤 上传牌谱</h1>
+            <p>上传您的麻将牌谱 JSON 文件，系统将自动更新统计数据</p>
+        </div>
+
+        <!-- 配额显示 -->
+        <div class="quota-info" id="quotaInfo" style="display: none;">
+            <div>
+                <div class="quota-text">今日剩余上传配额</div>
+                <div class="quota-label">每天最多可上传 50 个文件</div>
+            </div>
+            <div>
+                <div class="quota-number" id="quotaNumber">-</div>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>正在上传处理中...</p>
+        </div>
+
+        <div class="upload-card">
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label for="league">选择联赛 *</label>
+                    <select id="league" name="league" required>
+                        <option value="m-league" selected>M-League</option>
+                        <option value="ema">EMA</option>
+                        <option value="sanma">Sanma (三麻)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>选择文件 *</label>
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <div class="icon">📁</div>
+                        <p>点击选择文件或拖拽文件到这里</p>
+                        <p class="hint">支持 .json 格式的牌谱文件（最大 100KB）</p>
+                    </div>
+                    <input type="file" id="fileInput" accept=".json" multiple>
+                    <div id="fileList" class="file-list"></div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn" disabled>上传牌谱</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // 导入 Firebase SDK（不包括 Auth）
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+        import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyASDebG89ESWOtChoVZVA4vH4iPRNMZqGA",
+            authDomain: "santi-league.firebaseapp.com",
+            projectId: "santi-league",
+            storageBucket: "santi-league.firebasestorage.app",
+            messagingSenderId: "266841538242",
+            appId: "1:266841538242:web:91a27bb48c047bec2a055b",
+            measurementId: "G-GN3PMKX4GP"
+        };
+
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
+        const db = getFirestore(app);
+
+        // DOM 元素
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const uploadForm = document.getElementById('uploadForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const messageDiv = document.getElementById('message');
+        const loadingDiv = document.getElementById('loading');
+        const quotaInfo = document.getElementById('quotaInfo');
+        const quotaNumber = document.getElementById('quotaNumber');
+
+        let selectedFiles = [];
+        let currentQuota = { remaining: 50, limit: 50, uploaded: 0 };
+
+        // 页面加载时获取配额信息
+        async function loadQuota() {
+            try {
+                // 注意：需要将这个 URL 替换为你的实际 Cloud Function URL
+                // 格式：https://your-region-your-project.cloudfunctions.net/getTodayQuota
+                const projectId = firebaseConfig.projectId;
+                const quotaUrl = `https://us-central1-${projectId}.cloudfunctions.net/getTodayQuota`;
+
+                const response = await fetch(quotaUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    currentQuota = data;
+                    updateQuotaDisplay();
+                    quotaInfo.style.display = 'flex';
+                }
+            } catch (error) {
+                console.log('无法加载配额信息:', error);
+                // 即使失败也显示默认配额
+                quotaInfo.style.display = 'flex';
+                updateQuotaDisplay();
+            }
+        }
+
+        // 更新配额显示
+        function updateQuotaDisplay() {
+            quotaNumber.textContent = currentQuota.remaining;
+            quotaNumber.className = 'quota-number';
+
+            if (currentQuota.remaining === 0) {
+                quotaNumber.classList.add('zero');
+                submitBtn.disabled = true;
+                showMessage('今日上传配额已用尽，请明天再试', 'error');
+            } else if (currentQuota.remaining <= 10) {
+                quotaNumber.classList.add('low');
+            }
+        }
+
+        // 页面加载时执行
+        loadQuota();
+
+        // 文件选择区域点击
+        fileUploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // 文件拖拽
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        });
+
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('dragover');
+        });
+
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // 文件选择
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        // 处理文件
+        function handleFiles(files) {
+            for (let file of files) {
+                if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                    if (file.size > 100 * 1024) {
+                        showMessage(`文件 "${file.name}" 超过 100KB，已跳过`, 'error');
+                        continue;
+                    }
+                    selectedFiles.push(file);
+                } else {
+                    showMessage(`文件 "${file.name}" 不是 JSON 格式，已跳过`, 'error');
+                }
+            }
+            updateFileList();
+            updateSubmitButton();
+        }
+
+        // 更新文件列表显示
+        function updateFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div>
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-size">(${formatFileSize(file.size)})</span>
+                    </div>
+                    <button type="button" class="remove-btn" data-index="${index}">移除</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+
+            // 添加移除按钮事件
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.dataset.index);
+                    selectedFiles.splice(index, 1);
+                    updateFileList();
+                    updateSubmitButton();
+                });
+            });
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        // 更新提交按钮状态
+        function updateSubmitButton() {
+            const league = document.getElementById('league').value;
+            submitBtn.disabled = !(selectedFiles.length > 0 && league);
+        }
+
+        // 监听联赛选择变化
+        document.getElementById('league').addEventListener('change', updateSubmitButton);
+
+        // 显示消息
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = 'message ' + type;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // 表单提交
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (selectedFiles.length === 0) {
+                showMessage('请选择至少一个文件', 'error');
+                return;
+            }
+
+            const league = document.getElementById('league').value;
+
+            submitBtn.disabled = true;
+            loadingDiv.style.display = 'block';
+
+            let successCount = 0;
+            let failCount = 0;
+
+            try {
+                for (let file of selectedFiles) {
+                    try {
+                        // 读取文件内容
+                        const fileContent = await file.text();
+                        const jsonData = JSON.parse(fileContent);
+
+                        // 生成文件路径
+                        const timestamp = Date.now();
+                        const fileName = `${league}/${timestamp}_${file.name}`;
+                        const storageRef = ref(storage, `game-logs/${fileName}`);
+
+                        // 上传到 Storage
+                        await uploadBytes(storageRef, file);
+
+                        // 保存元数据到 Firestore
+                        await addDoc(collection(db, 'game-logs'), {
+                            league: league,
+                            fileName: file.name,
+                            storagePath: fileName,
+                            uploadedAt: serverTimestamp(),
+                            processed: false,
+                            fileSize: file.size
+                        });
+
+                        successCount++;
+                    } catch (error) {
+                        console.error(`Error uploading ${file.name}:`, error);
+                        failCount++;
+
+                        // 检查是否是配额限制错误
+                        if (error.code === 'permission-denied' || error.message.includes('permission-denied')) {
+                            showMessage('上传失败：今日配额已用尽，请明天再试', 'error');
+                            break; // 停止上传剩余文件
+                        }
+                    }
+                }
+
+                // 显示结果
+                if (successCount > 0) {
+                    showMessage(`成功上传 ${successCount} 个文件！${failCount > 0 ? `失败 ${failCount} 个。` : '系统将在几分钟内更新统计数据。'}`, 'success');
+                    selectedFiles = [];
+                    updateFileList();
+                    uploadForm.reset();
+                    // 刷新配额显示
+                    await loadQuota();
+                } else {
+                    showMessage('所有文件上传失败，请重试', 'error');
+                }
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                // 检查是否是配额限制错误
+                if (error.code === 'permission-denied' || error.message.includes('permission-denied')) {
+                    showMessage('上传失败：今日配额已用尽，请明天再试', 'error');
+                } else {
+                    showMessage('上传失败: ' + error.message, 'error');
+                }
+            } finally {
+                loadingDiv.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

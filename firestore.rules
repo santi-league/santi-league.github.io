@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 辅助函数：获取今天的日期字符串（YYYY-MM-DD格式）
+    function getTodayString() {
+      let year = request.time.year();
+      let month = request.time.month();
+      let day = request.time.day();
+      return '' + year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day;
+    }
+
+    // 辅助函数：检查今天是否还可以上传
+    function canUploadToday() {
+      let today = getTodayString();
+      let counterPath = /databases/$(database)/documents/upload-counters/$(today);
+
+      // 如果计数器不存在，返回 true（可以上传）
+      // 如果计数器存在且小于 50，返回 true
+      return !exists(counterPath) || get(counterPath).data.count < 50;
+    }
+
+    // 游戏日志元数据 - 允许匿名创建，但检查每日上传限制
+    match /game-logs/{logId} {
+      // 创建：检查必需字段 + 每日上传限制
+      allow create: if request.resource.data.keys().hasAll(['league', 'fileName', 'storagePath', 'uploadedAt', 'uploaderName'])
+                    && request.resource.data.league is string
+                    && request.resource.data.fileName is string
+                    && request.resource.data.uploaderName is string
+                    && canUploadToday();  // 检查每日限制
+
+      // 所有人可以读取
+      allow read: if true;
+
+      // 不允许普通用户更新/删除（只有 Cloud Functions）
+      allow update, delete: if false;
+    }
+
+    // 上传计数器 - 记录每天的上传数量
+    match /upload-counters/{date} {
+      // 所有人可以读取计数器
+      allow read: if true;
+
+      // 只有 Cloud Functions 可以写入（通过 Admin SDK）
+      allow write: if false;
+    }
+
+    // 处理状态日志 - 只有 Cloud Functions 可以写入
+    match /processing-logs/{logId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // 默认拒绝所有其他访问
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

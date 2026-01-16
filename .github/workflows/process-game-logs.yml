@@ -1,0 +1,111 @@
+name: Process Game Logs and Update Website
+
+on:
+  # 每6小时自动运行一次
+  schedule:
+    - cron: '0 */6 * * *'
+
+  # 允许手动触发
+  workflow_dispatch:
+
+  # 当有新的推送到 main 分支时（可选）
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'game-logs/**'
+
+jobs:
+  process-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+          # 如果没有 requirements.txt，安装基本依赖
+          pip install Jinja2 || true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Authenticate with Firebase
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > $HOME/gcloud-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcloud-key.json
+          firebase use santi-league
+
+      - name: Download new files from Firebase Storage
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "Downloading game logs from Firebase Storage..."
+          bash scripts/download_new_files.sh
+
+      - name: Check for new files
+        id: check_files
+        run: |
+          if [ -n "$(find game-logs -name '*.json' -type f 2>/dev/null)" ]; then
+            echo "has_files=true" >> $GITHUB_OUTPUT
+            echo "Found game log files to process"
+          else
+            echo "has_files=false" >> $GITHUB_OUTPUT
+            echo "No game log files found"
+          fi
+
+      - name: Run generate website script
+        if: steps.check_files.outputs.has_files == 'true'
+        run: |
+          echo "Running website generation..."
+          bash generate_website.sh
+
+      - name: Deploy to Firebase Hosting
+        if: steps.check_files.outputs.has_files == 'true'
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          echo "Deploying to Firebase Hosting..."
+          firebase deploy --only hosting --token "$FIREBASE_TOKEN"
+
+      - name: Commit and push changes (if any)
+        if: steps.check_files.outputs.has_files == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # 添加生成的文件
+          git add docs/ game-logs/ || true
+
+          # 检查是否有变更
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-update: Process game logs and regenerate website [skip ci]"
+            git push
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Files processed: ${{ steps.check_files.outputs.has_files }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Timestamp: $(date)" >> $GITHUB_STEP_SUMMARY

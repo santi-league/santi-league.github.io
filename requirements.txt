@@ -1,0 +1,10 @@
+# Python dependencies for Santi League website generation
+
+# Template engine for HTML generation
+Jinja2>=3.1.2
+
+# Google Cloud Storage (for downloading files from Firebase)
+google-cloud-storage>=2.10.0
+
+# Firebase Admin SDK (optional, for advanced Firebase operations)
+# firebase-admin>=6.2.0

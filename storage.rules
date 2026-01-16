@@ -1,0 +1,19 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 游戏日志文件 - 允许匿名上传
+    match /game-logs/{league}/{allPaths=**} {
+      // 任何人都可以上传（包括未认证用户）
+      allow write: if request.resource.size < 5 * 1024 * 1024  // 最大 5MB
+                   && request.resource.contentType == 'application/json';  // 只允许 JSON
+
+      // 所有人可以读取
+      allow read: if true;
+    }
+
+    // 默认拒绝所有其他访问
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
