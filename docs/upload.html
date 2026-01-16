@@ -340,7 +340,7 @@
         // 导入 Firebase SDK（不包括 Auth）
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
-        import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc, query, where, getDocs, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         // Firebase 配置
         const firebaseConfig = {
@@ -375,21 +375,32 @@
         // 页面加载时获取配额信息
         async function loadQuota() {
             try {
-                // 注意：需要将这个 URL 替换为你的实际 Cloud Function URL
-                // 格式：https://your-region-your-project.cloudfunctions.net/getTodayQuota
-                const projectId = firebaseConfig.projectId;
-                const quotaUrl = `https://us-central1-${projectId}.cloudfunctions.net/getTodayQuota`;
+                // 获取今天开始的时间戳（凌晨 00:00:00）
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const todayStart = Timestamp.fromDate(today);
 
-                const response = await fetch(quotaUrl);
-                if (response.ok) {
-                    const data = await response.json();
-                    currentQuota = data;
-                    updateQuotaDisplay();
-                    quotaInfo.style.display = 'flex';
-                }
+                // 查询今天上传的文件数量
+                const q = query(
+                    collection(db, 'game-logs'),
+                    where('uploadedAt', '>=', todayStart)
+                );
+
+                const querySnapshot = await getDocs(q);
+                const uploadedCount = querySnapshot.size;
+
+                currentQuota = {
+                    remaining: Math.max(0, 50 - uploadedCount),
+                    limit: 50,
+                    uploaded: uploadedCount
+                };
+
+                updateQuotaDisplay();
+                quotaInfo.style.display = 'flex';
             } catch (error) {
                 console.log('无法加载配额信息:', error);
                 // 即使失败也显示默认配额
+                currentQuota = { remaining: 50, limit: 50, uploaded: 0 };
                 quotaInfo.style.display = 'flex';
                 updateQuotaDisplay();
             }
