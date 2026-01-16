@@ -12,11 +12,11 @@ service cloud.firestore {
     // 辅助函数：检查今天是否还可以上传
     function canUploadToday() {
       let today = getTodayString();
-      let counterPath = /databases/$(database)/documents/upload-counters/$(today);
 
       // 如果计数器不存在，返回 true（可以上传）
       // 如果计数器存在且小于 50，返回 true
-      return !exists(counterPath) || get(counterPath).data.count < 50;
+      return !exists(/databases/$(database)/documents/upload-counters/$(today))
+             || get(/databases/$(database)/documents/upload-counters/$(today)).data.count < 50;
     }
 
     // 游戏日志元数据 - 允许匿名创建，但检查每日上传限制
@@ -25,7 +25,8 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasAll(['league', 'fileName', 'storagePath', 'uploadedAt'])
                     && request.resource.data.league is string
                     && request.resource.data.fileName is string
-                    && canUploadToday();  // 检查每日限制
+                    && request.resource.data.storagePath is string
+                    && canUploadToday();  // 服务端强制限制
 
       // 所有人可以读取
       allow read: if true;
