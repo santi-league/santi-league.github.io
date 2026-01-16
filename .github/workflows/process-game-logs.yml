@@ -46,18 +46,12 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Authenticate with Firebase
+      - name: Download new files from Firebase Storage
         env:
           GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > $HOME/gcloud-key.json
           export GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcloud-key.json
-          firebase use santi-league
-
-      - name: Download new files from Firebase Storage
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: |
           echo "Downloading game logs from Firebase Storage..."
           bash scripts/download_new_files.sh
 
@@ -81,10 +75,12 @@ jobs:
       - name: Deploy to Firebase Hosting
         if: steps.check_files.outputs.has_files == 'true'
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > $HOME/gcloud-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcloud-key.json
           echo "Deploying to Firebase Hosting..."
-          firebase deploy --only hosting --token "$FIREBASE_TOKEN"
+          firebase deploy --only hosting --project santi-league
 
       - name: Commit and push changes (if any)
         if: steps.check_files.outputs.has_files == 'true'
