@@ -74,6 +74,16 @@ jobs:
           echo "Running website generation..."
           bash generate_website.sh
 
+      - name: Mark processed games in Firestore
+        if: steps.check_files.outputs.has_files == 'true'
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > $HOME/gcloud-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcloud-key.json
+          echo "Marking processed games in Firestore..."
+          python3 scripts/mark_games_processed.py
+
       - name: Deploy to Firebase Hosting
         if: steps.check_files.outputs.has_files == 'true'
         env:

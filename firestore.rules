@@ -22,10 +22,9 @@ service cloud.firestore {
     // 游戏日志元数据 - 允许匿名创建，但检查每日上传限制
     match /game-logs/{logId} {
       // 创建：检查必需字段 + 每日上传限制
-      allow create: if request.resource.data.keys().hasAll(['league', 'fileName', 'storagePath', 'uploadedAt', 'uploaderName'])
+      allow create: if request.resource.data.keys().hasAll(['league', 'fileName', 'storagePath', 'uploadedAt'])
                     && request.resource.data.league is string
                     && request.resource.data.fileName is string
-                    && request.resource.data.uploaderName is string
                     && canUploadToday();  // 检查每日限制
 
       // 所有人可以读取

@@ -6,5 +6,8 @@ Jinja2>=3.1.2
 # Google Cloud Storage (for downloading files from Firebase)
 google-cloud-storage>=2.10.0
 
+# Google Cloud Firestore (for marking processed games)
+google-cloud-firestore>=2.11.0
+
 # Firebase Admin SDK (optional, for advanced Firebase operations)
 # firebase-admin>=6.2.0
