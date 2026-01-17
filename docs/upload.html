@@ -539,20 +539,35 @@
             try {
                 for (let file of selectedFiles) {
                     try {
+                        console.log(`========== 开始处理文件: ${file.name} ==========`);
+
                         // 读取文件内容
+                        console.log(`步骤 1: 读取文件内容...`);
                         const fileContent = await file.text();
+                        console.log(`步骤 1 完成: 文件内容读取成功，大小: ${fileContent.length} 字符`);
+
+                        console.log(`步骤 2: 解析 JSON...`);
                         const jsonData = JSON.parse(fileContent);
+                        console.log(`步骤 2 完成: JSON 解析成功`);
 
                         // 生成文件路径
                         const timestamp = Date.now();
                         const fileName = `${league}/${timestamp}_${file.name}`;
                         const storageRef = ref(storage, `game-logs/${fileName}`);
+                        console.log(`步骤 3: 生成文件路径: ${fileName}`);
 
-                        // 上传到 Storage
-                        await uploadBytes(storageRef, file);
+                        // 先保存元数据到 Firestore（检查配额）
+                        // 如果配额用尽，这一步会失败，避免上传无用文件到 Storage
+                        console.log(`步骤 4: 开始写入 Firestore 元数据...`);
+                        console.log(`数据内容:`, {
+                            league: league,
+                            fileName: file.name,
+                            storagePath: fileName,
+                            processed: false,
+                            fileSize: file.size
+                        });
 
-                        // 保存元数据到 Firestore
-                        await addDoc(collection(db, 'game-logs'), {
+                        const docRef = await addDoc(collection(db, 'game-logs'), {
                             league: league,
                             fileName: file.name,
                             storagePath: fileName,
@@ -560,10 +575,20 @@
                             processed: false,
                             fileSize: file.size
                         });
+                        console.log(`步骤 4 完成: Firestore 写入成功，文档 ID: ${docRef.id}`);
+
+                        // Firestore 写入成功后，再上传到 Storage
+                        console.log(`步骤 5: 开始上传到 Storage...`);
+                        await uploadBytes(storageRef, file);
+                        console.log(`步骤 5 完成: Storage 上传成功`);
 
                         successCount++;
+                        console.log(`✅ 文件 ${file.name} 上传成功！`);
                     } catch (error) {
-                        console.error(`Error uploading ${file.name}:`, error);
+                        console.error(`❌ Error uploading ${file.name}:`, error);
+                        console.error('Error code:', error.code);
+                        console.error('Error details:', error.message);
+                        console.error('Error stack:', error.stack);
                         failCount++;
 
                         // 检查是否是配额限制错误

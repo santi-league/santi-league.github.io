@@ -10,6 +10,15 @@ echo "=========================================="
 echo "下载新文件从 Firebase Storage"
 echo "=========================================="
 
+# 检查 Service Account 认证
+if [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ] && [ -f "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+    echo "使用 Service Account 认证..."
+    gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
+    gcloud config set project santi-league
+else
+    echo "警告：未找到 Service Account 凭证"
+fi
+
 # 确保目录存在
 mkdir -p game-logs/m-league
 mkdir -p game-logs/ema

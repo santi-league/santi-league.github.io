@@ -1,28 +1,31 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 辅助函数：获取今天的日期字符串（YYYY-MM-DD格式）
-    function getTodayString() {
+    // 辅助函数：检查今天是否还可以上传
+    function canUploadToday() {
+      // 直接使用内联日期计算，避免字符串拼接问题
       let year = request.time.year();
       let month = request.time.month();
       let day = request.time.day();
-      return '' + year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day;
-    }
 
-    // 辅助函数：检查今天是否还可以上传
-    function canUploadToday() {
-      let today = getTodayString();
+      // 构造日期字符串 YYYY-MM-DD
+      let dateStr = string(year) + '-' +
+                    (month < 10 ? '0' : '') + string(month) + '-' +
+                    (day < 10 ? '0' : '') + string(day);
 
-      // 如果计数器不存在，返回 true（可以上传）
-      // 如果计数器存在且小于 50，返回 true
-      return !exists(/databases/$(database)/documents/upload-counters/$(today))
-             || get(/databases/$(database)/documents/upload-counters/$(today)).data.count < 50;
+      // 获取计数器文档的引用
+      let counterPath = /databases/$(database)/documents/upload-counters/$(dateStr);
+
+      // 如果计数器不存在，允许上传
+      // 如果计数器存在且 count < 50，允许上传
+      return !exists(counterPath) || get(counterPath).data.count < 50;
     }
 
     // 游戏日志元数据 - 允许匿名创建，但检查每日上传限制
     match /game-logs/{logId} {
       // 创建：检查必需字段 + 每日上传限制
-      allow create: if request.resource.data.keys().hasAll(['league', 'fileName', 'storagePath', 'uploadedAt'])
+      // 注意：uploadedAt 使用 serverTimestamp()，在 Rules 中会被自动处理
+      allow create: if request.resource.data.keys().hasAll(['league', 'fileName', 'storagePath'])
                     && request.resource.data.league is string
                     && request.resource.data.fileName is string
                     && request.resource.data.storagePath is string
