@@ -65,12 +65,15 @@ jobs:
       - name: Check for new files
         id: check_files
         run: |
-          if [ -n "$(find game-logs -name '*.json' -type f 2>/dev/null)" ]; then
-            echo "has_files=true" >> $GITHUB_OUTPUT
-            echo "Found game log files to process"
-          else
+          # 检查 git 是否有新文件或修改
+          git add game-logs/ || true
+          if git diff --cached --quiet; then
             echo "has_files=false" >> $GITHUB_OUTPUT
-            echo "No game log files found"
+            echo "No new or modified files detected"
+          else
+            echo "has_files=true" >> $GITHUB_OUTPUT
+            echo "Found new or modified game log files:"
+            git diff --cached --name-only
           fi
 
       - name: Run generate website script
