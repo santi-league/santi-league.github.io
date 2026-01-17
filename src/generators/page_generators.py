@@ -49,6 +49,8 @@ def generate_index_page(lang='zh'):
         sanma_honor_link='sanma-honor-en.html' if lang == 'en' else 'sanma-honor.html',
         sanma_honor=t['sanma_honor'],
         view_sanma_honor=t['view_sanma_honor'],
+        upload_title=t['upload_title'],
+        upload_desc=t['upload_desc'],
         generated_by=t['generated_by'],
         css_content=css_content
     )
