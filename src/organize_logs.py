@@ -68,19 +68,28 @@ def get_standard_filename(data):
     try:
         # 获取时间戳
         title = data.get('title', [])
+        print('title', title)
         if not isinstance(title, list) or len(title) < 2:
             return None, None
 
         timestamp_str = title[1]
+        print('timestamp_str', timestamp_str)
 
         # 解析时间戳："MM/DD/YYYY, HH:MM:SS AM/PM"
-        try:
-            timestamp = datetime.strptime(timestamp_str, "%m/%d/%Y, %I:%M:%S %p")
-        except ValueError:
-            return None, None
+        if timestamp_str[-1] == 'M':
+            try:
+                timestamp = datetime.strptime(timestamp_str, "%m/%d/%Y, %I:%M:%S %p")
+            except ValueError:
+                return None, None
+        else:
+            try:
+                timestamp = datetime.strptime(timestamp_str, "%d/%m/%Y, %H:%M:%S")
+            except ValueError:
+                return None, None
 
         # 生成日期文件夹名：YYYY-MM-DD
         date_folder_name = timestamp.strftime("%Y-%m-%d")
+        print('date_folder_name', date_folder_name)
 
         # 获取第一名玩家的名字
         try:

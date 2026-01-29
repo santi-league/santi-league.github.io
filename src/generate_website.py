@@ -151,7 +151,10 @@ def extract_recent_games(files, results, count=5, all_results=None, uma_config=N
                 if isinstance(title, list) and len(title) > 1:
                     timestamp_str = title[1]
                     # 解析时间戳："MM/DD/YYYY, HH:MM:SS AM/PM"
-                    timestamp = datetime.strptime(timestamp_str, "%m/%d/%Y, %I:%M:%S %p")
+                    if timestamp_str[-1] == 'M':
+                        timestamp = datetime.strptime(timestamp_str, "%m/%d/%Y, %I:%M:%S %p")
+                    else:
+                        timestamp = datetime.strptime(timestamp_str, "%d/%m/%Y, %H:%M:%S")
                 else:
                     error_reason = "title字段不存在或格式错误"
         except json.JSONDecodeError as e:
