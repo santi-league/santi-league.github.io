@@ -28,6 +28,81 @@ from summarize_v23 import summarize_log
 
 ERROR_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'game-logs', 'errors'))
 
+def detect_league_type(data):
+    """
+    检测牌谱类型（M-League 或 EMA）
+
+    通过分析起始分数和马点来判断：
+    - EMA: 起始30000, 马点 15/5/-5/-15 (千分)
+    - M-League: 起始25000, 马点 45/5/-15/-35 (千分)
+
+    公式：马点 = sc值 × 1000 - 相对分 + 起始分
+
+    返回：'m-league', 'ema', 或 None（无法判断）
+    """
+    try:
+        # 1. 获取起始分数
+        if 'log' not in data or len(data['log']) == 0:
+            return None
+
+        first_round = data['log'][0]
+        if len(first_round) < 2 or not isinstance(first_round[1], list):
+            return None
+
+        origin_points = first_round[1][0]  # 第一个玩家的起始分
+
+        # 2. 获取sc字段
+        if 'sc' not in data or len(data['sc']) < 8:
+            return None
+
+        sc = data['sc']
+
+        # 3. 提取每个玩家的相对分和sc值
+        players_data = []
+        for i in range(4):
+            relative_score = sc[i*2]      # 相对分（最终分 - 起始分）
+            sc_value = sc[i*2 + 1]        # sc值（千分制）
+
+            players_data.append({
+                'relative_score': relative_score,
+                'sc_value': sc_value
+            })
+
+        # 4. 按相对分排序得出名次（相对分大的名次靠前）
+        sorted_players = sorted(players_data, key=lambda x: -x['relative_score'])
+
+        # 5. 反推马点（千分制）
+        # 公式：马点 = sc值 × 1000 - 相对分 + 起始分
+        uma_list = []
+        for p in sorted_players:
+            uma_points = p['sc_value'] * 1000 - p['relative_score'] + origin_points
+            uma_thousandths = round(uma_points / 1000)  # 转换为千分制
+            uma_list.append(uma_thousandths)
+
+        # 6. 判断类型
+        # EMA配置：起始30000, 马点 [15, 5, -5, -15]
+        # M-League配置：起始25000, 马点 [45, 5, -15, -35]
+
+        ema_uma = [15, 5, -5, -15]
+        mleague_uma = [45, 5, -15, -35]
+
+        # 允许±1的误差（因为四舍五入）
+        def uma_matches(uma_list, expected_uma):
+            return all(abs(uma_list[i] - expected_uma[i]) <= 1 for i in range(4))
+
+        if origin_points == 30000 and uma_matches(uma_list, ema_uma):
+            return 'ema'
+        elif origin_points == 25000 and uma_matches(uma_list, mleague_uma):
+            return 'm-league'
+        else:
+            # 无法确定，输出调试信息
+            print(f"    ⚠️  无法确定牌谱类型: 起始分={origin_points}, 马点(千分)={uma_list}")
+            return None
+
+    except Exception as e:
+        # 检测失败，返回None
+        return None
+
 def move_to_error(filepath, reason=None):
     """将文件移动到game-logs/errors文件夹"""
     if not filepath or not os.path.exists(filepath):
@@ -329,6 +404,98 @@ def organize_folder(folder_path, dry_run=False):
     return moved_to_root_count + renamed_count + moved_count, error_count
 
 
+def auto_classify_files(dry_run=False):
+    """
+    自动检测并分类牌谱文件到正确的联赛文件夹
+
+    返回：(分类成功数, 分类失败数)
+    """
+    print("\n" + "="*80)
+    print("阶段 0: 自动检测并分类牌谱类型")
+    print("="*80 + "\n")
+
+    game_logs_root = "game-logs"
+    m_league_folder = "game-logs/m-league"
+    ema_folder = "game-logs/ema"
+
+    # 确保目标文件夹存在
+    os.makedirs(m_league_folder, exist_ok=True)
+    os.makedirs(ema_folder, exist_ok=True)
+
+    classified_count = 0
+    error_count = 0
+
+    # 扫描所有文件夹中的 JSON 文件
+    all_json_files = []
+
+    for root, dirs, files in os.walk(game_logs_root):
+        # 跳过 errors 和 sanma 文件夹
+        if 'errors' in root or 'sanma' in root:
+            continue
+
+        for f in files:
+            if f.endswith('.json'):
+                file_path = os.path.join(root, f)
+                all_json_files.append(file_path)
+
+    # 检测每个文件的类型
+    for file_path in all_json_files:
+        filename = os.path.basename(file_path)
+        current_folder = os.path.dirname(file_path)
+
+        try:
+            # 读取文件
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            # 检测类型
+            detected_type = detect_league_type(data)
+
+            if detected_type is None:
+                # 无法检测，跳过
+                continue
+
+            # 确定目标文件夹
+            if detected_type == 'm-league':
+                target_folder = m_league_folder
+            elif detected_type == 'ema':
+                target_folder = ema_folder
+            else:
+                continue
+
+            # 检查文件是否已在正确的文件夹中
+            if os.path.abspath(current_folder).startswith(os.path.abspath(target_folder)):
+                # 已经在正确的文件夹中（包括子文件夹），跳过
+                continue
+
+            # 需要移动
+            target_path = os.path.join(target_folder, filename)
+
+            if dry_run:
+                print(f"📋 预览分类: {os.path.relpath(file_path)} -> {detected_type}/{filename}")
+                classified_count += 1
+            else:
+                # 检查目标是否已存在
+                if os.path.exists(target_path):
+                    print(f"⚠️  {filename}: 目标位置已存在同名文件，移动到errors")
+                    move_to_error(file_path, "auto-classify-conflict")
+                    error_count += 1
+                else:
+                    shutil.move(file_path, target_path)
+                    print(f"✓ 自动分类: {filename} -> {detected_type}/")
+                    classified_count += 1
+
+        except Exception as e:
+            print(f"❌ {filename}: 分类失败 - {str(e)}")
+            error_count += 1
+
+    if classified_count == 0 and error_count == 0:
+        print("✓ 所有文件已在正确的位置\n")
+    else:
+        print(f"\n阶段0完成：{'将'if dry_run else '已'}分类 {classified_count} 个文件{', ' + str(error_count) + ' 个错误' if error_count > 0 else ''}\n")
+
+    return classified_count, error_count
+
 def main():
     """主函数"""
     # 检查是否为预览模式
@@ -338,6 +505,9 @@ def main():
         print("\n" + "="*80)
         print("🔍 预览模式 - 仅显示将要执行的操作，不会实际移动文件")
         print("="*80)
+
+    # 阶段0：自动分类牌谱类型
+    classified, classify_errors = auto_classify_files(dry_run)
 
     # 整理M-League文件夹
     m_league_folder = "game-logs/m-league"
@@ -352,9 +522,11 @@ def main():
     print("牌谱整理总结")
     print("="*80)
     if dry_run:
+        print(f"自动分类: 需要分类 {classified} 个文件{', ' + str(classify_errors) + ' 个错误' if classify_errors > 0 else ''}")
         print(f"M-League: 需要操作 {m_moved} 个文件{', ' + str(m_errors) + ' 个错误' if m_errors > 0 else ''}")
         print(f"EMA:      需要操作 {e_moved} 个文件{', ' + str(e_errors) + ' 个错误' if e_errors > 0 else ''}")
     else:
+        print(f"自动分类: 已分类 {classified} 个文件{', ' + str(classify_errors) + ' 个错误' if classify_errors > 0 else ''}")
         print(f"M-League: 已操作 {m_moved} 个文件{', ' + str(m_errors) + ' 个错误' if m_errors > 0 else ''}")
         print(f"EMA:      已操作 {e_moved} 个文件{', ' + str(e_errors) + ' 个错误' if e_errors > 0 else ''}")
     print("="*80)
@@ -363,7 +535,7 @@ def main():
         print("\n提示：运行时不加 --dry-run 参数即可实际执行移动操作")
 
     # 如果有错误，返回非零退出码
-    if m_errors + e_errors > 0:
+    if classify_errors + m_errors + e_errors > 0:
         sys.exit(1)
 
 

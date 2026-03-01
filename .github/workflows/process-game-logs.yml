@@ -1,9 +1,10 @@
 name: Process Game Logs and Update Website
 
 on:
-  # 每6小时自动运行一次
+  # 每天凌晨4点（欧洲中部时间 CET/UTC+1）自动运行一次
+  # 注意：夏令时（CEST/UTC+2）期间会在凌晨5点运行
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 3 * * *'  # UTC 03:00 = CET 04:00
 
   # 允许手动触发
   workflow_dispatch:
