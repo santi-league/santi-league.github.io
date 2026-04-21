@@ -1,9 +1,31 @@
 {
-  "total": 13,
+  "total": 14,
   "yakuman_count": 5,
-  "sanbaiman_count": 2,
+  "sanbaiman_count": 3,
   "rare_yaku_count": 6,
   "yakuman_sanbaiman_games": [
+    {
+      "date": "2026-04-22_000032_Vermilio.json",
+      "filename": "2026-04-22_000032_Vermilio.json",
+      "round": "东二局",
+      "round_idx": 1,
+      "winner": "Vermilio",
+      "point_desc": "Sanbaiman 6000-12000点",
+      "yaku": "All Simples(1飜), Fully Concealed Hand(1飜), Pinfu(1飜), Riichi(1飜), Ippatsu(1飜), Dora(3飜), Ura Dora(3飜)",
+      "yaku_list": [
+        "All Simples(1飜)",
+        "Fully Concealed Hand(1飜)",
+        "Pinfu(1飜)",
+        "Riichi(1飜)",
+        "Ippatsu(1飜)",
+        "Dora(3飜)",
+        "Ura Dora(3飜)"
+      ],
+      "is_tsumo": true,
+      "title_suffix": "Vermilio的三倍满自摸",
+      "tenhou_url": "https://tenhou.net/5/#json={\"title\":[\"Santi League -- M League Rule\",\"Vermilio的三倍满自摸\"],\"name\":[\"浴室要冷镜\",\"小地鼠爱点炮\",\"Vermilio\",\"RinshanNomi\"],\"rule\":{\"disp\":\"M League Rule\",\"aka53\":1,\"aka52\":1,\"aka51\":1},\"log\":[[[1,0,0],[24000,18800,25000,32200],[26],[26],[22,35,12,23,32,18,45,24,46,42,11,22,43],[37,21,44,28,34,21],[43,46,42,45,44,28],[39,31,34,44,43,41,17,29,36,24,46,33,41],[11,34,32,\"4141p41\",31,15,38],[60,29,43,46,24,44,39],[24,12,25,43,27,45,13,39,22,18,14,27,41],[28,23,16,13,17,26,27],[43,39,41,45,28,\"r13\"],[25,52,19,45,35,19,37,39,46,21,28,46,31],[16,43,\"4646p46\",14,47,12],[21,60,31,45,28,39],[\"和了\",[-6000,-12000,25000,-6000],[2,2,2,\"三倍満 6000-12000点\",\"断幺九(1飜)\",\"門前清自摸和(1飜)\",\"平和(1飜)\",\"立直(1飜)\",\"一発(1飜)\",\"ドラ(3飜)\",\"裏ドラ(3飜)\"]]]]}",
+      "type": "sanbaiman"
+    },
     {
       "date": "2026-03-25_231034_单薄霓虹.json",
       "filename": "2026-03-25_231034_单薄霓虹.json",
