@@ -2,16 +2,28 @@
 // @name         downloadlogs-batch
 // @namespace    mjg
 // @icon         https://cdn.myanimelist.net/images/characters/12/75583.jpg
-// @version      0.2.0
+// @version      0.2.1
 // @description  Download single or multiple Mahjong Soul logs and convert to Tenhou format
 // @include      https://mahjongsoul.game.yo-star.com/*
 // @include      https://game.mahjongsoul.com/*
 // @include      https://majsoul.union-game.com/0/*
 // @include      https://game.maj-soul.com/*
+// @grant        unsafeWindow
 // ==/UserScript==
 
 (function()
-{   //variables you might actually want to change
+{
+    // 获取页面的真实全局对象
+    const win = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
+    const GameMgr = win.GameMgr;
+    const uiscript = win.uiscript;
+    const app = win.app;
+    const cfg = win.cfg;
+    const net = win.net;
+    const game = win.game;
+    const view = win.view;
+
+    //variables you might actually want to change
     const KEY        = 83;    //key we listen for; "s" is 83 - https://keycode.info/
     const BATCH_KEY  = 66;    //key for opening batch UI; "b" is 66
     const REQUIRE_CTRL_FOR_BATCH = true; //require holding Ctrl when pressing batch key to avoid conflicts
@@ -947,9 +959,7 @@
             return;
         }
 
-        const clientVersion = (GameMgr && GameMgr.Inst && typeof GameMgr.Inst.getClientVersion === "function")
-            ? GameMgr.Inst.getClientVersion()
-            : "";
+        const clientVersion = "0.11.253.w";
 
         app.NetAgent.sendReq2Lobby(
             "Lobby",

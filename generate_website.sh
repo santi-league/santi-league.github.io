@@ -35,16 +35,4 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo ""
-
-# 检查是否需要部署到 Firebase
-if [[ "$*" == *"--firebase"* ]]; then
-    echo "=========================================="
-    echo "步骤 4/4: 部署到 Firebase Hosting"
-    echo "=========================================="
-    firebase deploy --only hosting
-    if [ $? -ne 0 ]; then
-        echo "❌ Firebase 部署失败"
-        exit 1
-    fi
-    echo "✅ Firebase 部署成功！"
-fi
+echo "✅ 网站生成完成！"
