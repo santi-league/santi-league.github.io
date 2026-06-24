@@ -1285,15 +1285,25 @@
         <!-- 总排名标签页 -->
         <div id="tab-ranking" class="tab-content">
             
+    <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="color: #667eea; margin: 0;">Official Rankings (≥10Games)</h2>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <label style="font-weight: 600; color: #555;">Sort By:</label>
+            <select id="rankingMode" style="padding: 8px 16px; border: 2px solid #667eea; border-radius: 4px; font-size: 14px; cursor: pointer; background: white;">
+                <option value="rating">By Rating</option>
+                <option value="score">By Total Score</option>
+            </select>
+        </div>
+    </div>
+
     <div style="margin-bottom: 40px;">
-        <h2 style="color: #667eea; margin-bottom: 20px;">Official Rankings (≥10Games)</h2>
         <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <table id="rankingTable" style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <thead>
                     <tr style="background: #667eea; color: white;">
-                        <th style="padding: 12px; text-align: center;">排名</th>
+                        <th style="padding: 12px; text-align: center;">Rank</th>
                         <th style="padding: 12px;">Player</th>
-                        <th style="padding: 12px; text-align: center;">R Value</th>
+                        <th id="sortColumn" style="padding: 12px; text-align: center;">R Value</th>
                         <th style="padding: 12px; text-align: center;">Games</th>
                         <th style="padding: 12px; text-align: center;">Rounds</th>
                         <th style="padding: 12px; text-align: center;">Avg Rank</th>
@@ -1301,19 +1311,7 @@
                         <th style="padding: 12px; text-align: center;">Win Rate</th>
                     </tr>
                 </thead>
-                <tbody>
-    
-                    <tr style="background: white;">
-                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">🥇 1</td>
-                        <td style="padding: 12px; font-weight: 600;">单薄霓虹</td>
-                        <td style="padding: 12px; text-align: center; color: #667eea; font-weight: bold;">1393.89</td>
-                        <td style="padding: 12px; text-align: center;">11</td>
-                        <td style="padding: 12px; text-align: center;">144</td>
-                        <td style="padding: 12px; text-align: center;">2.73</td>
-                        <td style="padding: 12px; text-align: center;">18.2%</td>
-                        <td style="padding: 12px; text-align: center;">18.1%</td>
-                    </tr>
-        
+                <tbody id="rankingTableBody">
                 </tbody>
             </table>
         </div>
@@ -1329,6 +1327,7 @@
                             <th style="padding: 12px; text-align: center;">Games</th>
                             <th style="padding: 12px; text-align: center;">Rounds</th>
                             <th style="padding: 12px; text-align: center;">R Value</th>
+                            <th style="padding: 12px; text-align: center;">Total Score</th>
                             <th style="padding: 12px; text-align: center;">Avg Rank</th>
                         </tr>
                     </thead>
@@ -1339,6 +1338,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">9</td>
                             <td style="padding: 12px; text-align: center;">110</td>
                             <td style="padding: 12px; text-align: center;">1463.25</td>
+                            <td style="padding: 12px; text-align: center;">-49500</td>
                             <td style="padding: 12px; text-align: center;">2.56</td>
                         </tr>
             
@@ -1347,6 +1347,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">8</td>
                             <td style="padding: 12px; text-align: center;">98</td>
                             <td style="padding: 12px; text-align: center;">1400.66</td>
+                            <td style="padding: 12px; text-align: center;">-51500</td>
                             <td style="padding: 12px; text-align: center;">2.88</td>
                         </tr>
             
@@ -1355,6 +1356,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">8</td>
                             <td style="padding: 12px; text-align: center;">107</td>
                             <td style="padding: 12px; text-align: center;">1635.26</td>
+                            <td style="padding: 12px; text-align: center;">+88700</td>
                             <td style="padding: 12px; text-align: center;">2.00</td>
                         </tr>
             
@@ -1363,6 +1365,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">7</td>
                             <td style="padding: 12px; text-align: center;">91</td>
                             <td style="padding: 12px; text-align: center;">1503.66</td>
+                            <td style="padding: 12px; text-align: center;">+31400</td>
                             <td style="padding: 12px; text-align: center;">2.57</td>
                         </tr>
             
@@ -1371,6 +1374,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">3</td>
                             <td style="padding: 12px; text-align: center;">39</td>
                             <td style="padding: 12px; text-align: center;">1452.32</td>
+                            <td style="padding: 12px; text-align: center;">-18900</td>
                             <td style="padding: 12px; text-align: center;">3.00</td>
                         </tr>
             
@@ -1379,6 +1383,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">3</td>
                             <td style="padding: 12px; text-align: center;">41</td>
                             <td style="padding: 12px; text-align: center;">1608.95</td>
+                            <td style="padding: 12px; text-align: center;">+62400</td>
                             <td style="padding: 12px; text-align: center;">1.67</td>
                         </tr>
             
@@ -1387,6 +1392,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">3</td>
                             <td style="padding: 12px; text-align: center;">35</td>
                             <td style="padding: 12px; text-align: center;">1524.93</td>
+                            <td style="padding: 12px; text-align: center;">+17100</td>
                             <td style="padding: 12px; text-align: center;">2.33</td>
                         </tr>
             
@@ -1395,6 +1401,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">3</td>
                             <td style="padding: 12px; text-align: center;">42</td>
                             <td style="padding: 12px; text-align: center;">1472.99</td>
+                            <td style="padding: 12px; text-align: center;">-35900</td>
                             <td style="padding: 12px; text-align: center;">2.33</td>
                         </tr>
             
@@ -1403,6 +1410,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">3</td>
                             <td style="padding: 12px; text-align: center;">42</td>
                             <td style="padding: 12px; text-align: center;">1533.68</td>
+                            <td style="padding: 12px; text-align: center;">+29800</td>
                             <td style="padding: 12px; text-align: center;">2.67</td>
                         </tr>
             
@@ -1411,6 +1419,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">2</td>
                             <td style="padding: 12px; text-align: center;">23</td>
                             <td style="padding: 12px; text-align: center;">1493.00</td>
+                            <td style="padding: 12px; text-align: center;">+2800</td>
                             <td style="padding: 12px; text-align: center;">2.50</td>
                         </tr>
             
@@ -1419,6 +1428,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">2</td>
                             <td style="padding: 12px; text-align: center;">31</td>
                             <td style="padding: 12px; text-align: center;">1557.99</td>
+                            <td style="padding: 12px; text-align: center;">+27000</td>
                             <td style="padding: 12px; text-align: center;">1.50</td>
                         </tr>
             
@@ -1427,6 +1437,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">1</td>
                             <td style="padding: 12px; text-align: center;">12</td>
                             <td style="padding: 12px; text-align: center;">1452.33</td>
+                            <td style="padding: 12px; text-align: center;">-27100</td>
                             <td style="padding: 12px; text-align: center;">4.00</td>
                         </tr>
             
@@ -1435,6 +1446,7 @@
                             <td style="padding: 12px; text-align: center; font-weight: bold;">1</td>
                             <td style="padding: 12px; text-align: center;">13</td>
                             <td style="padding: 12px; text-align: center;">1507.27</td>
+                            <td style="padding: 12px; text-align: center;">+6500</td>
                             <td style="padding: 12px; text-align: center;">2.00</td>
                         </tr>
             
@@ -1443,6 +1455,70 @@
             </div>
         </div>
         
+    <script>
+        (function() {
+            const playersData = [{"name": "单薄霓虹", "tenhou_r": 1393.89, "total_score": -82800, "games": 11, "total_rounds": 144, "avg_rank": 2.73, "rank_1_rate": 18.18, "win_rate": 18.06}];
+            const rankEmojis = ['🥇', '🥈', '🥉'];
+
+            function renderRanking(mode) {
+                const tbody = document.getElementById('rankingTableBody');
+                const sortColumn = document.getElementById('sortColumn');
+
+                // 更新表头
+                if (mode === 'rating') {
+                    sortColumn.textContent = 'R Value';
+                } else {
+                    sortColumn.textContent = 'Total Score';
+                }
+
+                // 排序数据
+                const sorted = [...playersData].sort((a, b) => {
+                    if (mode === 'rating') {
+                        return b.tenhou_r - a.tenhou_r;
+                    } else {
+                        return b.total_score - a.total_score;
+                    }
+                });
+
+                // 渲染表格
+                tbody.innerHTML = '';
+                sorted.forEach((player, idx) => {
+                    const rank = idx + 1;
+                    const rankEmoji = rank <= 3 ? rankEmojis[rank - 1] + ' ' : '';
+                    const rowBg = idx % 2 === 0 ? 'white' : '#f8f9fa';
+
+                    const sortValue = mode === 'rating'
+                        ? player.tenhou_r.toFixed(2)
+                        : (player.total_score >= 0 ? '+' : '') + player.total_score;
+
+                    const sortValueColor = mode === 'rating' ? '#667eea' : (player.total_score >= 0 ? '#28a745' : '#dc3545');
+
+                    const row = document.createElement('tr');
+                    row.style.background = rowBg;
+                    row.innerHTML = `
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">${rankEmoji}${rank}</td>
+                        <td style="padding: 12px; font-weight: 600;">${player.name}</td>
+                        <td style="padding: 12px; text-align: center; color: ${sortValueColor}; font-weight: bold;">${sortValue}</td>
+                        <td style="padding: 12px; text-align: center;">${player.games}</td>
+                        <td style="padding: 12px; text-align: center;">${player.total_rounds}</td>
+                        <td style="padding: 12px; text-align: center;">${player.avg_rank.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: center;">${player.rank_1_rate.toFixed(1)}%</td>
+                        <td style="padding: 12px; text-align: center;">${player.win_rate.toFixed(1)}%</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            // 监听切换事件
+            document.getElementById('rankingMode').addEventListener('change', function() {
+                renderRanking(this.value);
+            });
+
+            // 初始渲染（按R值排名）
+            renderRanking('rating');
+        })();
+    </script>
+    
         </div>
 
         <!-- 排行榜标签页 -->

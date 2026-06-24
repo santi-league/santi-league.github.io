@@ -119,6 +119,10 @@ TRANSLATIONS = {
         'all_players': '所有玩家',
         'change_curve': '变化曲线',
         'date_and_games': '日期（半庄数）',
+        'sort_by': '排序方式',
+        'by_rating': '按Rating排名',
+        'by_total_score': '按总得分排名',
+        'rank': '排名',
     },
     'en': {
         'title': 'Mahjong Soul Stats - Santi League',
@@ -227,6 +231,10 @@ TRANSLATIONS = {
         'all_players': 'All Players',
         'change_curve': 'Change Curve',
         'date_and_games': 'Date (Games)',
+        'sort_by': 'Sort By',
+        'by_rating': 'By Rating',
+        'by_total_score': 'By Total Score',
+        'rank': 'Rank',
     }
 }
 

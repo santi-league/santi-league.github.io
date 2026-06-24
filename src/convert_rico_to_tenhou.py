@@ -194,6 +194,14 @@ def convert_rico_format_to_tenhou(rico_data, paipu_id=None):
             for rank, (_, idx) in enumerate(score_with_idx):
                 ranks[idx] = rank
 
+            # 校验：分数总和必须小于等于100000
+            total_score = sum(scores)
+            if total_score > 100000:
+                raise ValueError(f"分数校验失败：sc字段中分数总和为 {total_score}，应为 100000。分数={scores}")
+            elif total_score < 100000:
+                scores[score_with_idx[0][1]] += 100000 - total_score
+                print(total_score, scores, scores[score_with_idx[0][1]])
+
             # 组装 sc 数组
             sc = []
             for i, score in enumerate(scores):
@@ -204,11 +212,6 @@ def convert_rico_format_to_tenhou(rico_data, paipu_id=None):
                 pt = (relative_score + uma) / 1000
                 sc.append(pt)
             result['sc'] = sc
-
-            # 校验：分数总和必须等于100000
-            total_score = sum(scores)
-            if total_score != 100000:
-                raise ValueError(f"分数校验失败：sc字段中分数总和为 {total_score}，应为 100000。分数={scores}")
         else:
             result['sc'] = [0] * (num_players * 2)
     else:
