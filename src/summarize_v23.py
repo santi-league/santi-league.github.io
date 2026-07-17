@@ -268,7 +268,16 @@ def assign_pots_to_winners(
     return res
 
 # ---------- 主统计 ----------
-def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
+def summarize_log(v23: Dict[str, Any], uma_config: Optional[Dict[int, int]] = None) -> Dict[str, Any]:
+    """
+    统计牌谱数据
+
+    参数:
+    - v23: 天凤格式的牌谱数据
+    - uma_config: Uma配置字典，例如 {1: 45000, 2: 5000, 3: -15000, 4: -35000} (M-League)
+                 或 {1: 15000, 2: 5000, 3: -5000, 4: -15000} (EMA)
+                 默认为 None，使用 M-League 规则
+    """
     # 保持原始玩家名（不转换），对局历史中显示原始ID
     names = v23.get("name", ["P0","P1","P2","P3"])
     N = 4
@@ -605,8 +614,9 @@ def summarize_log(v23: Dict[str, Any]) -> Dict[str, Any]:
             prev = finals[i]
         per[i]["rank"] = current_rank
 
-    # 计算平均马点（M-League uma配置）
-    uma_config = {1: 45000, 2: 5000, 3: -15000, 4: -35000}
+    # 计算平均马点（使用传入的uma配置，如果没有则使用M-League默认值）
+    if uma_config is None:
+        uma_config = {1: 45000, 2: 5000, 3: -15000, 4: -35000}  # M-League 默认
 
     # 找出同分组，计算平均uma
     score_groups = {}  # {分数: [玩家索引列表]}

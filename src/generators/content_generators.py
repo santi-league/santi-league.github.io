@@ -240,7 +240,7 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
     <div class="rating-formula-section" style="margin-bottom: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
         <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleFormula()">
             <h3 style="color: white; margin: 0; font-size: 18px; font-weight: 600;">
-                <span style="margin-right: 10px;">📊</span>Rating值计算公式
+                <span style="margin-right: 10px;">📊</span>{'Rating Calculation Formula' if lang == 'en' else 'Rating值计算公式'}
             </h3>
             <span id="formulaToggle" style="color: white; font-size: 20px; transition: transform 0.3s;">▼</span>
         </div>
@@ -248,9 +248,9 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
         <div id="formulaContent" style="display: none; margin-top: 20px; background: white; padding: 20px; border-radius: 8px;">
             <!-- 主公式 -->
             <div style="background: #f8f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; margin-bottom: 20px;">
-                <h4 style="color: #667eea; margin: 0 0 10px 0; font-size: 16px;">主公式</h4>
+                <h4 style="color: #667eea; margin: 0 0 10px 0; font-size: 16px;">{'Main Formula' if lang == 'en' else '主公式'}</h4>
                 <div style="font-family: 'Courier New', monospace; font-size: 15px; color: #333; background: white; padding: 12px; border-radius: 6px; text-align: center;">
-                    <strong style="color: #764ba2;">Rating变动</strong> = <strong style="color: #667eea;">试合数补正</strong> × (<strong style="color: #f093fb;">得点变化</strong> + <strong style="color: #4facfe;">Rating补正</strong>)
+                    {f'<strong style="color: #764ba2;">Rating Change</strong> = <strong style="color: #667eea;">Games Correction</strong> × (<strong style="color: #f093fb;">Point Change</strong> + <strong style="color: #4facfe;">Rating Correction</strong>)' if lang == 'en' else '<strong style="color: #764ba2;">Rating变动</strong> = <strong style="color: #667eea;">试合数补正</strong> × (<strong style="color: #f093fb;">得点变化</strong> + <strong style="color: #4facfe;">Rating补正</strong>)'}
                 </div>
             </div>
 
@@ -258,46 +258,55 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
                 <!-- 步骤1 -->
                 <div style="background: #fff5f5; padding: 15px; border-radius: 8px; border-left: 4px solid #f093fb;">
-                    <h5 style="color: #f093fb; margin: 0 0 8px 0; font-size: 14px;">① 得点变化（千点单位）</h5>
+                    <h5 style="color: #f093fb; margin: 0 0 8px 0; font-size: 14px;">{'① Point Change (in thousands)' if lang == 'en' else '① 得点变化（千点单位）'}</h5>
                     <div style="font-size: 13px; color: #555; line-height: 1.6;">
                         <code style="background: white; padding: 4px 8px; border-radius: 4px; display: block; margin-bottom: 8px;">
-                            (Uma + 素点差) / 1000
+                            {('Score Diff / 1000 + Uma Points' if lang == 'en' else '素点差 / 1000 + Uma千分点')}
                         </code>
                         <div style="margin-top: 8px; font-size: 12px; color: #666;">
-                            <strong>Uma：</strong><br>
-                            • M-League: 1位=+45k, 2位=+5k, 3位=-15k, 4位=-35k<br>
-                            • EMA: 1位=+15k, 2位=+5k, 3位=-5k, 4位=-15k<br>
-                            <strong>素点差：</strong>最终点数 - 起始点数
+                            {f'''<strong>Uma Points:</strong><br>
+                            • M-League: 1st=+45, 2nd=+5, 3rd=-15, 4th=-35<br>
+                            • EMA: 1st=+15, 2nd=+5, 3rd=-5, 4th=-15<br>
+                            <strong>Score Diff:</strong> Final Score - Starting Score<br>
+                            <em style="color: #999;">(M-League starts at 25,000, EMA starts at 30,000)</em>''' if lang == 'en' else '''<strong>Uma千分点：</strong><br>
+                            • M-League: 1位=+45, 2位=+5, 3位=-15, 4位=-35<br>
+                            • EMA: 1位=+15, 2位=+5, 3位=-5, 4位=-15<br>
+                            <strong>素点差：</strong>最终点数 - 起始点数<br>
+                            <em style="color: #999;">(M-League起始25000，EMA起始30000)</em>'''}
                         </div>
                     </div>
                 </div>
 
                 <!-- 步骤2 -->
                 <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #4facfe;">
-                    <h5 style="color: #4facfe; margin: 0 0 8px 0; font-size: 14px;">② Rating补正</h5>
+                    <h5 style="color: #4facfe; margin: 0 0 8px 0; font-size: 14px;">{'② Rating Correction' if lang == 'en' else '② Rating补正'}</h5>
                     <div style="font-size: 13px; color: #555; line-height: 1.6;">
                         <code style="background: white; padding: 4px 8px; border-radius: 4px; display: block; margin-bottom: 8px;">
-                            (桌平均Rating - 自己的Rating) / 40
+                            {('(Table Avg Rating - Your Rating) / 40' if lang == 'en' else '(桌平均Rating - 自己的Rating) / 40')}
                         </code>
                         <div style="margin-top: 8px; font-size: 12px; color: #666;">
-                            • 对手强：补正为正<br>
+                            {f'''• Stronger opponents: positive correction<br>
+                            • Weaker opponents: negative correction<br>
+                            <em>→ Stronger players lose less, win more; weaker players lose more, win less</em>''' if lang == 'en' else '''• 对手强：补正为正<br>
                             • 对手弱：补正为负<br>
-                            <em>→ 强者输少赢多，弱者输多赢少</em>
+                            <em>→ 强者输少赢多，弱者输多赢少</em>'''}
                         </div>
                     </div>
                 </div>
 
                 <!-- 步骤3 -->
                 <div style="background: #f5f3ff; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
-                    <h5 style="color: #667eea; margin: 0 0 8px 0; font-size: 14px;">③ 试合数补正</h5>
+                    <h5 style="color: #667eea; margin: 0 0 8px 0; font-size: 14px;">{'③ Games Correction' if lang == 'en' else '③ 试合数补正'}</h5>
                     <div style="font-size: 13px; color: #555; line-height: 1.6;">
                         <code style="background: white; padding: 4px 8px; border-radius: 4px; display: block; margin-bottom: 8px;">
-                            试合数 < 400: 1 - 试合数 × 0.002<br>
-                            试合数 ≥ 400: 0.2
+                            {f'''Games < 400: 1 - Games × 0.002<br>
+                            Games ≥ 400: 0.2''' if lang == 'en' else '''试合数 < 400: 1 - 试合数 × 0.002<br>
+                            试合数 ≥ 400: 0.2'''}
                         </code>
                         <div style="margin-top: 8px; font-size: 12px; color: #666;">
-                            • 初期：Rating波动大<br>
-                            • 后期：Rating稳定（固定0.2）
+                            {f'''• Early games: High Rating volatility<br>
+                            • Later games: Stable Rating (fixed at 0.2)''' if lang == 'en' else '''• 初期：Rating波动大<br>
+                            • 后期：Rating稳定（固定0.2）'''}
                         </div>
                     </div>
                 </div>
@@ -305,15 +314,21 @@ def generate_recent_games_content_for_tabs(recent_games, stats_data, t, lang='zh
 
             <!-- 示例 -->
             <div style="margin-top: 20px; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); padding: 15px; border-radius: 8px;">
-                <h5 style="color: #d35400; margin: 0 0 10px 0; font-size: 14px;">💡 计算示例</h5>
+                <h5 style="color: #d35400; margin: 0 0 10px 0; font-size: 14px;">{'💡 Calculation Example' if lang == 'en' else '💡 计算示例'}</h5>
                 <div style="font-size: 12px; color: #555; line-height: 1.8; background: white; padding: 12px; border-radius: 6px;">
-                    <strong>条件：</strong>第1名，终局38000点，当前Rating=1650，桌平均Rating=1600，已打50场<br>
+                    {f'''<strong>Scenario:</strong> 1st place, final score 38,000, current Rating=1650, table avg Rating=1600, 50 games played<br>
+                    <strong>Calculation:</strong><br>
+                    • Point Change = 13000 / 1000 + 45 = 58<br>
+                    • Rating Correction = (1600 - 1650) / 40 = -1.25<br>
+                    • Games Correction = 1 - 50 × 0.002 = 0.9<br>
+                    • Rating Change = 0.9 × (58 - 1.25) = <strong style="color: #d35400;">+51.08</strong><br>
+                    <strong style="color: #27ae60;">→ New Rating: 1701.08</strong>''' if lang == 'en' else '''<strong>条件：</strong>第1名，终局38000点，当前Rating=1650，桌平均Rating=1600，已打50场<br>
                     <strong>计算：</strong><br>
-                    • 得点变化 = (45000 + 13000) / 1000 = 58<br>
+                    • 得点变化 = 13000 / 1000 + 45 = 58<br>
                     • Rating补正 = (1600 - 1650) / 40 = -1.25<br>
                     • 试合数补正 = 1 - 50 × 0.002 = 0.9<br>
                     • Rating变动 = 0.9 × (58 - 1.25) = <strong style="color: #d35400;">+51.08</strong><br>
-                    <strong style="color: #27ae60;">→ 新Rating：1701.08</strong>
+                    <strong style="color: #27ae60;">→ 新Rating：1701.08</strong>'''}
                 </div>
             </div>
         </div>

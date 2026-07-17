@@ -932,13 +932,14 @@
                     <h5 style="color: #f093fb; margin: 0 0 8px 0; font-size: 14px;">① 得点变化（千点单位）</h5>
                     <div style="font-size: 13px; color: #555; line-height: 1.6;">
                         <code style="background: white; padding: 4px 8px; border-radius: 4px; display: block; margin-bottom: 8px;">
-                            (Uma + 素点差) / 1000
+                            素点差 / 1000 + Uma千分点
                         </code>
                         <div style="margin-top: 8px; font-size: 12px; color: #666;">
-                            <strong>Uma：</strong><br>
-                            • M-League: 1位=+45k, 2位=+5k, 3位=-15k, 4位=-35k<br>
-                            • EMA: 1位=+15k, 2位=+5k, 3位=-5k, 4位=-15k<br>
-                            <strong>素点差：</strong>最终点数 - 起始点数
+                            <strong>Uma千分点：</strong><br>
+                            • M-League: 1位=+45, 2位=+5, 3位=-15, 4位=-35<br>
+                            • EMA: 1位=+15, 2位=+5, 3位=-5, 4位=-15<br>
+                            <strong>素点差：</strong>最终点数 - 起始点数<br>
+                            <em style="color: #999;">(M-League起始25000，EMA起始30000)</em>
                         </div>
                     </div>
                 </div>
@@ -980,7 +981,7 @@
                 <div style="font-size: 12px; color: #555; line-height: 1.8; background: white; padding: 12px; border-radius: 6px;">
                     <strong>条件：</strong>第1名，终局38000点，当前Rating=1650，桌平均Rating=1600，已打50场<br>
                     <strong>计算：</strong><br>
-                    • 得点变化 = (45000 + 13000) / 1000 = 58<br>
+                    • 得点变化 = 13000 / 1000 + 45 = 58<br>
                     • Rating补正 = (1600 - 1650) / 40 = -1.25<br>
                     • 试合数补正 = 1 - 50 × 0.002 = 0.9<br>
                     • Rating变动 = 0.9 × (58 - 1.25) = <strong style="color: #d35400;">+51.08</strong><br>

@@ -1804,7 +1804,8 @@ def main():
             try:
                 with open(fp, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                summary = summarize_log(data)
+                # 使用EMA的uma配置
+                summary = summarize_log(data, uma_config=ema_uma_config)
                 ema_results.append(summary)
                 ema_round_counts.append(len(data.get("log", [])))
             except Exception as ex:
