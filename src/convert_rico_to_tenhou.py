@@ -62,17 +62,40 @@ def extract_tenhou_json_from_url(text):
         return None
 
 
-def convert_rico_format_to_tenhou(rico_data, paipu_id=None):
+# 规则配置
+RULE_CONFIGS = {
+    'm-league': {
+        'name': 'M-League',
+        'origin_points': 25000,
+        'uma_points': [45, 5, -15, -35],  # 千分
+        'total_points': 100000
+    },
+    'ema': {
+        'name': 'EMA',
+        'origin_points': 30000,
+        'uma_points': [15, 5, -5, -15],  # 千分
+        'total_points': 120000
+    }
+}
+
+
+def convert_rico_format_to_tenhou(rico_data, paipu_id=None, rule_type='m-league'):
     """
     将 ricochet.cn 格式转换为天凤格式
 
     Args:
         rico_data: list, ricochet.cn API 返回的数据
         paipu_id: str, 牌谱ID (可选，用于 ref 字段)
+        rule_type: str, 规则类型 ('m-league' 或 'ema')
 
     Returns:
         dict: 标准天凤格式的数据
     """
+    # 获取规则配置
+    if rule_type not in RULE_CONFIGS:
+        raise ValueError(f"Unknown rule type: {rule_type}. Available: {list(RULE_CONFIGS.keys())}")
+
+    rule_config = RULE_CONFIGS[rule_type]
     if not isinstance(rico_data, list) or len(rico_data) == 0:
         raise ValueError("Input data must be a non-empty list")
 
@@ -178,14 +201,13 @@ def convert_rico_format_to_tenhou(rico_data, paipu_id=None):
 
             # sc 格式：[score1, 千分点1, score2, 千分点2, ...]
             # 千分点计算公式：(最终分 - 起始分 + 马点) / 1000
-            # M-League规则：起始25000，马点 [45, 5, -15, -35]（千分）
 
             # 获取起始分（从第一局）
             first_log = all_logs[0]
-            origin_points = first_log[1][0] if len(first_log) > 1 and isinstance(first_log[1], list) else 25000
+            origin_points = first_log[1][0] if len(first_log) > 1 and isinstance(first_log[1], list) else rule_config['origin_points']
 
-            # M-League马点（千分）
-            uma_points = [45, 5, -15, -35]
+            # 使用规则配置的马点（千分）
+            uma_points = rule_config['uma_points']
 
             # 计算排名（按分数从高到低）
             score_with_idx = [(s, i) for i, s in enumerate(scores)]
@@ -194,13 +216,14 @@ def convert_rico_format_to_tenhou(rico_data, paipu_id=None):
             for rank, (_, idx) in enumerate(score_with_idx):
                 ranks[idx] = rank
 
-            # 校验：分数总和必须小于等于100000
+            # 校验：分数总和必须小于等于规则配置的总分
+            expected_total = rule_config['total_points']
             total_score = sum(scores)
-            if total_score > 100000:
-                raise ValueError(f"分数校验失败：sc字段中分数总和为 {total_score}，应为 100000。分数={scores}")
-            elif total_score < 100000:
-                scores[score_with_idx[0][1]] += 100000 - total_score
-                print(total_score, scores, scores[score_with_idx[0][1]])
+            if total_score > expected_total:
+                raise ValueError(f"分数校验失败：sc字段中分数总和为 {total_score}，应为 {expected_total}。分数={scores}")
+            elif total_score < expected_total:
+                scores[score_with_idx[0][1]] += expected_total - total_score
+                print(f"调整分数: {total_score} -> {expected_total}, 第一名分数: {scores[score_with_idx[0][1]]}")
 
             # 组装 sc 数组
             sc = []
@@ -220,7 +243,7 @@ def convert_rico_format_to_tenhou(rico_data, paipu_id=None):
     return result
 
 
-def process_file(input_path, output_path, paipu_id=None):
+def process_file(input_path, output_path, paipu_id=None, rule_type='m-league'):
     """
     处理单个文件
 
@@ -228,6 +251,7 @@ def process_file(input_path, output_path, paipu_id=None):
         input_path: 输入文件路径
         output_path: 输出文件路径
         paipu_id: 牌谱ID (可选，如果不提供则从输出文件名提取)
+        rule_type: 规则类型 ('m-league' 或 'ema')
     """
     with open(input_path, 'r', encoding='utf-8') as f:
         rico_data = json.load(f)
@@ -236,7 +260,7 @@ def process_file(input_path, output_path, paipu_id=None):
     if not paipu_id:
         paipu_id = Path(output_path).stem
 
-    tenhou_data = convert_rico_format_to_tenhou(rico_data, paipu_id=paipu_id)
+    tenhou_data = convert_rico_format_to_tenhou(rico_data, paipu_id=paipu_id, rule_type=rule_type)
 
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(tenhou_data, f, ensure_ascii=False, separators=(',', ':'))
@@ -248,28 +272,51 @@ def process_file(input_path, output_path, paipu_id=None):
 def main():
     """主函数"""
     if len(sys.argv) < 2:
-        print("Usage: python3 convert_rico_to_tenhou.py <input_file> [output_file]")
-        print("   or: python3 convert_rico_to_tenhou.py <input_dir> <output_dir>")
+        print("Usage: python3 convert_rico_to_tenhou.py <input_file> [output_file] [--rule RULE]")
+        print("   or: python3 convert_rico_to_tenhou.py <input_dir> <output_dir> [--rule RULE]")
+        print("")
+        print("Options:")
+        print("  --rule RULE    Specify rule type: m-league (default) or ema")
         sys.exit(1)
 
-    input_path = Path(sys.argv[1])
+    # 解析参数
+    args = sys.argv[1:]
+    rule_type = 'm-league'  # 默认规则
+
+    # 查找 --rule 参数
+    if '--rule' in args:
+        rule_idx = args.index('--rule')
+        if rule_idx + 1 < len(args):
+            rule_type = args[rule_idx + 1]
+            # 移除 --rule 和它的值
+            args.pop(rule_idx)
+            args.pop(rule_idx)
+        else:
+            print("Error: --rule requires a value")
+            sys.exit(1)
+
+    if len(args) < 1:
+        print("Error: Input path required")
+        sys.exit(1)
+
+    input_path = Path(args[0])
 
     if input_path.is_file():
         # 单文件模式
-        if len(sys.argv) >= 3:
-            output_path = Path(sys.argv[2])
+        if len(args) >= 2:
+            output_path = Path(args[1])
         else:
             output_path = input_path.parent / f"{input_path.stem}_tenhou.json"
 
-        process_file(input_path, output_path)
+        process_file(input_path, output_path, rule_type=rule_type)
 
     elif input_path.is_dir():
         # 目录模式
-        if len(sys.argv) < 3:
+        if len(args) < 2:
             print("Error: Output directory required for directory mode")
             sys.exit(1)
 
-        output_dir = Path(sys.argv[2])
+        output_dir = Path(args[1])
         output_dir.mkdir(parents=True, exist_ok=True)
 
         json_files = list(input_path.glob("*.json"))
@@ -278,6 +325,7 @@ def main():
             sys.exit(1)
 
         print(f"Found {len(json_files)} files to convert")
+        print(f"Using rule: {rule_type}")
         print()
 
         success = 0
@@ -286,7 +334,7 @@ def main():
         for json_file in json_files:
             output_file = output_dir / json_file.name
             try:
-                process_file(json_file, output_file)
+                process_file(json_file, output_file, rule_type=rule_type)
                 success += 1
             except Exception as e:
                 print(f"✗ Failed: {json_file} - {e}", file=sys.stderr)
