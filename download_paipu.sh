@@ -62,6 +62,13 @@ echo "总计链接: $total_links"
 echo "=========================================="
 echo ""
 
+# 如果没有链接，直接退出
+if [ "$total_links" -eq 0 ]; then
+    echo -e "${YELLOW}没有需要下载的链接，跳过下载步骤${NC}"
+    echo ""
+    exit 0
+fi
+
 # 使用Python脚本批量下载所有牌谱（只登录一次）
 python3 << PYTHON_SCRIPT
 from src.download_paipu.rico import RicochetDownloader

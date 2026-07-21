@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S0赛季 - S-League</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #c15b42 0%, #9c4732 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .date-info {
+            font-size: 16px;
+            margin: 10px 0;
+            opacity: 0.9;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: white;
+            text-decoration: none;
+            opacity: 0.9;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .lang-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .lang-switch:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .summary-table {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #c15b42;
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .player-name {
+            font-weight: bold;
+        }
+
+        .player-link {
+            color: #c15b42;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .player-link:hover {
+            color: #9c4732;
+            text-decoration: underline;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            font-weight: bold;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        h2 {
+            margin: 40px 0 20px 0;
+            color: #c15b42;
+            font-size: 28px;
+        }
+
+        .player-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .player-card h3 {
+            color: #c15b42;
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #c15b42;
+            padding-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #c15b42;
+        }
+
+        .stat-value.large {
+            font-size: 32px;
+        }
+
+        .section {
+            margin-top: 25px;
+        }
+
+        .section h4 {
+            color: #555;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
+        .section p {
+            line-height: 1.8;
+            color: #666;
+        }
+
+        .section ul {
+            margin-left: 20px;
+            line-height: 1.8;
+            color: #666;
+        }
+
+        .rank-bars {
+            margin-top: 10px;
+        }
+
+        .rank-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .rank-label {
+            width: 50px;
+            font-weight: bold;
+        }
+
+        .bar-container {
+            flex: 1;
+            position: relative;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 5px;
+        }
+
+        .bar-1 { background: linear-gradient(90deg, #28a745, #5cb85c); }
+        .bar-2 { background: linear-gradient(90deg, #17a2b8, #5bc0de); }
+        .bar-3 { background: linear-gradient(90deg, #ffc107, #ffda6a); }
+        .bar-4 { background: linear-gradient(90deg, #dc3545, #e66a73); }
+
+        .bar-text {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .yaku-list {
+            columns: 2;
+            column-gap: 20px;
+        }
+
+        .yaku-list li {
+            break-inside: avoid;
+            margin-bottom: 5px;
+        }
+
+        .vs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .vs-table th {
+            background: #c15b42;
+            color: white;
+            padding: 10px 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .vs-table td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .vs-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .vs-table .opponent-name {
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .vs-table .opponent-link {
+            color: #c15b42;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .vs-table .opponent-link:hover {
+            color: #9c4732;
+            text-decoration: underline;
+        }
+
+        .vs-table .positive {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .vs-table .negative {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .vs-table .neutral {
+            color: #666;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            border-left: 4px solid #c15b42;
+        }
+
+        .summary-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .summary-value.negative {
+            color: #dc3545;
+        }
+
+        .league-avg {
+            font-size: 13px;
+            color: #888;
+            margin-left: 8px;
+            font-weight: normal;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .stats-table thead {
+            background: linear-gradient(135deg, #c15b42 0%, #9c4732 100%);
+        }
+
+        .stats-table th {
+            color: white;
+            padding: 12px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .stats-table td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 16px;
+        }
+
+        .stats-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .stats-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .stats-table .type-label {
+            font-weight: 600;
+            color: #555;
+            text-align: left;
+        }
+
+        .stats-table .points-value {
+            color: #c15b42;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .stats-table .special-stats {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stats-table .rate-good {
+            color: #28a745;
+            font-weight: 600;
+            font-size: 17px;
+        }
+
+        .stats-table .rate-bad {
+            color: #dc3545;
+            font-weight: 600;
+            font-size: 17px;
+        }
+
+        .stats-table .rate-neutral {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* 最近牌谱样式 - 横向表格 */
+        .recent-games-section {
+            margin-bottom: 30px;
+        }
+
+        .recent-games-section h2 {
+            margin: 0 0 15px 0;
+            color: #c15b42;
+            font-size: 24px;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .recent-games-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+
+        .recent-games-table thead {
+            background: linear-gradient(135deg, #c15b42 0%, #9c4732 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .recent-games-table th {
+            padding: 8px 5px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            white-space: nowrap;
+        }
+
+        .recent-games-table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        .recent-games-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .recent-games-table tbody tr:hover {
+            background: #e3f2fd;
+        }
+
+        .recent-games-table td {
+            padding: 6px 4px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        .recent-games-table .game-date {
+            font-weight: bold;
+            color: #c15b42;
+            font-size: 11px;
+        }
+
+        .recent-games-table .table-avg-r {
+            font-weight: 600;
+            color: #9c4732;
+        }
+
+        .recent-games-table .player-name {
+            font-weight: 500;
+            color: #333;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .recent-games-table .player-name.rank-1 {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .recent-games-table .player-name.rank-2 {
+            color: #666;
+        }
+
+        .recent-games-table .player-name.rank-3 {
+            color: #999;
+        }
+
+        .recent-games-table .player-name.rank-4 {
+            color: #ccc;
+        }
+
+        .recent-games-table .r-value {
+            color: #c15b42;
+            font-weight: 500;
+        }
+
+        .recent-games-table .games-count {
+            color: #888;
+        }
+
+        .recent-games-table .score-change {
+            font-weight: 500;
+        }
+
+        .recent-games-table .r-correction {
+            color: #9c4732;
+        }
+
+        .recent-games-table .games-coef {
+            color: #888;
+            font-size: 9px;
+        }
+
+        .recent-games-table .r-change {
+            font-weight: bold;
+        }
+
+        /* 荣誉牌谱样式 */
+        .honor-games-section {
+            margin-bottom: 40px;
+        }
+
+        .honor-games-section h2 {
+            margin: 0 0 20px 0;
+            color: #c15b42;
+            font-size: 28px;
+        }
+
+        .honor-games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .honor-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .honor-card.yakuman {
+            border-left-color: #dc3545;
+            background: linear-gradient(135deg, #fff 0%, #ffe6e6 100%);
+        }
+
+        .honor-card.sanbaiman {
+            border-left-color: #ffc107;
+            background: linear-gradient(135deg, #fff 0%, #fff9e6 100%);
+        }
+
+        .honor-card.rare-yaku {
+            border-left-color: #17a2b8;
+            background: linear-gradient(135deg, #fff 0%, #e6f7ff 100%);
+        }
+
+        .honor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }
+
+        .honor-type {
+            font-size: 20px;
+            font-weight: bold;
+            color: #c15b42;
+        }
+
+        .honor-card.yakuman .honor-type {
+            color: #dc3545;
+        }
+
+        .honor-card.sanbaiman .honor-type {
+            color: #ffc107;
+        }
+
+        .honor-card.rare-yaku .honor-type {
+            color: #17a2b8;
+        }
+
+        .honor-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .honor-date {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .honor-round {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .honor-winner {
+            font-size: 18px;
+            font-weight: bold;
+            color: #c15b42;
+        }
+
+        .honor-yaku {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .honor-replay-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #c15b42;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .honor-replay-btn:hover {
+            background: #9c4732;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .yaku-list {
+                columns: 1;
+            }
+
+            .vs-table {
+                font-size: 12px;
+            }
+
+            .vs-table th,
+            .vs-table td {
+                padding: 6px 4px;
+            }
+
+            .stats-table {
+                font-size: 12px;
+            }
+
+            .stats-table th,
+            .stats-table td {
+                padding: 8px 5px;
+            }
+
+            .stats-table .special-stats {
+                font-size: 11px;
+            }
+
+            .summary-box {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .recent-games-table {
+                font-size: 9px;
+            }
+
+            .recent-games-table th {
+                padding: 6px 3px;
+                font-size: 8px;
+            }
+
+            .recent-games-table td {
+                padding: 4px 2px;
+                font-size: 9px;
+            }
+
+            .honor-games-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 标签页导航样式 */
+        .tabs-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            background: white;
+            padding: 10px 20px 0 20px;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+            top: 2px;
+        }
+
+        .tab-button:hover {
+            color: #c15b42;
+            background: #f8f9fa;
+        }
+
+        .tab-button.active {
+            color: #c15b42;
+            border-bottom-color: #c15b42;
+            background: white;
+        }
+
+        /* 标签页内容样式 */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 玩家选择器样式 */
+        .player-selector {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .player-selector label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #c15b42;
+            margin-right: 10px;
+        }
+
+        .player-selector select {
+            padding: 10px 15px;
+            font-size: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+            min-width: 250px;
+        }
+
+        .player-selector select:hover {
+            border-color: #c15b42;
+        }
+
+        .player-selector select:focus {
+            outline: none;
+            border-color: #c15b42;
+            box-shadow: 0 0 0 3px rgba(193, 91, 66, 0.1);
+        }
+
+        
+    </style>
+    <style>
+        .player-filter-tabs {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .player-filter-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .player-filter-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .player-filter-btn.active {
+            background: #c15b42;
+            color: white;
+            border-color: #c15b42;
+        }
+
+        .highlight-player {
+            background-color: #fff3cd !important;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="s0-en.html" class="lang-switch">English</a>
+        <h1>S0赛季 - S-League</h1>
+        数据更新至: 2026年07月21日
+        <a href="index.html" class="back-link">← 返回首页</a>
+    </div>
+
+    <div class="container">
+        <!-- 标签页导航 -->
+        <div class="tabs-nav">
+            <button class="tab-button active" onclick="switchTab('recent')">牌谱历史</button>
+            <button class="tab-button" onclick="switchTab('honor')">荣誉牌谱</button>
+            <button class="tab-button" onclick="switchTab('ranking')">总排名</button>
+            <button class="tab-button" onclick="switchTab('leaderboard')">排行榜</button>
+            <button class="tab-button" onclick="switchTab('finals')">决定战</button>
+        </div>
+
+        <!-- 牌谱历史标签页 -->
+        <div id="tab-recent" class="tab-content active">
+            
+    <!-- 玩家筛选选项卡 -->
+    <div class="player-filter-tabs" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px;">
+        <button class="player-filter-btn active" data-player="all">所有玩家</button>
+<button class="player-filter-btn" data-player="santi">santi (73半庄)</button>
+<button class="player-filter-btn" data-player="单薄霓虹">单薄霓虹 (47半庄)</button>
+<button class="player-filter-btn" data-player="Jwangta">Jwangta (39半庄)</button>
+<button class="player-filter-btn" data-player="RinshanNomi">RinshanNomi (38半庄)</button>
+<button class="player-filter-btn" data-player="Vermilio">Vermilio (27半庄)</button>
+<button class="player-filter-btn" data-player="加賀百万石">加賀百万石 (24半庄)</button>
+<button class="player-filter-btn" data-player="DreamKQ">DreamKQ (22半庄)</button>
+<button class="player-filter-btn" data-player="浴室要冷镜">浴室要冷镜 (20半庄)</button>
+<button class="player-filter-btn" data-player="hatuyukiuk">hatuyukiuk (20半庄)</button>
+<button class="player-filter-btn" data-player="Phokopi">Phokopi (19半庄)</button>
+<button class="player-filter-btn" data-player="sokka">sokka (17半庄)</button>
+<button class="player-filter-btn" data-player="小地鼠爱点炮">小地鼠爱点炮 (小滴塑爱点炮) (17半庄)</button>
+<button class="player-filter-btn" data-player="JellyGrouper">JellyGrouper (11半庄)</button>
+<button class="player-filter-btn" data-player="阿佳丶">阿佳丶 (11半庄)</button>
+<button class="player-filter-btn" data-player="Samuel122">Samuel122 (7半庄)</button>
+<button class="player-filter-btn" data-player="南美雀后">南美雀后 (7半庄)</button>
+<button class="player-filter-btn" data-player="tacolog">tacolog (7半庄)</button>
+<button class="player-filter-btn" data-player="ジュンシー">ジュンシー (6半庄)</button>
+<button class="player-filter-btn" data-player="Oncorhynchus">Oncorhynchus (2半庄)</button>
+<button class="player-filter-btn" data-player="TlaseZ">TlaseZ (1半庄)</button>
+<button class="player-filter-btn" data-player="yipca">yipca (1半庄)</button>
+
+    </div>
+
+    <!-- 总分曲线图容器 -->
+    <div id="scoreChartContainer" style="display: none; margin-bottom: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3 id="chartPlayerName" style="text-align: center; color: #c15b42; margin-bottom: 20px;"></h3>
+        <canvas id="scoreChart" width="800" height="400"></canvas>
+    </div>
+
+    <!-- 牌谱表格 -->
+    <div class="table-scroll">
+        <table class="recent-games-table" id="gamesTable">
+            <thead>
+                <tr>
+                    <th rowspan="2">日期时间</th>
+                    <th colspan="5">玩家1</th>
+                    <th colspan="5">玩家2</th>
+                    <th colspan="5">玩家3</th>
+                    <th colspan="5">玩家4</th>
+                </tr>
+                <tr>
+                    <th>玩家</th>
+                    <th>局前总分</th>
+                    <th>最终得分</th>
+                    <th>点数变化(pt)</th>
+                    <th>局后总分</th>
+                    <th>玩家</th>
+                    <th>局前总分</th>
+                    <th>最终得分</th>
+                    <th>点数变化(pt)</th>
+                    <th>局后总分</th>
+                    <th>玩家</th>
+                    <th>局前总分</th>
+                    <th>最终得分</th>
+                    <th>点数变化(pt)</th>
+                    <th>局后总分</th>
+                    <th>玩家</th>
+                    <th>局前总分</th>
+                    <th>最终得分</th>
+                    <th>点数变化(pt)</th>
+                    <th>局后总分</th>
+                </tr>
+            </thead>
+            <tbody id="gamesTableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const gamesData = [{"date": "2026年07月21日 00:34", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": 148.0, "final_points": 45700, "score_change": 65.7, "score_after": 213.7}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 820.2, "final_points": 26500, "score_change": 6.5, "score_after": 826.7}, {"name": "Jwangta", "original_name": "JW27", "rank": 3, "score_before": 73.3, "final_points": 24200, "score_change": -15.8, "score_after": 57.5}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 4, "score_before": -30.7, "final_points": 3600, "score_change": -56.4, "score_after": -87.1}]}, {"date": "2026年07月20日 23:48", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 764.5, "final_points": 35700, "score_change": 55.7, "score_after": 820.2}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": 142.8, "final_points": 25200, "score_change": 5.2, "score_after": 148.0}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 3, "score_before": -13.3, "final_points": 22600, "score_change": -17.4, "score_after": -30.7}, {"name": "Jwangta", "original_name": "JW27", "rank": 4, "score_before": 116.8, "final_points": 16500, "score_change": -43.5, "score_after": 73.3}]}, {"date": "2026年07月20日 23:11", "players": [{"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 1, "score_before": -70.1, "final_points": 36800, "score_change": 56.8, "score_after": -13.3}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 753.1, "final_points": 31400, "score_change": 11.4, "score_after": 764.5}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 3, "score_before": 165.6, "final_points": 17200, "score_change": -22.8, "score_after": 142.8}, {"name": "Jwangta", "original_name": "JW27", "rank": 4, "score_before": 162.2, "final_points": 14600, "score_change": -45.4, "score_after": 116.8}]}, {"date": "2026年07月20日 22:35", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 696.3, "final_points": 36800, "score_change": 56.8, "score_after": 753.1}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 2, "score_before": -75.9, "final_points": 25800, "score_change": 5.8, "score_after": -70.1}, {"name": "Jwangta", "original_name": "JW27", "rank": 3, "score_before": 177.0, "final_points": 25200, "score_change": -14.8, "score_after": 162.2}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 4, "score_before": 213.4, "final_points": 12200, "score_change": -47.8, "score_after": 165.6}]}, {"date": "2026年07月18日 22:28", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 639.8, "final_points": 36500, "score_change": 56.5, "score_after": 696.3}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 2, "score_before": 40.5, "final_points": 34400, "score_change": 14.4, "score_after": 54.9}, {"name": "Jwangta", "original_name": "JW27", "rank": 3, "score_before": 192.8, "final_points": 24200, "score_change": -15.8, "score_after": 177.0}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 4, "score_before": 143.2, "final_points": 4900, "score_change": -55.1, "score_after": 88.1}]}, {"date": "2026年07月18日 21:33", "players": [{"name": "Jwangta", "original_name": "JW27", "rank": 1, "score_before": 137.1, "final_points": 35700, "score_change": 55.7, "score_after": 192.8}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 2, "score_before": 140.0, "final_points": 23200, "score_change": 3.2, "score_after": 143.2}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 657.3, "final_points": 22500, "score_change": -17.5, "score_after": 639.8}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 4, "score_before": 81.9, "final_points": 18600, "score_change": -41.4, "score_after": 40.5}]}, {"date": "2026年07月18日 20:41", "players": [{"name": "Jwangta", "original_name": "JW27", "rank": 1, "score_before": 73.2, "final_points": 43900, "score_change": 63.9, "score_after": 137.1}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 2, "score_before": 131.2, "final_points": 28800, "score_change": 8.8, "score_after": 140.0}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 3, "score_before": -35.8, "final_points": 28600, "score_change": -11.4, "score_after": -47.2}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 4, "score_before": 143.2, "final_points": -1300, "score_change": -61.3, "score_after": 81.9}]}, {"date": "2026年07月18日 01:02", "players": [{"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 1, "score_before": -108.2, "final_points": 52400, "score_change": 72.4, "score_after": -35.8}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 2, "score_before": 130.1, "final_points": 21100, "score_change": 1.1, "score_after": 131.2}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 3, "score_before": -32.7, "final_points": 14200, "score_change": -25.8, "score_after": -58.5}, {"name": "Jwangta", "original_name": "JW27", "rank": 4, "score_before": 120.9, "final_points": 12300, "score_change": -47.7, "score_after": 73.2}]}, {"date": "2026年07月18日 00:01", "players": [{"name": "Jwangta", "original_name": "JW27", "rank": 1, "score_before": 68.3, "final_points": 32600, "score_change": 52.6, "score_after": 120.9}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 2, "score_before": -39.3, "final_points": 26600, "score_change": 6.6, "score_after": -32.7}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 3, "score_before": 149.0, "final_points": 21100, "score_change": -18.9, "score_after": 130.1}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 4, "score_before": -67.9, "final_points": 19700, "score_change": -40.3, "score_after": -108.2}]}, {"date": "2026年07月17日 23:05", "players": [{"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 1, "score_before": -98.6, "final_points": 39300, "score_change": 59.3, "score_after": -39.3}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 2, "score_before": 136.8, "final_points": 32200, "score_change": 12.2, "score_after": 149.0}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 3, "score_before": -51.9, "final_points": 24000, "score_change": -16.0, "score_after": -67.9}, {"name": "Jwangta", "original_name": "JW27", "rank": 4, "score_before": 123.8, "final_points": 4500, "score_change": -55.5, "score_after": 68.3}]}, {"date": "2026年07月17日 22:16", "players": [{"name": "Jwangta", "original_name": "JW27", "rank": 1, "score_before": 75.6, "final_points": 28200, "score_change": 48.2, "score_after": 123.8}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 2, "score_before": 128.8, "final_points": 28000, "score_change": 8.0, "score_after": 136.8}, {"name": "yipca", "original_name": "yipca", "rank": 3, "score_before": 0.0, "final_points": 27500, "score_change": -12.5, "score_after": -12.5}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 4, "score_before": -54.9, "final_points": 16300, "score_change": -43.7, "score_after": -98.6}]}, {"date": "2026年07月17日 19:23", "players": [{"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 1, "score_before": 69.9, "final_points": 38900, "score_change": 58.9, "score_after": 128.8}, {"name": "JellyGrouper", "original_name": "JellyGrouper", "rank": 2, "score_before": -311.3, "final_points": 23600, "score_change": 3.6, "score_after": -307.7}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": -90.0, "final_points": 20800, "score_change": -19.2, "score_after": -109.2}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 4, "score_before": -8.6, "final_points": 16700, "score_change": -43.3, "score_after": -51.9}]}, {"date": "2026年07月17日 18:09", "players": [{"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 1, "score_before": 9.0, "final_points": 40900, "score_change": 60.9, "score_after": 69.9}, {"name": "Jwangta", "original_name": "JW27", "rank": 2, "score_before": 56.8, "final_points": 38800, "score_change": 18.8, "score_after": 75.6}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": -60.5, "final_points": 10500, "score_change": -29.5, "score_after": -90.0}, {"name": "JellyGrouper", "original_name": "JellyGrouper", "rank": 4, "score_before": -261.1, "final_points": 9800, "score_change": -50.2, "score_after": -311.3}]}, {"date": "2026年07月17日 01:30", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 602.4, "final_points": 34900, "score_change": 54.9, "score_after": 657.3}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": 209.4, "final_points": 24000, "score_change": 4.0, "score_after": 213.4}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 3, "score_before": 27.6, "final_points": 21400, "score_change": -18.6, "score_after": 9.0}, {"name": "Jwangta", "original_name": "JW27", "rank": 4, "score_before": 97.1, "final_points": 19700, "score_change": -40.3, "score_after": 56.8}]}, {"date": "2026年07月17日 01:00", "players": [{"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 1, "score_before": -30.9, "final_points": 38500, "score_change": 58.5, "score_after": 27.6}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 590.4, "final_points": 32000, "score_change": 12.0, "score_after": 602.4}, {"name": "Jwangta", "original_name": "JW27", "rank": 3, "score_before": 122.1, "final_points": 15000, "score_change": -25.0, "score_after": 97.1}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 4, "score_before": 254.9, "final_points": 14500, "score_change": -45.5, "score_after": 209.4}]}, {"date": "2026年07月17日 00:24", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 534.9, "final_points": 35500, "score_change": 55.5, "score_after": 590.4}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": 249.3, "final_points": 25600, "score_change": 5.6, "score_after": 254.9}, {"name": "Jwangta", "original_name": "JW27", "rank": 3, "score_before": 142.4, "final_points": 19700, "score_change": -20.3, "score_after": 122.1}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 4, "score_before": 9.9, "final_points": 19200, "score_change": -40.8, "score_after": -30.9}]}, {"date": "2026年07月07日 23:24", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": 191.4, "final_points": 37900, "score_change": 57.9, "score_after": 249.3}, {"name": "南美雀后", "original_name": "南美雀后", "rank": 2, "score_before": -134.5, "final_points": 31600, "score_change": 11.6, "score_after": -122.9}, {"name": "tacolog", "original_name": "tacolog", "rank": 3, "score_before": -111.0, "final_points": 27200, "score_change": -12.8, "score_after": -123.8}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 591.6, "final_points": 3300, "score_change": -56.7, "score_after": 534.9}]}, {"date": "2026年07月07日 22:33", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": 119.5, "final_points": 51900, "score_change": 71.9, "score_after": 191.4}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 564.5, "final_points": 47100, "score_change": 27.1, "score_after": 591.6}, {"name": "南美雀后", "original_name": "南美雀后", "rank": 3, "score_before": -96.1, "final_points": 1600, "score_change": -38.4, "score_after": -134.5}, {"name": "tacolog", "original_name": "tacolog", "rank": 4, "score_before": -50.4, "final_points": -600, "score_change": -60.6, "score_after": -111.0}]}, {"date": "2026年07月07日 21:42", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": 52.0, "final_points": 47500, "score_change": 67.5, "score_after": 119.5}, {"name": "南美雀后", "original_name": "南美雀后", "rank": 2, "score_before": -110.9, "final_points": 34800, "score_change": 14.8, "score_after": -96.1}, {"name": "tacolog", "original_name": "tacolog", "rank": 3, "score_before": -28.6, "final_points": 18200, "score_change": -21.8, "score_after": -50.4}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 625.0, "final_points": -500, "score_change": -60.5, "score_after": 564.5}]}, {"date": "2026年07月04日 22:50", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": -13.9, "final_points": 45900, "score_change": 65.9, "score_after": 52.0}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 2, "score_before": -32.3, "final_points": 43700, "score_change": 23.7, "score_after": -8.6}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 633.4, "final_points": 31600, "score_change": -8.4, "score_after": 625.0}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 4, "score_before": -158.5, "final_points": -21200, "score_change": -81.2, "score_after": -239.7}]}, {"date": "2026年06月30日 21:54", "players": [{"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 1, "score_before": -108.0, "final_points": 33100, "score_change": 53.1, "score_after": -54.9}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": -22.6, "final_points": 28700, "score_change": 8.7, "score_after": -13.9}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 649.2, "final_points": 24200, "score_change": -15.8, "score_after": 633.4}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 4, "score_before": -37.0, "final_points": 14000, "score_change": -46.0, "score_after": -83.0}]}, {"date": "2026年06月30日 20:56", "players": [{"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 1, "score_before": -161.7, "final_points": 33700, "score_change": 53.7, "score_after": -108.0}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": -27.7, "final_points": 25100, "score_change": 5.1, "score_after": -22.6}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 665.9, "final_points": 23300, "score_change": -16.7, "score_after": 649.2}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 4, "score_before": 5.1, "final_points": 17900, "score_change": -42.1, "score_after": -37.0}]}, {"date": "2026年06月30日 19:52", "players": [{"name": "Jwangta", "original_name": "JW27", "rank": 1, "score_before": 71.9, "final_points": 50500, "score_change": 70.5, "score_after": 142.4}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": -33.6, "final_points": 25900, "score_change": 5.9, "score_after": -27.7}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 682.7, "final_points": 23200, "score_change": -16.8, "score_after": 665.9}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 4, "score_before": -102.1, "final_points": 400, "score_change": -59.6, "score_after": -161.7}]}, {"date": "2026年06月30日 19:08", "players": [{"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 1, "score_before": -133.7, "final_points": 53200, "score_change": 73.2, "score_after": -60.5}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 2, "score_before": 5.2, "final_points": 19900, "score_change": -0.1, "score_after": 5.1}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 707.5, "final_points": 15200, "score_change": -24.8, "score_after": 682.7}, {"name": "Jwangta", "original_name": "JW27", "rank": 4, "score_before": 120.2, "final_points": 11700, "score_change": -48.3, "score_after": 71.9}]}, {"date": "2026年06月30日 18:14", "players": [{"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 1, "score_before": -202.8, "final_points": 49100, "score_change": 69.1, "score_after": -133.7}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 2, "score_before": -1.5, "final_points": 26700, "score_change": 6.7, "score_after": 5.2}, {"name": "Jwangta", "original_name": "JW27", "rank": 3, "score_before": 136.2, "final_points": 24000, "score_change": -16.0, "score_after": 120.2}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 767.3, "final_points": 200, "score_change": -59.8, "score_after": 707.5}]}, {"date": "2026年06月28日 21:36", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 682.3, "final_points": 65000, "score_change": 85.0, "score_after": 767.3}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 2, "score_before": -6.8, "final_points": 25300, "score_change": 5.3, "score_after": -1.5}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 3, "score_before": -123.7, "final_points": 5200, "score_change": -34.8, "score_after": -158.5}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -147.3, "final_points": 4500, "score_change": -55.5, "score_after": -202.8}]}, {"date": "2026年06月28日 20:03", "players": [{"name": "Vermilio", "original_name": "Vermilio", "rank": 1, "score_before": -192.3, "final_points": 48600, "score_change": 68.6, "score_after": -123.7}, {"name": "Jwangta", "original_name": "JW27", "rank": 2, "score_before": 133.0, "final_points": 23200, "score_change": 3.2, "score_after": 136.2}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 708.0, "final_points": 14300, "score_change": -25.7, "score_after": 682.3}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 4, "score_before": 39.3, "final_points": 13900, "score_change": -46.1, "score_after": -6.8}]}, {"date": "2026年06月27日 01:04", "players": [{"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 1, "score_before": -214.2, "final_points": 46900, "score_change": 66.9, "score_after": -147.3}, {"name": "Samuel122", "original_name": "Samuel122", "rank": 2, "score_before": 59.4, "final_points": 46800, "score_change": 26.8, "score_after": 86.2}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 738.4, "final_points": 9600, "score_change": -30.4, "score_after": 708.0}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 4, "score_before": 102.6, "final_points": -3300, "score_change": -63.3, "score_after": 39.3}]}, {"date": "2026年06月27日 00:21", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 682.8, "final_points": 35600, "score_change": 55.6, "score_after": 738.4}, {"name": "Samuel122", "original_name": "Samuel122", "rank": 2, "score_before": 46.8, "final_points": 32600, "score_change": 12.6, "score_after": 59.4}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 3, "score_before": 118.1, "final_points": 24500, "score_change": -15.5, "score_after": 102.6}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -161.5, "final_points": 7300, "score_change": -52.7, "score_after": -214.2}]}, {"date": "2026年06月24日 22:07", "players": [{"name": "Phokopi", "original_name": "Phokopi", "rank": 1, "score_before": 59.2, "final_points": 38900, "score_change": 58.9, "score_after": 118.1}, {"name": "JellyGrouper", "original_name": "JellyGrouper", "rank": 2, "score_before": -269.4, "final_points": 28300, "score_change": 8.3, "score_after": -261.1}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 694.9, "final_points": 27900, "score_change": -12.1, "score_after": 682.8}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 4, "score_before": 21.5, "final_points": 4900, "score_change": -55.1, "score_after": -33.6}]}, {"date": "2026年06月24日 00:34", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 631.2, "final_points": 43700, "score_change": 63.7, "score_after": 694.9}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": 4.0, "final_points": 37500, "score_change": 17.5, "score_after": 21.5}, {"name": "tacolog", "original_name": "tacolog", "rank": 3, "score_before": -4.3, "final_points": 15700, "score_change": -24.3, "score_after": -28.6}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -104.6, "final_points": 3100, "score_change": -56.9, "score_after": -161.5}]}, {"date": "2026年06月24日 00:04", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": -78.3, "final_points": 62300, "score_change": 82.3, "score_after": 4.0}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 630.5, "final_points": 20700, "score_change": 0.7, "score_after": 631.2}, {"name": "tacolog", "original_name": "tacolog", "rank": 3, "score_before": 25.2, "final_points": 10500, "score_change": -29.5, "score_after": -4.3}, {"name": "TlaseZ", "original_name": "TlaseZ", "rank": 4, "score_before": 0.0, "final_points": 6500, "score_change": -53.5, "score_after": -53.5}]}, {"date": "2026年06月23日 23:07", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 578.5, "final_points": 32000, "score_change": 52.0, "score_after": 630.5}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 2, "score_before": -201.2, "final_points": 28900, "score_change": 8.9, "score_after": -192.3}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 3, "score_before": -60.0, "final_points": 21700, "score_change": -18.3, "score_after": -78.3}, {"name": "tacolog", "original_name": "tacolog", "rank": 4, "score_before": 67.8, "final_points": 17400, "score_change": -42.6, "score_after": 25.2}]}, {"date": "2026年06月23日 22:03", "players": [{"name": "tacolog", "original_name": "tacolog", "rank": 1, "score_before": 0.0, "final_points": 47800, "score_change": 67.8, "score_after": 67.8}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 561.3, "final_points": 37200, "score_change": 17.2, "score_after": 578.5}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 3, "score_before": -184.1, "final_points": 22900, "score_change": -17.1, "score_after": -201.2}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 4, "score_before": 7.9, "final_points": -7900, "score_change": -67.9, "score_after": -60.0}]}, {"date": "2026年06月23日 19:29", "players": [{"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 1, "score_before": -164.8, "final_points": 42700, "score_change": 62.7, "score_after": -102.1}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 541.6, "final_points": 39700, "score_change": 19.7, "score_after": 561.3}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": -77.7, "final_points": 13100, "score_change": -26.9, "score_after": -104.6}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 4, "score_before": -128.6, "final_points": 4500, "score_change": -55.5, "score_after": -184.1}]}, {"date": "2026年06月23日 18:20", "players": [{"name": "Jwangta", "original_name": "JW27", "rank": 1, "score_before": 64.4, "final_points": 48600, "score_change": 68.6, "score_after": 133.0}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 2, "score_before": -97.2, "final_points": 39500, "score_change": 19.5, "score_after": -77.7}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 3, "score_before": -1.2, "final_points": 8900, "score_change": -31.1, "score_after": -32.3}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 598.6, "final_points": 3000, "score_change": -57.0, "score_after": 541.6}]}, {"date": "2026年06月22日 19:50", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 538.2, "final_points": 40400, "score_change": 60.4, "score_after": 598.6}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 2, "score_before": -117.4, "final_points": 40200, "score_change": 20.2, "score_after": -97.2}, {"name": "Jwangta", "original_name": "JW27", "rank": 3, "score_before": 94.0, "final_points": 10400, "score_change": -29.6, "score_after": 64.4}, {"name": "JellyGrouper", "original_name": "JellyGrouper", "rank": 4, "score_before": -218.4, "final_points": 9000, "score_change": -51.0, "score_after": -269.4}]}, {"date": "2026年06月22日 19:12", "players": [{"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 1, "score_before": -178.3, "final_points": 40900, "score_change": 60.9, "score_after": -117.4}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 528.0, "final_points": 30200, "score_change": 10.2, "score_after": 538.2}, {"name": "Jwangta", "original_name": "JW27", "rank": 3, "score_before": 104.1, "final_points": 29900, "score_change": -10.1, "score_after": 94.0}, {"name": "JellyGrouper", "original_name": "JellyGrouper", "rank": 4, "score_before": -157.4, "final_points": -1000, "score_change": -61.0, "score_after": -218.4}]}, {"date": "2026年06月22日 18:45", "players": [{"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 1, "score_before": -251.8, "final_points": 53500, "score_change": 73.5, "score_after": -178.3}, {"name": "JellyGrouper", "original_name": "JellyGrouper", "rank": 2, "score_before": -184.2, "final_points": 46800, "score_change": 26.8, "score_after": -157.4}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 563.8, "final_points": 4200, "score_change": -35.8, "score_after": 528.0}, {"name": "Jwangta", "original_name": "JW27", "rank": 4, "score_before": 168.6, "final_points": -4500, "score_change": -64.5, "score_after": 104.1}]}, {"date": "2026年06月21日 19:17", "players": [{"name": "Vermilio", "original_name": "Vermilio", "rank": 1, "score_before": -189.8, "final_points": 41200, "score_change": 61.2, "score_after": -128.6}, {"name": "Jwangta", "original_name": "JW27", "rank": 2, "score_before": 163.9, "final_points": 24700, "score_change": 4.7, "score_after": 168.6}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 3, "score_before": 20.9, "final_points": 17900, "score_change": -22.1, "score_after": -1.2}, {"name": "阿佳丶", "original_name": "阿佳丶", "rank": 4, "score_before": 340.8, "final_points": 16200, "score_change": -43.8, "score_after": 297.0}]}, {"date": "2026年06月18日 18:45", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 500.5, "final_points": 43300, "score_change": 63.3, "score_after": 563.8}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 2, "score_before": 131.5, "final_points": 31700, "score_change": 11.7, "score_after": 143.2}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 3, "score_before": -178.2, "final_points": 28400, "score_change": -11.6, "score_after": -189.8}, {"name": "Jwangta", "original_name": "JW27", "rank": 4, "score_before": 227.3, "final_points": -3400, "score_change": -63.4, "score_after": 163.9}]}, {"date": "2026年06月18日 00:42", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 424.8, "final_points": 55700, "score_change": 75.7, "score_after": 500.5}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": -0.7, "final_points": 28600, "score_change": 8.6, "score_after": 7.9}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 3, "score_before": 161.3, "final_points": 10200, "score_change": -29.8, "score_after": 131.5}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -197.3, "final_points": 5500, "score_change": -54.5, "score_after": -251.8}]}, {"date": "2026年06月17日 23:48", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": -62.0, "final_points": 41300, "score_change": 61.3, "score_after": -0.7}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 2, "score_before": 39.5, "final_points": 39700, "score_change": 19.7, "score_after": 59.2}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 3, "score_before": 188.6, "final_points": 12700, "score_change": -27.3, "score_after": 161.3}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 478.5, "final_points": 6300, "score_change": -53.7, "score_after": 424.8}]}, {"date": "2026年06月17日 23:04", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 396.9, "final_points": 61600, "score_change": 81.6, "score_after": 478.5}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 2, "score_before": 191.7, "final_points": 16900, "score_change": -3.1, "score_after": 188.6}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 3, "score_before": 67.4, "final_points": 12100, "score_change": -27.9, "score_after": 39.5}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 4, "score_before": -11.4, "final_points": 9400, "score_change": -50.6, "score_after": -62.0}]}, {"date": "2026年06月17日 00:48", "players": [{"name": "DreamKQ", "original_name": "DreamKQ", "rank": 1, "score_before": 143.4, "final_points": 28300, "score_change": 48.3, "score_after": 191.7}, {"name": "sokka", "original_name": "sokka", "rank": 2, "score_before": -190.1, "final_points": 28000, "score_change": 8.0, "score_after": -182.1}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 3, "score_before": 3.6, "final_points": 25000, "score_change": -15.0, "score_after": -11.4}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 438.2, "final_points": 18700, "score_change": -41.3, "score_after": 396.9}]}, {"date": "2026年06月17日 00:17", "players": [{"name": "DreamKQ", "original_name": "DreamKQ", "rank": 1, "score_before": 91.0, "final_points": 32400, "score_change": 52.4, "score_after": 143.4}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 427.7, "final_points": 30500, "score_change": 10.5, "score_after": 438.2}, {"name": "ジュンシー", "original_name": "ジュンシー", "rank": 3, "score_before": -131.6, "final_points": 26800, "score_change": -13.2, "score_after": -144.8}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 4, "score_before": 53.3, "final_points": 10300, "score_change": -49.7, "score_after": 3.6}]}, {"date": "2026年06月16日 23:42", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": -24.6, "final_points": 57900, "score_change": 77.9, "score_after": 53.3}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 2, "score_before": 84.0, "final_points": 27000, "score_change": 7.0, "score_after": 91.0}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 457.3, "final_points": 10400, "score_change": -29.6, "score_after": 427.7}, {"name": "sokka", "original_name": "sokka", "rank": 4, "score_before": -134.8, "final_points": 4700, "score_change": -55.3, "score_after": -190.1}]}, {"date": "2026年06月16日 22:51", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": -90.0, "final_points": 45400, "score_change": 65.4, "score_after": -24.6}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 2, "score_before": -201.8, "final_points": 24500, "score_change": 4.5, "score_after": -197.3}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 3, "score_before": 104.5, "final_points": 19500, "score_change": -20.5, "score_after": 84.0}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 506.7, "final_points": 10600, "score_change": -49.4, "score_after": 457.3}]}, {"date": "2026年06月16日 00:57", "players": [{"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 1, "score_before": -259.8, "final_points": 38000, "score_change": 58.0, "score_after": -201.8}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 2, "score_before": -8.0, "final_points": 37900, "score_change": 17.9, "score_after": 9.9}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 515.1, "final_points": 31600, "score_change": -8.4, "score_after": 506.7}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 4, "score_before": -22.5, "final_points": -7500, "score_change": -67.5, "score_after": -90.0}]}, {"date": "2026年06月16日 00:20", "players": [{"name": "DreamKQ", "original_name": "DreamKQ", "rank": 1, "score_before": 44.4, "final_points": 40100, "score_change": 60.1, "score_after": 104.5}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 2, "score_before": -16.6, "final_points": 28600, "score_change": 8.6, "score_after": -8.0}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 3, "score_before": -0.4, "final_points": 17900, "score_change": -22.1, "score_after": -22.5}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -213.2, "final_points": 13400, "score_change": -46.6, "score_after": -259.8}]}, {"date": "2026年06月15日 23:28", "players": [{"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 1, "score_before": -273.9, "final_points": 40700, "score_change": 60.7, "score_after": -213.2}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": -9.5, "final_points": 29100, "score_change": 9.1, "score_after": -0.4}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 3, "score_before": 67.9, "final_points": 16500, "score_change": -23.5, "score_after": 44.4}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 4, "score_before": 29.7, "final_points": 13700, "score_change": -46.3, "score_after": -16.6}]}, {"date": "2026年06月14日 20:39", "players": [{"name": "ジュンシー", "original_name": "ジュンシー", "rank": 1, "score_before": -183.7, "final_points": 32100, "score_change": 52.1, "score_after": -131.6}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 2, "score_before": 21.9, "final_points": 27800, "score_change": 7.8, "score_after": 29.7}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 534.9, "final_points": 20200, "score_change": -19.8, "score_after": 515.1}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 4, "score_before": -124.7, "final_points": 19900, "score_change": -40.1, "score_after": -164.8}]}, {"date": "2026年06月14日 19:28", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 483.3, "final_points": 31600, "score_change": 51.6, "score_after": 534.9}, {"name": "Jwangta", "original_name": "JW27", "rank": 2, "score_before": 221.3, "final_points": 26000, "score_change": 6.0, "score_after": 227.3}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 3, "score_before": -110.6, "final_points": 25900, "score_change": -14.1, "score_after": -124.7}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 4, "score_before": 65.4, "final_points": 16500, "score_change": -43.5, "score_after": 21.9}]}, {"date": "2026年06月14日 18:36", "players": [{"name": "Phokopi", "original_name": "Phokopi", "rank": 1, "score_before": 16.6, "final_points": 30800, "score_change": 50.8, "score_after": 67.4}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 2, "score_before": 61.2, "final_points": 26700, "score_change": 6.7, "score_after": 67.9}, {"name": "Jwangta", "original_name": "JW27", "rank": 3, "score_before": 240.0, "final_points": 21300, "score_change": -18.7, "score_after": 221.3}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 522.1, "final_points": 21200, "score_change": -38.8, "score_after": 483.3}]}, {"date": "2026年06月14日 17:42", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 459.3, "final_points": 42800, "score_change": 62.8, "score_after": 522.1}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 2, "score_before": 56.7, "final_points": 24500, "score_change": 4.5, "score_after": 61.2}, {"name": "Jwangta", "original_name": "JW27", "rank": 3, "score_before": 260.2, "final_points": 19800, "score_change": -20.2, "score_after": 240.0}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 4, "score_before": 63.7, "final_points": 12900, "score_change": -47.1, "score_after": 16.6}]}, {"date": "2026年06月14日 03:08", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 331.1, "final_points": 108200, "score_change": 128.2, "score_after": 459.3}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": -14.2, "final_points": 24700, "score_change": 4.7, "score_after": -9.5}, {"name": "ジュンシー", "original_name": "ジュンシー", "rank": 3, "score_before": -159.5, "final_points": 15800, "score_change": -24.2, "score_after": -183.7}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 4, "score_before": 129.6, "final_points": -48700, "score_change": -108.7, "score_after": 20.9}]}, {"date": "2026年06月14日 01:03", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 210.5, "final_points": 100600, "score_change": 120.6, "score_after": 331.1}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": -21.1, "final_points": 26900, "score_change": 6.9, "score_after": -14.2}, {"name": "Samuel122", "original_name": "Samuel122", "rank": 3, "score_before": 74.1, "final_points": 12700, "score_change": -27.3, "score_after": 46.8}, {"name": "ジュンシー", "original_name": "ジュンシー", "rank": 4, "score_before": -59.3, "final_points": -40200, "score_change": -100.2, "score_after": -159.5}]}, {"date": "2026年06月13日 23:56", "players": [{"name": "Vermilio", "original_name": "Vermilio", "rank": 1, "score_before": -244.1, "final_points": 45900, "score_change": 65.9, "score_after": -178.2}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 2, "score_before": -283.1, "final_points": 29200, "score_change": 9.2, "score_after": -273.9}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 234.8, "final_points": 15700, "score_change": -24.3, "score_after": 210.5}, {"name": "ジュンシー", "original_name": "ジュンシー", "rank": 4, "score_before": -8.5, "final_points": 9200, "score_change": -50.8, "score_after": -59.3}]}, {"date": "2026年06月13日 23:08", "players": [{"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 1, "score_before": -337.3, "final_points": 34200, "score_change": 54.2, "score_after": -283.1}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 223.1, "final_points": 31700, "score_change": 11.7, "score_after": 234.8}, {"name": "ジュンシー", "original_name": "ジュンシー", "rank": 3, "score_before": 0.0, "final_points": 31500, "score_change": -8.5, "score_after": -8.5}, {"name": "sokka", "original_name": "sokka", "rank": 4, "score_before": -77.4, "final_points": 2600, "score_change": -57.4, "score_after": -134.8}]}, {"date": "2026年06月13日 00:35", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 159.7, "final_points": 43400, "score_change": 63.4, "score_after": 223.1}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": -33.4, "final_points": 32300, "score_change": 12.3, "score_after": -21.1}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 3, "score_before": 92.0, "final_points": 13400, "score_change": -26.6, "score_after": 65.4}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -288.2, "final_points": 10900, "score_change": -49.1, "score_after": -337.3}]}, {"date": "2026年06月12日 23:36", "players": [{"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 1, "score_before": 23.3, "final_points": 48700, "score_change": 68.7, "score_after": 92.0}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 2, "score_before": -295.6, "final_points": 27400, "score_change": 7.4, "score_after": -288.2}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 3, "score_before": -14.5, "final_points": 21100, "score_change": -18.9, "score_after": -33.4}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 216.9, "final_points": 2800, "score_change": -57.2, "score_after": 159.7}]}, {"date": "2026年06月12日 23:04", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 152.7, "final_points": 44200, "score_change": 64.2, "score_after": 216.9}, {"name": "hatuyukiuk", "original_name": "hatuyukiuk", "rank": 2, "score_before": 0.0, "final_points": 43300, "score_change": 23.3, "score_after": 23.3}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": -264.5, "final_points": 8900, "score_change": -31.1, "score_after": -295.6}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 4, "score_before": 41.9, "final_points": 3600, "score_change": -56.4, "score_after": -14.5}]}, {"date": "2026年06月11日 22:33", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 79.4, "final_points": 53300, "score_change": 73.3, "score_after": 152.7}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 2, "score_before": 53.7, "final_points": 23000, "score_change": 3.0, "score_after": 56.7}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 3, "score_before": 88.5, "final_points": 15200, "score_change": -24.8, "score_after": 63.7}, {"name": "sokka", "original_name": "sokka", "rank": 4, "score_before": -25.9, "final_points": 8500, "score_change": -51.5, "score_after": -77.4}]}, {"date": "2026年06月11日 21:38", "players": [{"name": "DreamKQ", "original_name": "DreamKQ", "rank": 1, "score_before": -0.3, "final_points": 34000, "score_change": 54.0, "score_after": 53.7}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 2, "score_before": 79.9, "final_points": 28600, "score_change": 8.6, "score_after": 88.5}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 96.8, "final_points": 22600, "score_change": -17.4, "score_after": 79.4}, {"name": "sokka", "original_name": "sokka", "rank": 4, "score_before": 19.3, "final_points": 14800, "score_change": -45.2, "score_after": -25.9}]}, {"date": "2026年06月11日 01:34", "players": [{"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 1, "score_before": 68.5, "final_points": 41100, "score_change": 61.1, "score_after": 129.6}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 2, "score_before": -270.5, "final_points": 26000, "score_change": 6.0, "score_after": -264.5}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 115.9, "final_points": 20900, "score_change": -19.1, "score_after": 96.8}, {"name": "Samuel122", "original_name": "Samuel122", "rank": 4, "score_before": 122.1, "final_points": 12000, "score_change": -48.0, "score_after": 74.1}]}, {"date": "2026年06月11日 00:37", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": -20.4, "final_points": 42300, "score_change": 62.3, "score_after": 41.9}, {"name": "sokka", "original_name": "sokka", "rank": 2, "score_before": 14.5, "final_points": 24800, "score_change": 4.8, "score_after": 19.3}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 3, "score_before": 86.4, "final_points": 22100, "score_change": -17.9, "score_after": 68.5}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 165.1, "final_points": 10800, "score_change": -49.2, "score_after": 115.9}]}, {"date": "2026年06月10日 23:49", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 99.3, "final_points": 45800, "score_change": 65.8, "score_after": 165.1}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": -24.4, "final_points": 24000, "score_change": 4.0, "score_after": -20.4}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 3, "score_before": -89.8, "final_points": 19200, "score_change": -20.8, "score_after": -110.6}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 4, "score_before": -195.1, "final_points": 11000, "score_change": -49.0, "score_after": -244.1}]}, {"date": "2026年06月10日 23:06", "players": [{"name": "阿佳丶", "original_name": "阿佳丶", "rank": 1, "score_before": 261.7, "final_points": 59100, "score_change": 79.1, "score_after": 340.8}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 2, "score_before": -204.5, "final_points": 29400, "score_change": 9.4, "score_after": -195.1}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 114.4, "final_points": 24900, "score_change": -15.1, "score_after": 99.3}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 4, "score_before": -16.4, "final_points": -13400, "score_change": -73.4, "score_after": -89.8}]}, {"date": "2026年06月10日 21:58", "players": [{"name": "阿佳丶", "original_name": "阿佳丶", "rank": 1, "score_before": 203.4, "final_points": 38300, "score_change": 58.3, "score_after": 261.7}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 2, "score_before": -27.4, "final_points": 31000, "score_change": 11.0, "score_after": -16.4}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 3, "score_before": 103.7, "final_points": 22700, "score_change": -17.3, "score_after": 86.4}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 4, "score_before": -152.5, "final_points": 8000, "score_change": -52.0, "score_after": -204.5}]}, {"date": "2026年06月02日 23:20", "players": [{"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 1, "score_before": -342.9, "final_points": 52400, "score_change": 72.4, "score_after": -270.5}, {"name": "阿佳丶", "original_name": "阿佳丶", "rank": 2, "score_before": 190.2, "final_points": 33200, "score_change": 13.2, "score_after": 203.4}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 3, "score_before": 5.3, "final_points": 10300, "score_change": -29.7, "score_after": -24.4}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 170.3, "final_points": 4100, "score_change": -55.9, "score_after": 114.4}]}, {"date": "2026年06月02日 22:26", "players": [{"name": "阿佳丶", "original_name": "阿佳丶", "rank": 1, "score_before": 122.3, "final_points": 47900, "score_change": 67.9, "score_after": 190.2}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 2, "score_before": -160.2, "final_points": 27700, "score_change": 7.7, "score_after": -152.5}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 197.8, "final_points": 12500, "score_change": -27.5, "score_after": 170.3}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -294.8, "final_points": 11900, "score_change": -48.1, "score_after": -342.9}]}, {"date": "2026年06月02日 21:38", "players": [{"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 1, "score_before": -363.4, "final_points": 48600, "score_change": 68.6, "score_after": -294.8}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 2, "score_before": -4.0, "final_points": 23700, "score_change": 3.7, "score_after": -0.3}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 3, "score_before": -138.3, "final_points": 18100, "score_change": -21.9, "score_after": -160.2}, {"name": "阿佳丶", "original_name": "阿佳丶", "rank": 4, "score_before": 172.7, "final_points": 9600, "score_change": -50.4, "score_after": 122.3}]}, {"date": "2026年06月02日 19:05", "players": [{"name": "Phokopi", "original_name": "Phokopi", "rank": 1, "score_before": -0.6, "final_points": 60500, "score_change": 80.5, "score_after": 79.9}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 188.0, "final_points": 29800, "score_change": 9.8, "score_after": 197.8}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": -331.6, "final_points": 8200, "score_change": -31.8, "score_after": -363.4}, {"name": "南美雀后", "original_name": "南美雀后", "rank": 4, "score_before": -52.4, "final_points": 1500, "score_change": -58.5, "score_after": -110.9}]}, {"date": "2026年06月02日 18:32", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 103.5, "final_points": 64500, "score_change": 84.5, "score_after": 188.0}, {"name": "Jwangta", "original_name": "JW27", "rank": 2, "score_before": 243.6, "final_points": 36600, "score_change": 16.6, "score_after": 260.2}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 3, "score_before": 29.0, "final_points": 10400, "score_change": -29.6, "score_after": -0.6}, {"name": "南美雀后", "original_name": "南美雀后", "rank": 4, "score_before": 19.1, "final_points": -11500, "score_change": -71.5, "score_after": -52.4}]}, {"date": "2026年06月02日 15:33", "players": [{"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 1, "score_before": 48.2, "final_points": 35500, "score_change": 55.5, "score_after": 103.7}, {"name": "阿佳丶", "original_name": "阿佳丶", "rank": 2, "score_before": 170.4, "final_points": 22300, "score_change": 2.3, "score_after": 172.7}, {"name": "Jwangta", "original_name": "JW27", "rank": 3, "score_before": 261.9, "final_points": 21700, "score_change": -18.3, "score_after": 243.6}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -292.1, "final_points": 20500, "score_change": -39.5, "score_after": -331.6}]}, {"date": "2026年05月29日 02:21", "players": [{"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 1, "score_before": -31.4, "final_points": 59600, "score_change": 79.6, "score_after": 48.2}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 2, "score_before": -306.7, "final_points": 34600, "score_change": 14.6, "score_after": -292.1}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 3, "score_before": -42.7, "final_points": 6800, "score_change": -33.2, "score_after": -75.9}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 4, "score_before": -77.3, "final_points": -1000, "score_change": -61.0, "score_after": -138.3}]}, {"date": "2026年05月29日 01:24", "players": [{"name": "Vermilio", "original_name": "Vermilio", "rank": 1, "score_before": -127.8, "final_points": 30500, "score_change": 50.5, "score_after": -77.3}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 2, "score_before": -313.5, "final_points": 26800, "score_change": 6.8, "score_after": -306.7}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 3, "score_before": -28.4, "final_points": 25700, "score_change": -14.3, "score_after": -42.7}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 4, "score_before": 11.6, "final_points": 17000, "score_change": -43.0, "score_after": -31.4}]}, {"date": "2026年05月28日 23:33", "players": [{"name": "阿佳丶", "original_name": "阿佳丶", "rank": 1, "score_before": 107.9, "final_points": 42500, "score_change": 62.5, "score_after": 170.4}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 2, "score_before": 6.9, "final_points": 24700, "score_change": 4.7, "score_after": 11.6}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": -296.5, "final_points": 23000, "score_change": -17.0, "score_after": -313.5}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 4, "score_before": -77.6, "final_points": 9800, "score_change": -50.2, "score_after": -127.8}]}, {"date": "2026年05月28日 16:51", "players": [{"name": "Jwangta", "original_name": "JW27", "rank": 1, "score_before": 204.7, "final_points": 37200, "score_change": 57.2, "score_after": 261.9}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 2, "score_before": -41.1, "final_points": 33700, "score_change": 13.7, "score_after": -27.4}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 3, "score_before": 17.0, "final_points": 29900, "score_change": -10.1, "score_after": 6.9}, {"name": "sokka", "original_name": "sokka", "rank": 4, "score_before": 75.3, "final_points": -800, "score_change": -60.8, "score_after": 14.5}]}, {"date": "2026年05月28日 02:45", "players": [{"name": "sokka", "original_name": "sokka", "rank": 1, "score_before": 15.0, "final_points": 40300, "score_change": 60.3, "score_after": 75.3}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 2, "score_before": -300.6, "final_points": 24100, "score_change": 4.1, "score_after": -296.5}, {"name": "小地鼠爱点炮", "original_name": "小滴塑爱点炮", "rank": 3, "score_before": -7.3, "final_points": 18900, "score_change": -21.1, "score_after": -28.4}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 4, "score_before": 60.3, "final_points": 16700, "score_change": -43.3, "score_after": 17.0}]}, {"date": "2026年05月27日 22:29", "players": [{"name": "Vermilio", "original_name": "Vermilio", "rank": 1, "score_before": -156.5, "final_points": 58900, "score_change": 78.9, "score_after": -77.6}, {"name": "阿佳丶", "original_name": "阿佳丶", "rank": 2, "score_before": 82.6, "final_points": 45300, "score_change": 25.3, "score_after": 107.9}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": -297.5, "final_points": 36900, "score_change": -3.1, "score_after": -300.6}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 4, "score_before": 97.1, "final_points": -41100, "score_change": -101.1, "score_after": -4.0}]}, {"date": "2026年05月27日 21:32", "players": [{"name": "DreamKQ", "original_name": "DreamKQ", "rank": 1, "score_before": 17.1, "final_points": 60000, "score_change": 80.0, "score_after": 97.1}, {"name": "阿佳丶", "original_name": "阿佳丶", "rank": 2, "score_before": 70.0, "final_points": 32600, "score_change": 12.6, "score_after": 82.6}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": -273.6, "final_points": 16100, "score_change": -23.9, "score_after": -297.5}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 4, "score_before": -87.8, "final_points": -8700, "score_change": -68.7, "score_after": -156.5}]}, {"date": "2026年05月27日 00:56", "players": [{"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 1, "score_before": -1.2, "final_points": 41500, "score_change": 61.5, "score_after": 60.3}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 92.7, "final_points": 30800, "score_change": 10.8, "score_after": 103.5}, {"name": "小地鼠爱点炮", "original_name": "小滴塑爱点炮", "rank": 3, "score_before": 12.6, "final_points": 20100, "score_change": -19.9, "score_after": -7.3}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -221.2, "final_points": 7600, "score_change": -52.4, "score_after": -273.6}]}, {"date": "2026年05月27日 00:09", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 38.3, "final_points": 34400, "score_change": 54.4, "score_after": 92.7}, {"name": "Samuel122", "original_name": "Samuel122", "rank": 2, "score_before": 113.1, "final_points": 29000, "score_change": 9.0, "score_after": 122.1}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": -189.5, "final_points": 18300, "score_change": -31.7, "score_after": -221.2}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 3, "score_before": 30.5, "final_points": 18300, "score_change": -31.7, "score_after": -1.2}]}, {"date": "2026年05月26日 17:44", "players": [{"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 1, "score_before": -39.4, "final_points": 49900, "score_change": 69.9, "score_after": 30.5}, {"name": "Jwangta", "original_name": "JW27", "rank": 2, "score_before": 198.0, "final_points": 26700, "score_change": 6.7, "score_after": 204.7}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 3, "score_before": -17.8, "final_points": 16700, "score_change": -23.3, "score_after": -41.1}, {"name": "南美雀后", "original_name": "南美雀后", "rank": 4, "score_before": 72.4, "final_points": 6700, "score_change": -53.3, "score_after": 19.1}]}, {"date": "2026年05月26日 16:55", "players": [{"name": "南美雀后", "original_name": "南美雀后", "rank": 1, "score_before": 0.0, "final_points": 52400, "score_change": 72.4, "score_after": 72.4}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 2, "score_before": -21.0, "final_points": 23200, "score_change": 3.2, "score_after": -17.8}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 3, "score_before": -17.0, "final_points": 17600, "score_change": -22.4, "score_after": -39.4}, {"name": "Jwangta", "original_name": "JW27", "rank": 4, "score_before": 251.2, "final_points": 6800, "score_change": -53.2, "score_after": 198.0}]}, {"date": "2026年05月26日 00:23", "players": [{"name": "sokka", "original_name": "sokka", "rank": 1, "score_before": -48.1, "final_points": 43100, "score_change": 63.1, "score_after": 15.0}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 2, "score_before": 8.2, "final_points": 24400, "score_change": 4.4, "score_after": 12.6}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 58.6, "final_points": 19700, "score_change": -20.3, "score_after": 38.3}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 4, "score_before": -40.6, "final_points": 12800, "score_change": -47.2, "score_after": -87.8}]}, {"date": "2026年05月25日 23:41", "players": [{"name": "sokka", "original_name": "sokka", "rank": 1, "score_before": -112.7, "final_points": 44600, "score_change": 64.6, "score_after": -48.1}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 2, "score_before": -44.6, "final_points": 24000, "score_change": 4.0, "score_after": -40.6}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 3, "score_before": 26.1, "final_points": 22100, "score_change": -17.9, "score_after": 8.2}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 109.3, "final_points": 9300, "score_change": -50.7, "score_after": 58.6}]}, {"date": "2026年05月25日 23:11", "players": [{"name": "阿佳丶", "original_name": "阿佳丶", "rank": 1, "score_before": 0.0, "final_points": 50000, "score_change": 70.0, "score_after": 70.0}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": 107.6, "final_points": 21700, "score_change": 1.7, "score_after": 109.3}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 3, "score_before": -24.2, "final_points": 19600, "score_change": -20.4, "score_after": -44.6}, {"name": "sokka", "original_name": "sokka", "rank": 4, "score_before": -61.4, "final_points": 8700, "score_change": -51.3, "score_after": -112.7}]}, {"date": "2026年05月23日 19:40", "players": [{"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 1, "score_before": -265.1, "final_points": 55600, "score_change": 75.6, "score_after": -189.5}, {"name": "Jwangta", "original_name": "JW27", "rank": 2, "score_before": 229.3, "final_points": 41900, "score_change": 21.9, "score_after": 251.2}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 3, "score_before": 1.2, "final_points": 14600, "score_change": -25.4, "score_after": -24.2}, {"name": "JellyGrouper", "original_name": "JellyGrouper", "rank": 4, "score_before": -112.1, "final_points": -12100, "score_change": -72.1, "score_after": -184.2}]}, {"date": "2026年05月23日 03:41", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": 32.9, "final_points": 54700, "score_change": 74.7, "score_after": 107.6}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 2, "score_before": -34.5, "final_points": 33500, "score_change": 13.5, "score_after": -21.0}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 3, "score_before": 54.3, "final_points": 11800, "score_change": -28.2, "score_after": 26.1}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -205.1, "final_points": 0, "score_change": -60.0, "score_after": -265.1}]}, {"date": "2026年05月23日 02:48", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": -18.4, "final_points": 31300, "score_change": 51.3, "score_after": 32.9}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 2, "score_before": 44.0, "final_points": 30300, "score_change": 10.3, "score_after": 54.3}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": -194.5, "final_points": 29400, "score_change": -10.6, "score_after": -205.1}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 4, "score_before": 16.5, "final_points": 9000, "score_change": -51.0, "score_after": -34.5}]}, {"date": "2026年05月23日 02:03", "players": [{"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 1, "score_before": -70.1, "final_points": 33100, "score_change": 53.1, "score_after": -17.0}, {"name": "Oncorhynchus", "original_name": "Oncorhynchus", "rank": 2, "score_before": -62.1, "final_points": 30000, "score_change": 10.0, "score_after": -52.1}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 3, "score_before": 63.9, "final_points": 20100, "score_change": -19.9, "score_after": 44.0}, {"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 4, "score_before": 59.7, "final_points": 16800, "score_change": -43.2, "score_after": 16.5}]}, {"date": "2026年05月23日 01:01", "players": [{"name": "浴室要冷镜", "original_name": "浴室要冷镜", "rank": 1, "score_before": 0.0, "final_points": 39700, "score_change": 59.7, "score_after": 59.7}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 2, "score_before": 44.9, "final_points": 39000, "score_change": 19.0, "score_after": 63.9}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": -1.8, "final_points": 23400, "score_change": -16.6, "score_after": -18.4}, {"name": "Oncorhynchus", "original_name": "Oncorhynchus", "rank": 4, "score_before": 0.0, "final_points": -2100, "score_change": -62.1, "score_after": -62.1}]}, {"date": "2026年05月21日 22:39", "players": [{"name": "Jwangta", "original_name": "JW27", "rank": 1, "score_before": 151.5, "final_points": 57800, "score_change": 77.8, "score_after": 229.3}, {"name": "santi", "original_name": "santi", "rank": 2, "score_before": -3.5, "final_points": 21700, "score_change": 1.7, "score_after": -1.8}, {"name": "sokka", "original_name": "sokka", "rank": 3, "score_before": -32.3, "final_points": 10900, "score_change": -29.1, "score_after": -61.4}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -144.1, "final_points": 9600, "score_change": -50.4, "score_after": -194.5}]}, {"date": "2026年05月21日 21:58", "players": [{"name": "santi", "original_name": "santi", "rank": 1, "score_before": -64.5, "final_points": 41000, "score_change": 61.0, "score_after": -3.5}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 2, "score_before": -11.7, "final_points": 32900, "score_change": 12.9, "score_after": 1.2}, {"name": "sokka", "original_name": "sokka", "rank": 3, "score_before": -10.3, "final_points": 18000, "score_change": -22.0, "score_after": -32.3}, {"name": "Jwangta", "original_name": "JW27", "rank": 4, "score_before": 203.4, "final_points": 8100, "score_change": -51.9, "score_after": 151.5}]}, {"date": "2026年05月21日 21:22", "players": [{"name": "Jwangta", "original_name": "JW27", "rank": 1, "score_before": 126.6, "final_points": 56800, "score_change": 76.8, "score_after": 203.4}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 2, "score_before": 0.0, "final_points": 25300, "score_change": 5.3, "score_after": 5.3}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": -123.9, "final_points": 19800, "score_change": -20.2, "score_after": -144.1}, {"name": "sokka", "original_name": "sokka", "rank": 4, "score_before": 51.6, "final_points": -1900, "score_change": -61.9, "score_after": -10.3}]}, {"date": "2026年05月21日 03:19", "players": [{"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 1, "score_before": -17.1, "final_points": 42000, "score_change": 62.0, "score_after": 44.9}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 2, "score_before": -33.6, "final_points": 41900, "score_change": 21.9, "score_after": -11.7}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": -110.1, "final_points": 26200, "score_change": -13.8, "score_after": -123.9}, {"name": "加賀百万石", "original_name": "Yakumangoku", "rank": 4, "score_before": 0.0, "final_points": -10100, "score_change": -70.1, "score_after": -70.1}]}, {"date": "2026年05月21日 02:06", "players": [{"name": "Samuel122", "original_name": "Samuel122", "rank": 1, "score_before": 53.0, "final_points": 40100, "score_change": 60.1, "score_after": 113.1}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 2, "score_before": 10.8, "final_points": 38200, "score_change": 18.2, "score_after": 29.0}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 3, "score_before": -19.8, "final_points": 26200, "score_change": -13.8, "score_after": -33.6}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": 0.0, "final_points": -4500, "score_change": -64.5, "score_after": -64.5}]}, {"date": "2026年05月21日 01:01", "players": [{"name": "Samuel122", "original_name": "Samuel122", "rank": 1, "score_before": 0.0, "final_points": 33000, "score_change": 53.0, "score_after": 53.0}, {"name": "Phokopi", "original_name": "Phokopi", "rank": 2, "score_before": 0.0, "final_points": 30800, "score_change": 10.8, "score_after": 10.8}, {"name": "Vermilio", "original_name": "Vermilio", "rank": 3, "score_before": 0.0, "final_points": 20200, "score_change": -19.8, "score_after": -19.8}, {"name": "DreamKQ", "original_name": "DreamKQ", "rank": 4, "score_before": 61.1, "final_points": 16000, "score_change": -44.0, "score_after": 17.1}]}, {"date": "2026年05月21日 00:22", "players": [{"name": "DreamKQ", "original_name": "DreamKQ", "rank": 1, "score_before": 0.0, "final_points": 41100, "score_change": 61.1, "score_after": 61.1}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 2, "score_before": -21.7, "final_points": 24600, "score_change": 4.6, "score_after": -17.1}, {"name": "JellyGrouper", "original_name": "JellyGrouper", "rank": 3, "score_before": -92.4, "final_points": 20300, "score_change": -19.7, "score_after": -112.1}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -64.1, "final_points": 14000, "score_change": -46.0, "score_after": -110.1}]}, {"date": "2026年05月20日 23:20", "players": [{"name": "sokka", "original_name": "sokka", "rank": 1, "score_before": -11.2, "final_points": 42800, "score_change": 62.8, "score_after": 51.6}, {"name": "JellyGrouper", "original_name": "JellyGrouper", "rank": 2, "score_before": -95.6, "final_points": 23200, "score_change": 3.2, "score_after": -92.4}, {"name": "小地鼠爱点炮", "original_name": "小地鼠爱点炮", "rank": 3, "score_before": 0.0, "final_points": 18300, "score_change": -21.7, "score_after": -21.7}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 4, "score_before": -19.8, "final_points": 15700, "score_change": -44.3, "score_after": -64.1}]}, {"date": "2026年05月20日 22:45", "players": [{"name": "Jwangta", "original_name": "JW27", "rank": 1, "score_before": 57.9, "final_points": 48700, "score_change": 68.7, "score_after": 126.6}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 2, "score_before": -21.1, "final_points": 21300, "score_change": 1.3, "score_after": -19.8}, {"name": "sokka", "original_name": "sokka", "rank": 3, "score_before": 8.6, "final_points": 20200, "score_change": -19.8, "score_after": -11.2}, {"name": "JellyGrouper", "original_name": "JellyGrouper", "rank": 4, "score_before": -45.4, "final_points": 9800, "score_change": -50.2, "score_after": -95.6}]}, {"date": "2026年05月20日 22:05", "players": [{"name": "Jwangta", "original_name": "JW27", "rank": 1, "score_before": 0.0, "final_points": 37900, "score_change": 57.9, "score_after": 57.9}, {"name": "sokka", "original_name": "sokka", "rank": 2, "score_before": 0.0, "final_points": 28600, "score_change": 8.6, "score_after": 8.6}, {"name": "单薄霓虹", "original_name": "单薄霓虹", "rank": 3, "score_before": 0.0, "final_points": 18900, "score_change": -21.1, "score_after": -21.1}, {"name": "JellyGrouper", "original_name": "JellyGrouper", "rank": 4, "score_before": 0.0, "final_points": 14600, "score_change": -45.4, "score_after": -45.4}]}];
+        const scoreHistory = {"RinshanNomi": [{"date": "2026年07月21日 00:34", "games": 37, "score": 213.7}, {"date": "2026年07月20日 23:48", "games": 36, "score": 148.0}, {"date": "2026年07月20日 23:11", "games": 35, "score": 142.8}, {"date": "2026年07月20日 22:35", "games": 34, "score": 165.6}, {"date": "2026年07月17日 01:30", "games": 33, "score": 213.4}, {"date": "2026年07月17日 01:00", "games": 32, "score": 209.4}, {"date": "2026年07月17日 00:24", "games": 31, "score": 254.9}, {"date": "2026年07月07日 23:24", "games": 30, "score": 249.3}, {"date": "2026年07月07日 22:33", "games": 29, "score": 191.4}, {"date": "2026年07月07日 21:42", "games": 28, "score": 119.5}, {"date": "2026年07月04日 22:50", "games": 27, "score": 52.0}, {"date": "2026年06月30日 21:54", "games": 26, "score": -13.9}, {"date": "2026年06月30日 20:56", "games": 25, "score": -22.6}, {"date": "2026年06月30日 19:52", "games": 24, "score": -27.7}, {"date": "2026年06月24日 22:07", "games": 23, "score": -33.6}, {"date": "2026年06月24日 00:34", "games": 22, "score": 21.5}, {"date": "2026年06月24日 00:04", "games": 21, "score": 4.0}, {"date": "2026年06月23日 23:07", "games": 20, "score": -78.3}, {"date": "2026年06月23日 22:03", "games": 19, "score": -60.0}, {"date": "2026年06月18日 00:42", "games": 18, "score": 7.9}, {"date": "2026年06月17日 23:48", "games": 17, "score": -0.7}, {"date": "2026年06月17日 23:04", "games": 16, "score": -62.0}, {"date": "2026年06月17日 00:48", "games": 15, "score": -11.4}, {"date": "2026年06月17日 00:17", "games": 14, "score": 3.6}, {"date": "2026年06月16日 23:42", "games": 13, "score": 53.3}, {"date": "2026年06月16日 22:51", "games": 12, "score": -24.6}, {"date": "2026年06月16日 00:57", "games": 11, "score": -90.0}, {"date": "2026年06月16日 00:20", "games": 10, "score": -22.5}, {"date": "2026年06月15日 23:28", "games": 9, "score": -0.4}, {"date": "2026年06月14日 03:08", "games": 8, "score": -9.5}, {"date": "2026年06月14日 01:03", "games": 7, "score": -14.2}, {"date": "2026年06月13日 00:35", "games": 6, "score": -21.1}, {"date": "2026年06月12日 23:36", "games": 5, "score": -33.4}, {"date": "2026年06月12日 23:04", "games": 4, "score": -14.5}, {"date": "2026年06月11日 00:37", "games": 3, "score": 41.9}, {"date": "2026年06月10日 23:49", "games": 2, "score": -20.4}, {"date": "2026年06月02日 23:20", "games": 1, "score": -24.4}, {"date": "2026年05月21日 21:22", "games": 0, "score": 5.3}], "santi": [{"date": "2026年07月21日 00:34", "games": 72, "score": 826.7}, {"date": "2026年07月20日 23:48", "games": 71, "score": 820.2}, {"date": "2026年07月20日 23:11", "games": 70, "score": 764.5}, {"date": "2026年07月20日 22:35", "games": 69, "score": 753.1}, {"date": "2026年07月18日 22:28", "games": 68, "score": 696.3}, {"date": "2026年07月18日 21:33", "games": 67, "score": 639.8}, {"date": "2026年07月17日 01:30", "games": 66, "score": 657.3}, {"date": "2026年07月17日 01:00", "games": 65, "score": 602.4}, {"date": "2026年07月17日 00:24", "games": 64, "score": 590.4}, {"date": "2026年07月07日 23:24", "games": 63, "score": 534.9}, {"date": "2026年07月07日 22:33", "games": 62, "score": 591.6}, {"date": "2026年07月07日 21:42", "games": 61, "score": 564.5}, {"date": "2026年07月04日 22:50", "games": 60, "score": 625.0}, {"date": "2026年06月30日 21:54", "games": 59, "score": 633.4}, {"date": "2026年06月30日 20:56", "games": 58, "score": 649.2}, {"date": "2026年06月30日 19:52", "games": 57, "score": 665.9}, {"date": "2026年06月30日 19:08", "games": 56, "score": 682.7}, {"date": "2026年06月30日 18:14", "games": 55, "score": 707.5}, {"date": "2026年06月28日 21:36", "games": 54, "score": 767.3}, {"date": "2026年06月28日 20:03", "games": 53, "score": 682.3}, {"date": "2026年06月27日 01:04", "games": 52, "score": 708.0}, {"date": "2026年06月27日 00:21", "games": 51, "score": 738.4}, {"date": "2026年06月24日 22:07", "games": 50, "score": 682.8}, {"date": "2026年06月24日 00:34", "games": 49, "score": 694.9}, {"date": "2026年06月24日 00:04", "games": 48, "score": 631.2}, {"date": "2026年06月23日 23:07", "games": 47, "score": 630.5}, {"date": "2026年06月23日 22:03", "games": 46, "score": 578.5}, {"date": "2026年06月23日 19:29", "games": 45, "score": 561.3}, {"date": "2026年06月23日 18:20", "games": 44, "score": 541.6}, {"date": "2026年06月22日 19:50", "games": 43, "score": 598.6}, {"date": "2026年06月22日 19:12", "games": 42, "score": 538.2}, {"date": "2026年06月22日 18:45", "games": 41, "score": 528.0}, {"date": "2026年06月18日 18:45", "games": 40, "score": 563.8}, {"date": "2026年06月18日 00:42", "games": 39, "score": 500.5}, {"date": "2026年06月17日 23:48", "games": 38, "score": 424.8}, {"date": "2026年06月17日 23:04", "games": 37, "score": 478.5}, {"date": "2026年06月17日 00:48", "games": 36, "score": 396.9}, {"date": "2026年06月17日 00:17", "games": 35, "score": 438.2}, {"date": "2026年06月16日 23:42", "games": 34, "score": 427.7}, {"date": "2026年06月16日 22:51", "games": 33, "score": 457.3}, {"date": "2026年06月16日 00:57", "games": 32, "score": 506.7}, {"date": "2026年06月14日 20:39", "games": 31, "score": 515.1}, {"date": "2026年06月14日 19:28", "games": 30, "score": 534.9}, {"date": "2026年06月14日 18:36", "games": 29, "score": 483.3}, {"date": "2026年06月14日 17:42", "games": 28, "score": 522.1}, {"date": "2026年06月14日 03:08", "games": 27, "score": 459.3}, {"date": "2026年06月14日 01:03", "games": 26, "score": 331.1}, {"date": "2026年06月13日 23:56", "games": 25, "score": 210.5}, {"date": "2026年06月13日 23:08", "games": 24, "score": 234.8}, {"date": "2026年06月13日 00:35", "games": 23, "score": 223.1}, {"date": "2026年06月12日 23:36", "games": 22, "score": 159.7}, {"date": "2026年06月12日 23:04", "games": 21, "score": 216.9}, {"date": "2026年06月11日 22:33", "games": 20, "score": 152.7}, {"date": "2026年06月11日 21:38", "games": 19, "score": 79.4}, {"date": "2026年06月11日 01:34", "games": 18, "score": 96.8}, {"date": "2026年06月11日 00:37", "games": 17, "score": 115.9}, {"date": "2026年06月10日 23:49", "games": 16, "score": 165.1}, {"date": "2026年06月10日 23:06", "games": 15, "score": 99.3}, {"date": "2026年06月02日 23:20", "games": 14, "score": 114.4}, {"date": "2026年06月02日 22:26", "games": 13, "score": 170.3}, {"date": "2026年06月02日 19:05", "games": 12, "score": 197.8}, {"date": "2026年06月02日 18:32", "games": 11, "score": 188.0}, {"date": "2026年05月27日 00:56", "games": 10, "score": 103.5}, {"date": "2026年05月27日 00:09", "games": 9, "score": 92.7}, {"date": "2026年05月26日 00:23", "games": 8, "score": 38.3}, {"date": "2026年05月25日 23:41", "games": 7, "score": 58.6}, {"date": "2026年05月25日 23:11", "games": 6, "score": 109.3}, {"date": "2026年05月23日 03:41", "games": 5, "score": 107.6}, {"date": "2026年05月23日 02:48", "games": 4, "score": 32.9}, {"date": "2026年05月23日 01:01", "games": 3, "score": -18.4}, {"date": "2026年05月21日 22:39", "games": 2, "score": -1.8}, {"date": "2026年05月21日 21:58", "games": 1, "score": -3.5}, {"date": "2026年05月21日 02:06", "games": 0, "score": -64.5}], "Jwangta": [{"date": "2026年07月21日 00:34", "games": 38, "score": 57.5}, {"date": "2026年07月20日 23:48", "games": 37, "score": 73.3}, {"date": "2026年07月20日 23:11", "games": 36, "score": 116.8}, {"date": "2026年07月20日 22:35", "games": 35, "score": 162.2}, {"date": "2026年07月18日 22:28", "games": 34, "score": 177.0}, {"date": "2026年07月18日 21:33", "games": 33, "score": 192.8}, {"date": "2026年07月18日 20:41", "games": 32, "score": 137.1}, {"date": "2026年07月18日 01:02", "games": 31, "score": 73.2}, {"date": "2026年07月18日 00:01", "games": 30, "score": 120.9}, {"date": "2026年07月17日 23:05", "games": 29, "score": 68.3}, {"date": "2026年07月17日 22:16", "games": 28, "score": 123.8}, {"date": "2026年07月17日 18:09", "games": 27, "score": 75.6}, {"date": "2026年07月17日 01:30", "games": 26, "score": 56.8}, {"date": "2026年07月17日 01:00", "games": 25, "score": 97.1}, {"date": "2026年07月17日 00:24", "games": 24, "score": 122.1}, {"date": "2026年06月30日 19:52", "games": 23, "score": 142.4}, {"date": "2026年06月30日 19:08", "games": 22, "score": 71.9}, {"date": "2026年06月30日 18:14", "games": 21, "score": 120.2}, {"date": "2026年06月28日 20:03", "games": 20, "score": 136.2}, {"date": "2026年06月23日 18:20", "games": 19, "score": 133.0}, {"date": "2026年06月22日 19:50", "games": 18, "score": 64.4}, {"date": "2026年06月22日 19:12", "games": 17, "score": 94.0}, {"date": "2026年06月22日 18:45", "games": 16, "score": 104.1}, {"date": "2026年06月21日 19:17", "games": 15, "score": 168.6}, {"date": "2026年06月18日 18:45", "games": 14, "score": 163.9}, {"date": "2026年06月14日 19:28", "games": 13, "score": 227.3}, {"date": "2026年06月14日 18:36", "games": 12, "score": 221.3}, {"date": "2026年06月14日 17:42", "games": 11, "score": 240.0}, {"date": "2026年06月02日 18:32", "games": 10, "score": 260.2}, {"date": "2026年06月02日 15:33", "games": 9, "score": 243.6}, {"date": "2026年05月28日 16:51", "games": 8, "score": 261.9}, {"date": "2026年05月26日 17:44", "games": 7, "score": 204.7}, {"date": "2026年05月26日 16:55", "games": 6, "score": 198.0}, {"date": "2026年05月23日 19:40", "games": 5, "score": 251.2}, {"date": "2026年05月21日 22:39", "games": 4, "score": 229.3}, {"date": "2026年05月21日 21:58", "games": 3, "score": 151.5}, {"date": "2026年05月21日 21:22", "games": 2, "score": 203.4}, {"date": "2026年05月20日 22:45", "games": 1, "score": 126.6}, {"date": "2026年05月20日 22:05", "games": 0, "score": 57.9}], "小地鼠爱点炮": [{"date": "2026年07月21日 00:34", "games": 16, "score": -87.1}, {"date": "2026年07月20日 23:48", "games": 15, "score": -30.7}, {"date": "2026年07月20日 23:11", "games": 14, "score": -13.3}, {"date": "2026年07月20日 22:35", "games": 13, "score": -70.1}, {"date": "2026年05月29日 02:21", "games": 12, "score": -75.9}, {"date": "2026年05月29日 01:24", "games": 11, "score": -42.7}, {"date": "2026年05月28日 02:45", "games": 10, "score": -28.4}, {"date": "2026年05月27日 00:56", "games": 9, "score": -7.3}, {"date": "2026年05月26日 00:23", "games": 8, "score": 12.6}, {"date": "2026年05月25日 23:41", "games": 7, "score": 8.2}, {"date": "2026年05月23日 03:41", "games": 6, "score": 26.1}, {"date": "2026年05月23日 02:48", "games": 5, "score": 54.3}, {"date": "2026年05月23日 02:03", "games": 4, "score": 44.0}, {"date": "2026年05月23日 01:01", "games": 3, "score": 63.9}, {"date": "2026年05月21日 03:19", "games": 2, "score": 44.9}, {"date": "2026年05月21日 00:22", "games": 1, "score": -17.1}, {"date": "2026年05月20日 23:20", "games": 0, "score": -21.7}], "DreamKQ": [{"date": "2026年07月18日 22:28", "games": 21, "score": 54.9}, {"date": "2026年07月18日 21:33", "games": 20, "score": 40.5}, {"date": "2026年07月18日 20:41", "games": 19, "score": 81.9}, {"date": "2026年06月18日 18:45", "games": 18, "score": 143.2}, {"date": "2026年06月18日 00:42", "games": 17, "score": 131.5}, {"date": "2026年06月17日 23:48", "games": 16, "score": 161.3}, {"date": "2026年06月17日 23:04", "games": 15, "score": 188.6}, {"date": "2026年06月17日 00:48", "games": 14, "score": 191.7}, {"date": "2026年06月17日 00:17", "games": 13, "score": 143.4}, {"date": "2026年06月16日 23:42", "games": 12, "score": 91.0}, {"date": "2026年06月16日 22:51", "games": 11, "score": 84.0}, {"date": "2026年06月16日 00:20", "games": 10, "score": 104.5}, {"date": "2026年06月15日 23:28", "games": 9, "score": 44.4}, {"date": "2026年06月14日 18:36", "games": 8, "score": 67.9}, {"date": "2026年06月14日 17:42", "games": 7, "score": 61.2}, {"date": "2026年06月11日 22:33", "games": 6, "score": 56.7}, {"date": "2026年06月11日 21:38", "games": 5, "score": 53.7}, {"date": "2026年06月02日 21:38", "games": 4, "score": -0.3}, {"date": "2026年05月27日 22:29", "games": 3, "score": -4.0}, {"date": "2026年05月27日 21:32", "games": 2, "score": 97.1}, {"date": "2026年05月21日 01:01", "games": 1, "score": 17.1}, {"date": "2026年05月21日 00:22", "games": 0, "score": 61.1}], "hatuyukiuk": [{"date": "2026年07月18日 22:28", "games": 19, "score": 88.1}, {"date": "2026年07月18日 21:33", "games": 18, "score": 143.2}, {"date": "2026年07月18日 20:41", "games": 17, "score": 140.0}, {"date": "2026年07月18日 01:02", "games": 16, "score": 131.2}, {"date": "2026年07月18日 00:01", "games": 15, "score": 130.1}, {"date": "2026年07月17日 23:05", "games": 14, "score": 149.0}, {"date": "2026年07月17日 22:16", "games": 13, "score": 136.8}, {"date": "2026年07月17日 19:23", "games": 12, "score": 128.8}, {"date": "2026年07月17日 18:09", "games": 11, "score": 69.9}, {"date": "2026年07月17日 01:30", "games": 10, "score": 9.0}, {"date": "2026年07月17日 01:00", "games": 9, "score": 27.6}, {"date": "2026年07月17日 00:24", "games": 8, "score": -30.9}, {"date": "2026年06月16日 00:57", "games": 7, "score": 9.9}, {"date": "2026年06月16日 00:20", "games": 6, "score": -8.0}, {"date": "2026年06月15日 23:28", "games": 5, "score": -16.6}, {"date": "2026年06月14日 20:39", "games": 4, "score": 29.7}, {"date": "2026年06月14日 19:28", "games": 3, "score": 21.9}, {"date": "2026年06月13日 00:35", "games": 2, "score": 65.4}, {"date": "2026年06月12日 23:36", "games": 1, "score": 92.0}, {"date": "2026年06月12日 23:04", "games": 0, "score": 23.3}], "加賀百万石": [{"date": "2026年07月18日 20:41", "games": 23, "score": -47.2}, {"date": "2026年07月18日 01:02", "games": 22, "score": -35.8}, {"date": "2026年07月18日 00:01", "games": 21, "score": -108.2}, {"date": "2026年07月17日 23:05", "games": 20, "score": -67.9}, {"date": "2026年07月17日 19:23", "games": 19, "score": -51.9}, {"date": "2026年07月04日 22:50", "games": 18, "score": -8.6}, {"date": "2026年06月23日 18:20", "games": 17, "score": -32.3}, {"date": "2026年06月21日 19:17", "games": 16, "score": -1.2}, {"date": "2026年06月14日 03:08", "games": 15, "score": 20.9}, {"date": "2026年06月11日 01:34", "games": 14, "score": 129.6}, {"date": "2026年06月11日 00:37", "games": 13, "score": 68.5}, {"date": "2026年06月10日 21:58", "games": 12, "score": 86.4}, {"date": "2026年06月02日 15:33", "games": 11, "score": 103.7}, {"date": "2026年05月29日 02:21", "games": 10, "score": 48.2}, {"date": "2026年05月29日 01:24", "games": 9, "score": -31.4}, {"date": "2026年05月28日 23:33", "games": 8, "score": 11.6}, {"date": "2026年05月28日 16:51", "games": 7, "score": 6.9}, {"date": "2026年05月28日 02:45", "games": 6, "score": 17.0}, {"date": "2026年05月27日 00:56", "games": 5, "score": 60.3}, {"date": "2026年05月27日 00:09", "games": 4, "score": -1.2}, {"date": "2026年05月26日 17:44", "games": 3, "score": 30.5}, {"date": "2026年05月26日 16:55", "games": 2, "score": -39.4}, {"date": "2026年05月23日 02:03", "games": 1, "score": -17.0}, {"date": "2026年05月21日 03:19", "games": 0, "score": -70.1}], "浴室要冷镜": [{"date": "2026年07月18日 01:02", "games": 19, "score": -58.5}, {"date": "2026年07月18日 00:01", "games": 18, "score": -32.7}, {"date": "2026年07月17日 23:05", "games": 17, "score": -39.3}, {"date": "2026年07月17日 22:16", "games": 16, "score": -98.6}, {"date": "2026年06月30日 21:54", "games": 15, "score": -54.9}, {"date": "2026年06月30日 20:56", "games": 14, "score": -108.0}, {"date": "2026年06月30日 19:52", "games": 13, "score": -161.7}, {"date": "2026年06月23日 19:29", "games": 12, "score": -102.1}, {"date": "2026年06月14日 20:39", "games": 11, "score": -164.8}, {"date": "2026年06月14日 19:28", "games": 10, "score": -124.7}, {"date": "2026年06月10日 23:49", "games": 9, "score": -110.6}, {"date": "2026年06月10日 23:06", "games": 8, "score": -89.8}, {"date": "2026年06月10日 21:58", "games": 7, "score": -16.4}, {"date": "2026年05月28日 16:51", "games": 6, "score": -27.4}, {"date": "2026年05月26日 17:44", "games": 5, "score": -41.1}, {"date": "2026年05月26日 16:55", "games": 4, "score": -17.8}, {"date": "2026年05月23日 03:41", "games": 3, "score": -21.0}, {"date": "2026年05月23日 02:48", "games": 2, "score": -34.5}, {"date": "2026年05月23日 02:03", "games": 1, "score": 16.5}, {"date": "2026年05月23日 01:01", "games": 0, "score": 59.7}], "yipca": [{"date": "2026年07月17日 22:16", "games": 0, "score": -12.5}], "JellyGrouper": [{"date": "2026年07月17日 19:23", "games": 10, "score": -307.7}, {"date": "2026年07月17日 18:09", "games": 9, "score": -311.3}, {"date": "2026年06月24日 22:07", "games": 8, "score": -261.1}, {"date": "2026年06月22日 19:50", "games": 7, "score": -269.4}, {"date": "2026年06月22日 19:12", "games": 6, "score": -218.4}, {"date": "2026年06月22日 18:45", "games": 5, "score": -157.4}, {"date": "2026年05月23日 19:40", "games": 4, "score": -184.2}, {"date": "2026年05月21日 00:22", "games": 3, "score": -112.1}, {"date": "2026年05月20日 23:20", "games": 2, "score": -92.4}, {"date": "2026年05月20日 22:45", "games": 1, "score": -95.6}, {"date": "2026年05月20日 22:05", "games": 0, "score": -45.4}], "单薄霓虹": [{"date": "2026年07月17日 19:23", "games": 46, "score": -109.2}, {"date": "2026年07月17日 18:09", "games": 45, "score": -90.0}, {"date": "2026年06月30日 19:08", "games": 44, "score": -60.5}, {"date": "2026年06月30日 18:14", "games": 43, "score": -133.7}, {"date": "2026年06月28日 21:36", "games": 42, "score": -202.8}, {"date": "2026年06月27日 01:04", "games": 41, "score": -147.3}, {"date": "2026年06月27日 00:21", "games": 40, "score": -214.2}, {"date": "2026年06月24日 00:34", "games": 39, "score": -161.5}, {"date": "2026年06月23日 19:29", "games": 38, "score": -104.6}, {"date": "2026年06月23日 18:20", "games": 37, "score": -77.7}, {"date": "2026年06月22日 19:50", "games": 36, "score": -97.2}, {"date": "2026年06月22日 19:12", "games": 35, "score": -117.4}, {"date": "2026年06月22日 18:45", "games": 34, "score": -178.3}, {"date": "2026年06月18日 00:42", "games": 33, "score": -251.8}, {"date": "2026年06月16日 22:51", "games": 32, "score": -197.3}, {"date": "2026年06月16日 00:57", "games": 31, "score": -201.8}, {"date": "2026年06月16日 00:20", "games": 30, "score": -259.8}, {"date": "2026年06月15日 23:28", "games": 29, "score": -213.2}, {"date": "2026年06月13日 23:56", "games": 28, "score": -273.9}, {"date": "2026年06月13日 23:08", "games": 27, "score": -283.1}, {"date": "2026年06月13日 00:35", "games": 26, "score": -337.3}, {"date": "2026年06月12日 23:36", "games": 25, "score": -288.2}, {"date": "2026年06月12日 23:04", "games": 24, "score": -295.6}, {"date": "2026年06月11日 01:34", "games": 23, "score": -264.5}, {"date": "2026年06月02日 23:20", "games": 22, "score": -270.5}, {"date": "2026年06月02日 22:26", "games": 21, "score": -342.9}, {"date": "2026年06月02日 21:38", "games": 20, "score": -294.8}, {"date": "2026年06月02日 19:05", "games": 19, "score": -363.4}, {"date": "2026年06月02日 15:33", "games": 18, "score": -331.6}, {"date": "2026年05月29日 02:21", "games": 17, "score": -292.1}, {"date": "2026年05月29日 01:24", "games": 16, "score": -306.7}, {"date": "2026年05月28日 23:33", "games": 15, "score": -313.5}, {"date": "2026年05月28日 02:45", "games": 14, "score": -296.5}, {"date": "2026年05月27日 22:29", "games": 13, "score": -300.6}, {"date": "2026年05月27日 21:32", "games": 12, "score": -297.5}, {"date": "2026年05月27日 00:56", "games": 11, "score": -273.6}, {"date": "2026年05月27日 00:09", "games": 10, "score": -221.2}, {"date": "2026年05月23日 19:40", "games": 9, "score": -189.5}, {"date": "2026年05月23日 03:41", "games": 8, "score": -265.1}, {"date": "2026年05月23日 02:48", "games": 7, "score": -205.1}, {"date": "2026年05月21日 22:39", "games": 6, "score": -194.5}, {"date": "2026年05月21日 21:22", "games": 5, "score": -144.1}, {"date": "2026年05月21日 03:19", "games": 4, "score": -123.9}, {"date": "2026年05月21日 00:22", "games": 3, "score": -110.1}, {"date": "2026年05月20日 23:20", "games": 2, "score": -64.1}, {"date": "2026年05月20日 22:45", "games": 1, "score": -19.8}, {"date": "2026年05月20日 22:05", "games": 0, "score": -21.1}], "南美雀后": [{"date": "2026年07月07日 23:24", "games": 6, "score": -122.9}, {"date": "2026年07月07日 22:33", "games": 5, "score": -134.5}, {"date": "2026年07月07日 21:42", "games": 4, "score": -96.1}, {"date": "2026年06月02日 19:05", "games": 3, "score": -110.9}, {"date": "2026年06月02日 18:32", "games": 2, "score": -52.4}, {"date": "2026年05月26日 17:44", "games": 1, "score": 19.1}, {"date": "2026年05月26日 16:55", "games": 0, "score": 72.4}], "tacolog": [{"date": "2026年07月07日 23:24", "games": 6, "score": -123.8}, {"date": "2026年07月07日 22:33", "games": 5, "score": -111.0}, {"date": "2026年07月07日 21:42", "games": 4, "score": -50.4}, {"date": "2026年06月24日 00:34", "games": 3, "score": -28.6}, {"date": "2026年06月24日 00:04", "games": 2, "score": -4.3}, {"date": "2026年06月23日 23:07", "games": 1, "score": 25.2}, {"date": "2026年06月23日 22:03", "games": 0, "score": 67.8}], "Vermilio": [{"date": "2026年07月04日 22:50", "games": 26, "score": -239.7}, {"date": "2026年06月28日 21:36", "games": 25, "score": -158.5}, {"date": "2026年06月28日 20:03", "games": 24, "score": -123.7}, {"date": "2026年06月23日 23:07", "games": 23, "score": -192.3}, {"date": "2026年06月23日 22:03", "games": 22, "score": -201.2}, {"date": "2026年06月23日 19:29", "games": 21, "score": -184.1}, {"date": "2026年06月21日 19:17", "games": 20, "score": -128.6}, {"date": "2026年06月18日 18:45", "games": 19, "score": -189.8}, {"date": "2026年06月13日 23:56", "games": 18, "score": -178.2}, {"date": "2026年06月10日 23:49", "games": 17, "score": -244.1}, {"date": "2026年06月10日 23:06", "games": 16, "score": -195.1}, {"date": "2026年06月10日 21:58", "games": 15, "score": -204.5}, {"date": "2026年06月02日 22:26", "games": 14, "score": -152.5}, {"date": "2026年06月02日 21:38", "games": 13, "score": -160.2}, {"date": "2026年05月29日 02:21", "games": 12, "score": -138.3}, {"date": "2026年05月29日 01:24", "games": 11, "score": -77.3}, {"date": "2026年05月28日 23:33", "games": 10, "score": -127.8}, {"date": "2026年05月27日 22:29", "games": 9, "score": -77.6}, {"date": "2026年05月27日 21:32", "games": 8, "score": -156.5}, {"date": "2026年05月26日 00:23", "games": 7, "score": -87.8}, {"date": "2026年05月25日 23:41", "games": 6, "score": -40.6}, {"date": "2026年05月25日 23:11", "games": 5, "score": -44.6}, {"date": "2026年05月23日 19:40", "games": 4, "score": -24.2}, {"date": "2026年05月21日 21:58", "games": 3, "score": 1.2}, {"date": "2026年05月21日 03:19", "games": 2, "score": -11.7}, {"date": "2026年05月21日 02:06", "games": 1, "score": -33.6}, {"date": "2026年05月21日 01:01", "games": 0, "score": -19.8}], "Phokopi": [{"date": "2026年06月30日 21:54", "games": 18, "score": -83.0}, {"date": "2026年06月30日 20:56", "games": 17, "score": -37.0}, {"date": "2026年06月30日 19:08", "games": 16, "score": 5.1}, {"date": "2026年06月30日 18:14", "games": 15, "score": 5.2}, {"date": "2026年06月28日 21:36", "games": 14, "score": -1.5}, {"date": "2026年06月28日 20:03", "games": 13, "score": -6.8}, {"date": "2026年06月27日 01:04", "games": 12, "score": 39.3}, {"date": "2026年06月27日 00:21", "games": 11, "score": 102.6}, {"date": "2026年06月24日 22:07", "games": 10, "score": 118.1}, {"date": "2026年06月17日 23:48", "games": 9, "score": 59.2}, {"date": "2026年06月17日 23:04", "games": 8, "score": 39.5}, {"date": "2026年06月14日 18:36", "games": 7, "score": 67.4}, {"date": "2026年06月14日 17:42", "games": 6, "score": 16.6}, {"date": "2026年06月11日 22:33", "games": 5, "score": 63.7}, {"date": "2026年06月11日 21:38", "games": 4, "score": 88.5}, {"date": "2026年06月02日 19:05", "games": 3, "score": 79.9}, {"date": "2026年06月02日 18:32", "games": 2, "score": -0.6}, {"date": "2026年05月21日 02:06", "games": 1, "score": 29.0}, {"date": "2026年05月21日 01:01", "games": 0, "score": 10.8}], "Samuel122": [{"date": "2026年06月27日 01:04", "games": 6, "score": 86.2}, {"date": "2026年06月27日 00:21", "games": 5, "score": 59.4}, {"date": "2026年06月14日 01:03", "games": 4, "score": 46.8}, {"date": "2026年06月11日 01:34", "games": 3, "score": 74.1}, {"date": "2026年05月27日 00:09", "games": 2, "score": 122.1}, {"date": "2026年05月21日 02:06", "games": 1, "score": 113.1}, {"date": "2026年05月21日 01:01", "games": 0, "score": 53.0}], "TlaseZ": [{"date": "2026年06月24日 00:04", "games": 0, "score": -53.5}], "阿佳丶": [{"date": "2026年06月21日 19:17", "games": 10, "score": 297.0}, {"date": "2026年06月10日 23:06", "games": 9, "score": 340.8}, {"date": "2026年06月10日 21:58", "games": 8, "score": 261.7}, {"date": "2026年06月02日 23:20", "games": 7, "score": 203.4}, {"date": "2026年06月02日 22:26", "games": 6, "score": 190.2}, {"date": "2026年06月02日 21:38", "games": 5, "score": 122.3}, {"date": "2026年06月02日 15:33", "games": 4, "score": 172.7}, {"date": "2026年05月28日 23:33", "games": 3, "score": 170.4}, {"date": "2026年05月27日 22:29", "games": 2, "score": 107.9}, {"date": "2026年05月27日 21:32", "games": 1, "score": 82.6}, {"date": "2026年05月25日 23:11", "games": 0, "score": 70.0}], "sokka": [{"date": "2026年06月17日 00:48", "games": 16, "score": -182.1}, {"date": "2026年06月16日 23:42", "games": 15, "score": -190.1}, {"date": "2026年06月13日 23:08", "games": 14, "score": -134.8}, {"date": "2026年06月11日 22:33", "games": 13, "score": -77.4}, {"date": "2026年06月11日 21:38", "games": 12, "score": -25.9}, {"date": "2026年06月11日 00:37", "games": 11, "score": 19.3}, {"date": "2026年05月28日 16:51", "games": 10, "score": 14.5}, {"date": "2026年05月28日 02:45", "games": 9, "score": 75.3}, {"date": "2026年05月26日 00:23", "games": 8, "score": 15.0}, {"date": "2026年05月25日 23:41", "games": 7, "score": -48.1}, {"date": "2026年05月25日 23:11", "games": 6, "score": -112.7}, {"date": "2026年05月21日 22:39", "games": 5, "score": -61.4}, {"date": "2026年05月21日 21:58", "games": 4, "score": -32.3}, {"date": "2026年05月21日 21:22", "games": 3, "score": -10.3}, {"date": "2026年05月20日 23:20", "games": 2, "score": 51.6}, {"date": "2026年05月20日 22:45", "games": 1, "score": -11.2}, {"date": "2026年05月20日 22:05", "games": 0, "score": 8.6}], "ジュンシー": [{"date": "2026年06月17日 00:17", "games": 5, "score": -144.8}, {"date": "2026年06月14日 20:39", "games": 4, "score": -131.6}, {"date": "2026年06月14日 03:08", "games": 3, "score": -183.7}, {"date": "2026年06月14日 01:03", "games": 2, "score": -159.5}, {"date": "2026年06月13日 23:56", "games": 1, "score": -59.3}, {"date": "2026年06月13日 23:08", "games": 0, "score": -8.5}], "Oncorhynchus": [{"date": "2026年05月23日 02:03", "games": 1, "score": -52.1}, {"date": "2026年05月23日 01:01", "games": 0, "score": -62.1}]};
+        let currentScoreChart = null;
+
+        function renderGamesTable(filterPlayer = 'all') {
+            const tbody = document.getElementById('gamesTableBody');
+            tbody.innerHTML = '';
+
+            const filteredGames = filterPlayer === 'all'
+                ? gamesData
+                : gamesData.filter(game => game.players.some(p => p.name === filterPlayer));
+
+            filteredGames.forEach(game => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td class="game-date">${game.date}</td>`;
+
+                game.players.forEach(p => {
+                    const rankClass = `rank-${p.rank}`;
+                    const highlightClass = (filterPlayer !== 'all' && p.name === filterPlayer) ? 'highlight-player' : '';
+                    const displayName = p.original_name || p.name;
+                    tr.innerHTML += `
+                        <td class="player-name ${rankClass} ${highlightClass}">${displayName}</td>
+                        <td class="r-value">${p.score_before.toFixed(1)}</td>
+                        <td class="final-points">${p.final_points}</td>
+                        <td class="score-change">${p.score_change >= 0 ? '+' : ''}${p.score_change.toFixed(1)}</td>
+                        <td class="r-value">${p.score_after.toFixed(1)}</td>
+                    `;
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 绘制总分曲线图
+        function drawScoreChart(playerName) {
+            const container = document.getElementById('scoreChartContainer');
+            const chartTitle = document.getElementById('chartPlayerName');
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+
+            if (!scoreHistory[playerName]) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            chartTitle.textContent = `${playerName} - 总分变化曲线`;
+
+            // 反转数据（从最早到最新）
+            const data = [...scoreHistory[playerName]].reverse();
+
+            const labels = data.map((d, idx) => `${d.date}\n(${d.games}半庄)`);
+            const scoreValues = data.map(d => d.score);
+
+            if (currentScoreChart) {
+                currentScoreChart.destroy();
+            }
+
+            currentScoreChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '总分',
+                        data: scoreValues,
+                        borderColor: '#c15b42',
+                        backgroundColor: 'rgba(193, 91, 66, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const idx = context[0].dataIndex;
+                                    return `${data[idx].date} (${data[idx].games}半庄)`;
+                                },
+                                label: function(context) {
+                                    return `总分: ${context.parsed.y.toFixed(1)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: '总分'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '日期（半庄数）'
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                autoSkip: false,
+                                callback: function(value, index, ticks) {
+                                    const totalPoints = data.length;
+                                    let skipInterval;
+
+                                    if (totalPoints <= 20) {
+                                        skipInterval = 1;
+                                    } else if (totalPoints <= 40) {
+                                        skipInterval = 2;
+                                    } else if (totalPoints <= 60) {
+                                        skipInterval = 3;
+                                    } else if (totalPoints <= 80) {
+                                        skipInterval = 4;
+                                    } else if (totalPoints <= 100) {
+                                        skipInterval = 5;
+                                    } else if (totalPoints <= 120) {
+                                        skipInterval = 6;
+                                    } else {
+                                        skipInterval = 8;
+                                    }
+
+                                    if (index === 0 || index === data.length - 1) {
+                                        return labels[index];
+                                    }
+
+                                    if (index % skipInterval === 0) {
+                                        return labels[index];
+                                    }
+
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.querySelectorAll('.player-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.player-filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const playerName = this.getAttribute('data-player');
+                renderGamesTable(playerName);
+
+                if (playerName === 'all') {
+                    document.getElementById('scoreChartContainer').style.display = 'none';
+                    if (currentScoreChart) {
+                        currentScoreChart.destroy();
+                        currentScoreChart = null;
+                    }
+                } else {
+                    drawScoreChart(playerName);
+                }
+            });
+        });
+
+        renderGamesTable('all');
+    </script>
+    
+        </div>
+
+        <!-- 荣誉牌谱标签页 -->
+        <div id="tab-honor" class="tab-content">
+            
+            <div class="honor-section">
+                <h2 style="text-align: center; color: #c15b42; margin: 20px 0;">役满 & 三倍満</h2>
+                <div class="honor-games-grid">
+    <div class="honor-card yakuman">
+        <div class="honor-type">役满</div>
+        <div class="honor-info">
+            <div class="honor-date">2026年06月28日</div>
+            <div class="honor-round">南二局</div>
+            <div class="honor-winner">santi</div>
+            <div class="honor-yaku">四暗刻</div>
+        </div>
+        <a href="https://tenhou.net/5/#json={&quot;title&quot;:[&quot;Santi League -- M League Rule&quot;,&quot;santi的役满自摸&quot;],&quot;name&quot;:[&quot;Phokopi&quot;,&quot;Vermilio&quot;,&quot;单薄霓虹&quot;,&quot;santi&quot;],&quot;rule&quot;:{&quot;disp&quot;:&quot;M League Rule&quot;,&quot;aka53&quot;:1,&quot;aka52&quot;:1,&quot;aka51&quot;:1},&quot;log&quot;:[[[5,0,0],[31800,20300,12900,35000],[34],[22],[15,17,35,29,46,23,42,21,25,34,19,16,29],[17,42,47,11,28,26,47,27,27,27,11,45,47,33],[42,60,60,60,46,28,60,21,23,29,19,60,35,60],[33,46,32,33,34,32,24,43,36,28,26,18,44],[31,43,41,41,&quot;4141p41&quot;,19,29,11,51,31,45,35,27,28,18,32],[43,44,43,46,18,60,60,60,36,60,60,32,24,60,35,33],[16,41,12,44,19,44,43,46,42,16,23,31,13],[15,&quot;p444444&quot;,12,15,26,13,24,&quot;c111213&quot;,22,41,39,11,31,53,23,24],[31,23,42,41,60,46,60,43,60,60,60,19,60,60,60,60],[21,39,47,21,37,38,38,36,21,23,17,38,14],[12,19,45,25,46,32,25,37,43,14,52,39,35,33,14],[47,39,60,19,60,60,17,36,60,23,&quot;r12&quot;,60,60,60],[&quot;和了&quot;,[-8000,-16000,-8000,33000],[3,3,3,&quot;役満8000-16000点&quot;,&quot;四暗刻(役満)&quot;]]]]}" target="_blank" class="honor-replay-btn">查看牌谱</a>
+    </div>
+    
+    <div class="honor-card yakuman">
+        <div class="honor-type">役满</div>
+        <div class="honor-info">
+            <div class="honor-date">2026年06月23日</div>
+            <div class="honor-round">东四局1本场</div>
+            <div class="honor-winner">JW27</div>
+            <div class="honor-yaku">四暗刻</div>
+        </div>
+        <a href="https://tenhou.net/5/#json={&quot;title&quot;:[&quot;Santi League -- M League Rule&quot;,&quot;JW27的役满自摸&quot;],&quot;name&quot;:[&quot;santi&quot;,&quot;Yakumangoku&quot;,&quot;JW27&quot;,&quot;单薄霓虹&quot;],&quot;rule&quot;:{&quot;disp&quot;:&quot;M League Rule&quot;,&quot;aka53&quot;:1,&quot;aka52&quot;:1,&quot;aka51&quot;:1},&quot;log&quot;:[[[3,1,1],[20200,21500,31500,25800],[25],[24],[24,36,27,47,52,39,19,18,29,18,37,39,23],[35,43,13,23,14,46,21,11,43,14,39,41],[47,60,60,60,60,60,60,60,60,60,&quot;r19&quot;,60],[11,34,41,37,21,13,27,14,17,35,12,43,45],[21,27,32,34,18,37,19,44,41,13,22,22],[41,43,45,11,21,21,32,34,44,13,41,17],[15,46,28,41,15,16,26,28,46,26,44,29,33],[51,25,17,23,46,26,34,38,22,12,16,16],[41,44,29,33,23,25,60,60,60,60,&quot;r17&quot;],[23,39,27,33,33,53,12,47,24,17,28,31,32],[19,42,45,17,38,35,29,36,31,42,34,43],[39,60,47,45,60,12,19,33,60,60,&quot;r35&quot;,60],[&quot;和了&quot;,[-8100,-8100,36300,-16100],[2,2,2,&quot;役満8000-16000点&quot;,&quot;四暗刻(役満)&quot;]]]]}" target="_blank" class="honor-replay-btn">查看牌谱</a>
+    </div>
+    
+    <div class="honor-card yakuman">
+        <div class="honor-type">役满</div>
+        <div class="honor-info">
+            <div class="honor-date">2026年06月14日</div>
+            <div class="honor-round">东四局</div>
+            <div class="honor-winner">santi</div>
+            <div class="honor-yaku">大三元</div>
+        </div>
+        <a href="https://tenhou.net/5/#json={&quot;title&quot;:[&quot;Santi League -- M League Rule&quot;,&quot;santi的役满荣和&quot;],&quot;name&quot;:[&quot;Yakumangoku&quot;,&quot;叶片dd&quot;,&quot;ジュンシー&quot;,&quot;santi&quot;],&quot;rule&quot;:{&quot;disp&quot;:&quot;M League Rule&quot;,&quot;aka53&quot;:1,&quot;aka52&quot;:1,&quot;aka51&quot;:1},&quot;log&quot;:[[[3,0,0],[17000,11000,46400,25600],[24],[],[12,24,51,43,11,21,23,25,15,22,45,31,44],[26,44,27,26,21,46,12,&quot;c282627&quot;,13,17,19,34,41],[43,31,45,12,11,60,60,15,60,51,60,60,17],[36,24,32,47,43,28,21,37,39,41,16,39,42],[22,11,19,24,27,17,25,35,38,32,52],[42,21,60,11,43,22,24,28,27,16,17],[25,44,38,31,27,18,41,13,35,41,21,34,23],[33,31,29,43,39,33,31,15,37,22,29],[44,18,38,60,13,35,29,60,27,34,60],[45,38,42,19,47,14,18,53,45,38,46,47,37],[47,46,28,&quot;4545p45&quot;,&quot;p383838&quot;,11,&quot;4646p46&quot;,28,13,29,45,35,43],[42,14,60,18,19,60,53,60,60,37,60,60,60],[&quot;和了&quot;,[0,0,-48000,48000],[3,2,3,&quot;役満48000点&quot;,&quot;大三元(役満)&quot;]]]]}" target="_blank" class="honor-replay-btn">查看牌谱</a>
+    </div>
+    
+    <div class="honor-card yakuman">
+        <div class="honor-type">役满</div>
+        <div class="honor-info">
+            <div class="honor-date">2026年06月02日</div>
+            <div class="honor-round">南四局</div>
+            <div class="honor-winner">santi</div>
+            <div class="honor-yaku">四暗刻</div>
+        </div>
+        <a href="https://tenhou.net/5/#json={&quot;title&quot;:[&quot;Santi League -- M League Rule&quot;,&quot;santi的役满自摸&quot;],&quot;name&quot;:[&quot;JW27&quot;,&quot;南美雀后&quot;,&quot;santi&quot;,&quot;Phokopi&quot;],&quot;rule&quot;:{&quot;disp&quot;:&quot;M League Rule&quot;,&quot;aka53&quot;:1,&quot;aka52&quot;:1,&quot;aka51&quot;:1},&quot;log&quot;:[[[7,0,0],[44600,-2500,31500,26400],[29],[14],[11,35,19,23,52,35,19,12,53,12,38,14,11],[18,46,32,23,43,33,14,32,31,45,29],[38,60,60,14,60,60,60,60,12,60,31],[41,38,37,24,28,16,13,46,28,15,36,51,24],[22,21,39,41,26,32,39,28,24,22,34],[41,46,60,60,13,60,60,26,&quot;r16&quot;,60,60],[12,45,44,36,44,43,17,36,22,17,21,38,42],[41,42,21,33,42,26,17,44,39,31,36],[60,43,12,60,22,60,38,&quot;r45&quot;,60,60],[13,42,11,37,34,18,33,47,45,41,28,18,22],[32,35,18,33,43,17,16,47,39,13,29],[42,41,47,45,60,28,37,60,22,39,60],[&quot;和了&quot;,[-8000,-8000,34000,-16000],[2,2,2,&quot;役満8000-16000点&quot;,&quot;四暗刻(役満)&quot;]]]]}" target="_blank" class="honor-replay-btn">查看牌谱</a>
+    </div>
+    </div>
+            </div>
+            
+        </div>
+
+        <!-- 总排名标签页 -->
+        <div id="tab-ranking" class="tab-content">
+            
+    <div style="margin-bottom: 20px;">
+        <h2 style="color: #c15b42; margin: 0 0 10px 0;">正式排名 (≥10半庄)</h2>
+        <div class="summary-box" style="border-left-color: #c15b42;">
+            <span class="summary-label">🏆 前四名（正式排名，≥10半庄）将进入S-League最高位决定战</span>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 40px;">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <thead>
+                    <tr style="background: #c15b42; color: white;">
+                        <th style="padding: 12px; text-align: center;">排名</th>
+                        <th style="padding: 12px;">玩家</th>
+                        <th style="padding: 12px; text-align: center;">总点数</th>
+                        <th style="padding: 12px; text-align: center;">半庄</th>
+                        <th style="padding: 12px; text-align: center;">小局</th>
+                        <th style="padding: 12px; text-align: center;">平均顺位</th>
+                        <th style="padding: 12px; text-align: center;">1位率</th>
+                        <th style="padding: 12px; text-align: center;">和了率</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">🥇 1</td>
+                        <td style="padding: 12px; font-weight: 600;">santi</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">+826.7</td>
+                        <td style="padding: 12px; text-align: center;">73</td>
+                        <td style="padding: 12px; text-align: center;">868</td>
+                        <td style="padding: 12px; text-align: center;">2.27</td>
+                        <td style="padding: 12px; text-align: center;">35.6%</td>
+                        <td style="padding: 12px; text-align: center;">23.4%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">🥈 2</td>
+                        <td style="padding: 12px; font-weight: 600;">阿佳丶</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">+297.0</td>
+                        <td style="padding: 12px; text-align: center;">11</td>
+                        <td style="padding: 12px; text-align: center;">147</td>
+                        <td style="padding: 12px; text-align: center;">1.91</td>
+                        <td style="padding: 12px; text-align: center;">45.5%</td>
+                        <td style="padding: 12px; text-align: center;">28.6%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">🥉 3</td>
+                        <td style="padding: 12px; font-weight: 600;">RinshanNomi</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">+213.7</td>
+                        <td style="padding: 12px; text-align: center;">38</td>
+                        <td style="padding: 12px; text-align: center;">460</td>
+                        <td style="padding: 12px; text-align: center;">2.32</td>
+                        <td style="padding: 12px; text-align: center;">26.3%</td>
+                        <td style="padding: 12px; text-align: center;">23.7%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">4</td>
+                        <td style="padding: 12px; font-weight: 600;">hatuyukiuk</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">+88.1</td>
+                        <td style="padding: 12px; text-align: center;">20</td>
+                        <td style="padding: 12px; text-align: center;">220</td>
+                        <td style="padding: 12px; text-align: center;">2.35</td>
+                        <td style="padding: 12px; text-align: center;">20.0%</td>
+                        <td style="padding: 12px; text-align: center;">23.2%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">5</td>
+                        <td style="padding: 12px; font-weight: 600;">Jwangta</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">+57.5</td>
+                        <td style="padding: 12px; text-align: center;">39</td>
+                        <td style="padding: 12px; text-align: center;">426</td>
+                        <td style="padding: 12px; text-align: center;">2.51</td>
+                        <td style="padding: 12px; text-align: center;">28.2%</td>
+                        <td style="padding: 12px; text-align: center;">23.5%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">6</td>
+                        <td style="padding: 12px; font-weight: 600;">DreamKQ</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">+54.9</td>
+                        <td style="padding: 12px; text-align: center;">22</td>
+                        <td style="padding: 12px; text-align: center;">261</td>
+                        <td style="padding: 12px; text-align: center;">2.27</td>
+                        <td style="padding: 12px; text-align: center;">27.3%</td>
+                        <td style="padding: 12px; text-align: center;">21.1%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">7</td>
+                        <td style="padding: 12px; font-weight: 600;">加賀百万石</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">-37.2</td>
+                        <td style="padding: 12px; text-align: center;">24</td>
+                        <td style="padding: 12px; text-align: center;">285</td>
+                        <td style="padding: 12px; text-align: center;">2.58</td>
+                        <td style="padding: 12px; text-align: center;">29.2%</td>
+                        <td style="padding: 12px; text-align: center;">19.6%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">8</td>
+                        <td style="padding: 12px; font-weight: 600;">浴室要冷镜</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">-58.5</td>
+                        <td style="padding: 12px; text-align: center;">20</td>
+                        <td style="padding: 12px; text-align: center;">233</td>
+                        <td style="padding: 12px; text-align: center;">2.55</td>
+                        <td style="padding: 12px; text-align: center;">25.0%</td>
+                        <td style="padding: 12px; text-align: center;">19.3%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">9</td>
+                        <td style="padding: 12px; font-weight: 600;">Phokopi</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">-83.0</td>
+                        <td style="padding: 12px; text-align: center;">19</td>
+                        <td style="padding: 12px; text-align: center;">228</td>
+                        <td style="padding: 12px; text-align: center;">2.58</td>
+                        <td style="padding: 12px; text-align: center;">15.8%</td>
+                        <td style="padding: 12px; text-align: center;">21.5%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">10</td>
+                        <td style="padding: 12px; font-weight: 600;">小地鼠爱点炮 (小滴塑爱点炮)</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">-87.1</td>
+                        <td style="padding: 12px; text-align: center;">17</td>
+                        <td style="padding: 12px; text-align: center;">189</td>
+                        <td style="padding: 12px; text-align: center;">2.53</td>
+                        <td style="padding: 12px; text-align: center;">11.8%</td>
+                        <td style="padding: 12px; text-align: center;">19.1%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">11</td>
+                        <td style="padding: 12px; font-weight: 600;">单薄霓虹</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">-99.2</td>
+                        <td style="padding: 12px; text-align: center;">47</td>
+                        <td style="padding: 12px; text-align: center;">572</td>
+                        <td style="padding: 12px; text-align: center;">2.60</td>
+                        <td style="padding: 12px; text-align: center;">23.4%</td>
+                        <td style="padding: 12px; text-align: center;">21.0%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">12</td>
+                        <td style="padding: 12px; font-weight: 600;">sokka</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">-182.1</td>
+                        <td style="padding: 12px; text-align: center;">17</td>
+                        <td style="padding: 12px; text-align: center;">191</td>
+                        <td style="padding: 12px; text-align: center;">2.76</td>
+                        <td style="padding: 12px; text-align: center;">23.5%</td>
+                        <td style="padding: 12px; text-align: center;">20.4%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">13</td>
+                        <td style="padding: 12px; font-weight: 600;">Vermilio</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">-239.7</td>
+                        <td style="padding: 12px; text-align: center;">27</td>
+                        <td style="padding: 12px; text-align: center;">338</td>
+                        <td style="padding: 12px; text-align: center;">2.70</td>
+                        <td style="padding: 12px; text-align: center;">18.5%</td>
+                        <td style="padding: 12px; text-align: center;">18.9%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px;">14</td>
+                        <td style="padding: 12px; font-weight: 600;">JellyGrouper</td>
+                        <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold;">-307.7</td>
+                        <td style="padding: 12px; text-align: center;">11</td>
+                        <td style="padding: 12px; text-align: center;">135</td>
+                        <td style="padding: 12px; text-align: center;">3.18</td>
+                        <td style="padding: 12px; text-align: center;">0.0%</td>
+                        <td style="padding: 12px; text-align: center;">20.0%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+        <div>
+            <h2 style="color: #999; margin-bottom: 20px;">新人榜 (<10半庄)</h2>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <thead>
+                        <tr style="background: #999; color: white;">
+                            <th style="padding: 12px;">玩家</th>
+                            <th style="padding: 12px; text-align: center;">半庄</th>
+                            <th style="padding: 12px; text-align: center;">小局</th>
+                            <th style="padding: 12px; text-align: center;">总点数</th>
+                            <th style="padding: 12px; text-align: center;">平均顺位</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        
+                        <tr style="background: #f8f9fa;">
+                            <td style="padding: 12px; font-weight: 600;">Samuel122</td>
+                            <td style="padding: 12px; text-align: center; font-weight: bold;">7</td>
+                            <td style="padding: 12px; text-align: center;">89</td>
+                            <td style="padding: 12px; text-align: center;">+86.2</td>
+                            <td style="padding: 12px; text-align: center;">2.14</td>
+                        </tr>
+            
+                        <tr style="background: #f8f9fa;">
+                            <td style="padding: 12px; font-weight: 600;">南美雀后</td>
+                            <td style="padding: 12px; text-align: center; font-weight: bold;">7</td>
+                            <td style="padding: 12px; text-align: center;">77</td>
+                            <td style="padding: 12px; text-align: center;">-122.9</td>
+                            <td style="padding: 12px; text-align: center;">2.86</td>
+                        </tr>
+            
+                        <tr style="background: #f8f9fa;">
+                            <td style="padding: 12px; font-weight: 600;">tacolog</td>
+                            <td style="padding: 12px; text-align: center; font-weight: bold;">7</td>
+                            <td style="padding: 12px; text-align: center;">89</td>
+                            <td style="padding: 12px; text-align: center;">-123.8</td>
+                            <td style="padding: 12px; text-align: center;">3.00</td>
+                        </tr>
+            
+                        <tr style="background: #f8f9fa;">
+                            <td style="padding: 12px; font-weight: 600;">ジュンシー</td>
+                            <td style="padding: 12px; text-align: center; font-weight: bold;">6</td>
+                            <td style="padding: 12px; text-align: center;">86</td>
+                            <td style="padding: 12px; text-align: center;">-144.8</td>
+                            <td style="padding: 12px; text-align: center;">3.00</td>
+                        </tr>
+            
+                        <tr style="background: #f8f9fa;">
+                            <td style="padding: 12px; font-weight: 600;">Oncorhynchus</td>
+                            <td style="padding: 12px; text-align: center; font-weight: bold;">2</td>
+                            <td style="padding: 12px; text-align: center;">20</td>
+                            <td style="padding: 12px; text-align: center;">-52.1</td>
+                            <td style="padding: 12px; text-align: center;">3.00</td>
+                        </tr>
+            
+                        <tr style="background: #f8f9fa;">
+                            <td style="padding: 12px; font-weight: 600;">TlaseZ</td>
+                            <td style="padding: 12px; text-align: center; font-weight: bold;">1</td>
+                            <td style="padding: 12px; text-align: center;">14</td>
+                            <td style="padding: 12px; text-align: center;">-53.5</td>
+                            <td style="padding: 12px; text-align: center;">4.00</td>
+                        </tr>
+            
+                        <tr style="background: #f8f9fa;">
+                            <td style="padding: 12px; font-weight: 600;">yipca</td>
+                            <td style="padding: 12px; text-align: center; font-weight: bold;">1</td>
+                            <td style="padding: 12px; text-align: center;">12</td>
+                            <td style="padding: 12px; text-align: center;">-12.5</td>
+                            <td style="padding: 12px; text-align: center;">3.00</td>
+                        </tr>
+            
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        </div>
+
+        <!-- 排行榜标签页 -->
+        <div id="tab-leaderboard" class="tab-content">
+            
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+        
+    <div style="background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+        <h3 style="margin: 0; padding: 16px 20px; background: #c15b42; color: white; font-size: 18px;">1位率 前5名 (正式排名 ≥10 半庄)</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 10px; text-align: center; color: #666; font-size: 13px;">#</th>
+                    <th style="padding: 10px; text-align: center; color: #666; font-size: 13px;">玩家</th>
+                    <th style="padding: 10px; text-align: center; color: #666; font-size: 13px;">1位率</th>
+                </tr>
+            </thead>
+            <tbody>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">🥇 1</td>
+                        <td style="padding: 10px; font-weight: 600;">阿佳丶</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">45.5%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">🥈 2</td>
+                        <td style="padding: 10px; font-weight: 600;">santi</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">35.6%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">🥉 3</td>
+                        <td style="padding: 10px; font-weight: 600;">加賀百万石</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">29.2%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">4</td>
+                        <td style="padding: 10px; font-weight: 600;">Jwangta</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">28.2%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">5</td>
+                        <td style="padding: 10px; font-weight: 600;">DreamKQ</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">27.3%</td>
+                    </tr>
+            </tbody>
+        </table>
+    </div>
+    
+        
+    <div style="background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+        <h3 style="margin: 0; padding: 16px 20px; background: #c15b42; color: white; font-size: 18px;">避四率 前5名 (正式排名 ≥10 半庄)</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 10px; text-align: center; color: #666; font-size: 13px;">#</th>
+                    <th style="padding: 10px; text-align: center; color: #666; font-size: 13px;">玩家</th>
+                    <th style="padding: 10px; text-align: center; color: #666; font-size: 13px;">避四率</th>
+                </tr>
+            </thead>
+            <tbody>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">🥇 1</td>
+                        <td style="padding: 10px; font-weight: 600;">小地鼠爱点炮 (小滴塑爱点炮)</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">94.1%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">🥈 2</td>
+                        <td style="padding: 10px; font-weight: 600;">santi</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">82.2%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">🥉 3</td>
+                        <td style="padding: 10px; font-weight: 600;">DreamKQ</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">81.8%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">4</td>
+                        <td style="padding: 10px; font-weight: 600;">阿佳丶</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">81.8%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">5</td>
+                        <td style="padding: 10px; font-weight: 600;">hatuyukiuk</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">80.0%</td>
+                    </tr>
+            </tbody>
+        </table>
+    </div>
+    
+        
+    <div style="background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+        <h3 style="margin: 0; padding: 16px 20px; background: #c15b42; color: white; font-size: 18px;">出勤半庄数 前5名</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 10px; text-align: center; color: #666; font-size: 13px;">#</th>
+                    <th style="padding: 10px; text-align: center; color: #666; font-size: 13px;">玩家</th>
+                    <th style="padding: 10px; text-align: center; color: #666; font-size: 13px;">出勤半庄数</th>
+                </tr>
+            </thead>
+            <tbody>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">🥇 1</td>
+                        <td style="padding: 10px; font-weight: 600;">santi</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">73半庄</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">🥈 2</td>
+                        <td style="padding: 10px; font-weight: 600;">单薄霓虹</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">47半庄</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">🥉 3</td>
+                        <td style="padding: 10px; font-weight: 600;">Jwangta</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">39半庄</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">4</td>
+                        <td style="padding: 10px; font-weight: 600;">RinshanNomi</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">38半庄</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">5</td>
+                        <td style="padding: 10px; font-weight: 600;">Vermilio</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">27半庄</td>
+                    </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    </div>
+    
+        </div>
+
+        <!-- 决定战标签页 -->
+        <div id="tab-finals" class="tab-content">
+            <p style='text-align: center; color: #999; padding: 40px;'>决定战尚未开始，敬请期待</p>
+        </div>
+    </div>
+
+    <script>
+        // 标签页切换功能
+        function switchTab(tabName) {
+            // 隐藏所有标签页内容
+            const allContents = document.querySelectorAll('.tab-content');
+            allContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 移除所有按钮的active类
+            const allButtons = document.querySelectorAll('.tab-button');
+            allButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // 显示选中的标签页
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            event.target.classList.add('active');
+
+            // 保存当前标签到localStorage
+            localStorage.setItem('sLeagueActiveTab', tabName);
+        }
+
+        // 页面加载时恢复上次选择的标签
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedTab = localStorage.getItem('sLeagueActiveTab');
+            if (savedTab) {
+                const tabButton = document.querySelector(`.tab-button[onclick="switchTab('${savedTab}')"]`);
+                if (tabButton) {
+                    document.querySelector('.tab-content.active').classList.remove('active');
+                    document.querySelector('.tab-button.active').classList.remove('active');
+                    document.getElementById(`tab-${savedTab}`).classList.add('active');
+                    tabButton.classList.add('active');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

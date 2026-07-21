@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S-League 最高位战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #c15b42 0%, #9c4732 100%);
+            color: white;
+            padding: 50px 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .header .subtitle {
+            font-size: 20px;
+            opacity: 0.95;
+            margin-bottom: 20px;
+        }
+
+        .lang-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .lang-switch:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: white;
+            text-decoration: none;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .intro {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .intro h2 {
+            color: #c15b42;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .intro p {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #666;
+        }
+
+        .seasons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .season-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            position: relative;
+            overflow: hidden;
+            border-left: 5px solid var(--season-color, #667eea);
+        }
+
+        .season-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }
+
+        .season-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--season-color, #667eea) 0%, transparent 100%);
+            opacity: 0.05;
+            pointer-events: none;
+        }
+
+        .season-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .season-header h2 {
+            font-size: 28px;
+            color: var(--season-color, #667eea);
+        }
+
+        .season-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-upcoming {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .season-description {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .season-date {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .season-arrow {
+            text-align: right;
+            font-size: 24px;
+            color: var(--season-color, #667eea);
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 36px;
+            }
+
+            .seasons-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index-en.html" class="lang-switch">🌐 English</a>
+        <h1>S-League 最高位战</h1>
+        <p class="subtitle">最强雀士的巅峰对决</p>
+        <a href="../index.html" class="back-link">← ← 返回首页</a>
+    </div>
+
+    <div class="container">
+        <div class="intro">
+            <h2>S-League赛制</h2>
+            <p>
+                比赛采用M-League规则。每个赛季包含两个月的常规赛季，在常规赛季中成绩前四名的人可以进入最高位决定战（只对至少打了10个半庄的人计算位次），然后进行五个半庄的决定战，最高分获得者获得当赛季的S-League最高位头衔。
+            </p>
+        </div>
+
+        <div class="seasons-grid">
+            
+        <a href="s0.html" class="season-card" style="--season-color: #c15b42">
+            <div class="season-header">
+                <h2>S0赛季</h2>
+                <span class="season-status status-active">104 半庄</span>
+            </div>
+            <p class="season-description">S-League首届最高位战</p>
+            <p class="season-date">2026年1月</p>
+            <div class="season-arrow">→</div>
+        </a>
+        
+        </div>
+    </div>
+</body>
+</html>

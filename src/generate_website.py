@@ -11,7 +11,7 @@ import sys
 import json
 import re
 import html as html_module
-from datetime import datetime
+from datetime import datetime, timedelta
 from player_stats import calculate_player_stats, scan_files, summarize_log, YAKU_TRANSLATION
 
 # 导入别名处理函数
@@ -268,9 +268,12 @@ def extract_recent_games(files, results, count=5, all_results=None, uma_config=N
         # 按名次排序
         players_detail.sort(key=lambda x: x['rank'])
 
+        # 调整时区：UTC+0 -> UTC+2
+        display_timestamp = timestamp + timedelta(hours=2)
+
         all_game_details.append({
-            'date': timestamp.strftime("%Y年%m月%d日 %H:%M"),
-            'date_en': timestamp.strftime("%Y-%m-%d %H:%M"),
+            'date': display_timestamp.strftime("%Y年%m月%d日 %H:%M"),
+            'date_en': display_timestamp.strftime("%Y-%m-%d %H:%M"),
             'players_detail': players_detail,
             'table_avg_r': round(table_avg_r, 2)
         })
@@ -1894,6 +1897,17 @@ def main():
         print("✓ 已生成 docs/sanma-honor-en.html (英文)", file=sys.stderr)
     else:
         print("⚠ 未找到三麻数据文件夹", file=sys.stderr)
+
+    # 生成 S-League 页面
+    try:
+        from s_league.page_generator import generate_all_s_league_pages
+        generate_all_s_league_pages()
+    except ImportError:
+        print("⚠ S-League模块未安装", file=sys.stderr)
+    except Exception as e:
+        print(f"⚠ S-League生成失败: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
 
     print("\n网站生成完成！", file=sys.stderr)
     print("请将 docs 文件夹的内容推送到 GitHub Pages", file=sys.stderr)

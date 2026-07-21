@@ -49,6 +49,9 @@ def generate_index_page(lang='zh'):
         sanma_honor_link='sanma-honor-en.html' if lang == 'en' else 'sanma-honor.html',
         sanma_honor=t['sanma_honor'],
         view_sanma_honor=t['view_sanma_honor'],
+        s_league_link='s-league/index-en.html' if lang == 'en' else 's-league/index.html',
+        s_league=t['s_league'],
+        view_s_league=t['view_s_league'],
         upload_title=t['upload_title'],
         upload_desc=t['upload_desc'],
         generated_by=t['generated_by'],
@@ -284,6 +287,71 @@ def generate_m_league_page(
         select_player_label=select_player_label,
         choose_player=choose_player,
         select_player_prompt=select_player_prompt,
+        css_content=css_content
+    )
+
+    return html
+
+
+def generate_s_league_page(
+    lang='zh',
+    title='',
+    date_info='',
+    other_stats_page='',
+    current_index='',
+    switch_lang_text='',
+    back_home_text='',
+    tab_texts={},
+    recent_content='',
+    honor_content='',
+    ranking_content='',
+    leaderboard_content='',
+    finals_content=''
+):
+    """
+    生成S-League标签页页面（牌谱历史 / 荣誉牌谱 / 总排名 / 排行榜 / 决定战）
+
+    Args:
+        lang: 语言代码 (zh/en)
+        title: 页面标题
+        date_info: 日期信息HTML
+        other_stats_page: 语言切换链接
+        current_index: 返回首页链接
+        switch_lang_text: 切换语言文本
+        back_home_text: 返回首页文本
+        tab_texts: 标签页文本字典 {recent, honor, ranking, leaderboard, finals}
+        recent_content: 牌谱历史内容HTML
+        honor_content: 荣誉牌谱内容HTML
+        ranking_content: 总排名内容HTML
+        leaderboard_content: 排行榜内容HTML
+        finals_content: 决定战内容HTML
+
+    Returns:
+        str: 渲染后的HTML
+    """
+    html_template = load_html_template('s_league.html')
+    css_content = load_css('s_league.css')
+
+    lang_code = 'zh-CN' if lang == 'zh' else 'en'
+
+    html = html_template.format(
+        lang_code=lang_code,
+        title=title,
+        date_info=date_info,
+        other_stats_page=other_stats_page,
+        current_index=current_index,
+        switch_lang_text=switch_lang_text,
+        back_home_text=back_home_text,
+        tab_recent=tab_texts.get('recent', '牌谱历史'),
+        tab_honor=tab_texts.get('honor', '荣誉牌谱'),
+        tab_ranking=tab_texts.get('ranking', '总排名'),
+        tab_leaderboard=tab_texts.get('leaderboard', '排行榜' if lang == 'zh' else 'Leaderboard'),
+        tab_finals=tab_texts.get('finals', '决定战' if lang == 'zh' else 'Finals'),
+        recent_content=recent_content,
+        honor_content=honor_content,
+        ranking_content=ranking_content,
+        leaderboard_content=leaderboard_content,
+        finals_content=finals_content,
         css_content=css_content
     )
 

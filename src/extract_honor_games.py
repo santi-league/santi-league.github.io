@@ -13,7 +13,7 @@ import argparse
 import re
 import copy
 from urllib.parse import quote
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # 手役英文到日文的翻译
 HAND_DICT = {
@@ -119,8 +119,7 @@ def parse_round_name(round_info):
         return f'{round_name}局'
 
 def extract_date_from_filename(filename):
-    """从文件名提取日期"""
-    # 匹配格式：月_日_年
+    """从文件名提取日期（旧格式：月_日_年，用于兼容旧牌谱文件名）"""
     match = re.match(r'(\d+)_(\d+)_(\d+)', filename)
     if match:
         month, day, year = match.groups()
@@ -130,6 +129,27 @@ def extract_date_from_filename(filename):
         except ValueError:
             return filename
     return filename
+
+
+def extract_game_date(game_data, filename):
+    """
+    提取牌谱日期，优先从JSON内的时间戳读取（title[1]，如"6/28/2026, 7:36:31 PM"）
+    时区调整：UTC+0 -> UTC+2，与网站其他日期显示保持一致
+    失败时回退到旧文件名格式，最后回退到原始文件名
+    """
+    title = game_data.get('title', [])
+    if isinstance(title, list) and len(title) > 1:
+        timestamp_str = title[1]
+        try:
+            if timestamp_str[-1] == 'M':
+                timestamp = datetime.strptime(timestamp_str, "%m/%d/%Y, %I:%M:%S %p")
+            else:
+                timestamp = datetime.strptime(timestamp_str, "%d/%m/%Y, %H:%M:%S")
+            display_timestamp = timestamp + timedelta(hours=2)
+            return display_timestamp.strftime("%Y年%m月%d日")
+        except (ValueError, IndexError):
+            pass
+    return extract_date_from_filename(filename)
 
 def convert_round_to_tenhou(round_data, game_data, title_suffix=None):
     """将单局数据转换为天凤格式"""
@@ -215,7 +235,7 @@ def extract_honor_games(folder, recursive=True):
             continue
 
         players = game_data.get('name', [])
-        date_str = extract_date_from_filename(filename)
+        date_str = extract_game_date(game_data, filename)
 
         for round_idx, round_data in enumerate(game_data['log']):
             # 获取局数信息
