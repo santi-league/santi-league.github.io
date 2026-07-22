@@ -51,9 +51,15 @@ def generate_index_template(seasons_summary, lang='zh'):
         # 赛季页面链接
         season_page = f"{season_id}.html" if lang == 'zh' else f"{season_id}-en.html"
 
-        # 状态标签
-        if has_data:
-            status_label = f"{file_count} {t['games']}" if lang == 'zh' else f"{file_count} games"
+        # 状态标签（按赛季配置的status字段：ended/ongoing/upcoming）
+        season_status = season_info.get('status', 'ongoing' if has_data else 'upcoming')
+        games_count_text = f"{file_count} {t['games']}" if lang == 'zh' else f"{file_count} games"
+
+        if season_status == 'ended':
+            status_label = f"{'已结束' if lang == 'zh' else 'Ended'} · {games_count_text}"
+            status_class = "status-ended"
+        elif season_status == 'ongoing':
+            status_label = f"{'进行中' if lang == 'zh' else 'Ongoing'} · {games_count_text}"
             status_class = "status-active"
         else:
             status_label = "即将开始" if lang == 'zh' else "Coming Soon"
@@ -235,6 +241,11 @@ def generate_index_template(seasons_summary, lang='zh'):
 
         .status-upcoming {{
             background: #95a5a6;
+            color: white;
+        }}
+
+        .status-ended {{
+            background: #7f8c8d;
             color: white;
         }}
 

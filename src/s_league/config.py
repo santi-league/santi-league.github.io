@@ -18,6 +18,7 @@ SEASONS = {
         'data_folder': 'game-logs/s-league/s0',
         'finals_folder': 'game-logs/s-league/s0-finals',  # 最高位决定战牌谱（独立于常规赛数据）
         'enabled': True,
+        'status': 'ended',  # 测试赛季已结束
         'color': '#95a5a6'  # 赛季主题色（灰色，标识为测试赛季）
     },
     's1': {
@@ -31,6 +32,7 @@ SEASONS = {
         'data_folder': 'game-logs/s-league/s1',
         'finals_folder': 'game-logs/s-league/s1-finals',  # 最高位决定战牌谱（独立于常规赛数据）
         'enabled': True,
+        'status': 'ongoing',  # 首届正式赛季进行中
         'color': '#c15b42'  # 赛季主题色（红色）
     },
     # 未来赛季可以继续添加
