@@ -8,6 +8,7 @@ S-League 数据处理器
 import os
 import sys
 import json
+import shutil
 
 # 添加父目录到路径以便导入
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -19,28 +20,85 @@ import re
 from datetime import datetime, timedelta
 
 
+def _read_display_timestamp(filepath):
+    """
+    从牌谱JSON读取真实时间戳（title[1]），并做时区调整 UTC+0 -> UTC+2
+    （与网站其他日期显示保持一致）。读取/解析失败时返回None。
+    """
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        title = data.get('title', [])
+        if isinstance(title, list) and len(title) > 1:
+            timestamp_str = title[1]
+            if timestamp_str[-1] == 'M':
+                timestamp = datetime.strptime(timestamp_str, "%m/%d/%Y, %I:%M:%S %p")
+            else:
+                timestamp = datetime.strptime(timestamp_str, "%d/%m/%Y, %H:%M:%S")
+            return timestamp + timedelta(hours=2)
+    except (json.JSONDecodeError, ValueError, IndexError, OSError):
+        pass
+    return None
+
+
 def extract_latest_date(files):
     """从牌谱JSON内的时间戳（title[1]）中提取最新日期，时区调整UTC+0 -> UTC+2"""
-    dates = []
-    for fp in files:
-        try:
-            with open(fp, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            title = data.get('title', [])
-            if isinstance(title, list) and len(title) > 1:
-                timestamp_str = title[1]
-                if timestamp_str[-1] == 'M':
-                    timestamp = datetime.strptime(timestamp_str, "%m/%d/%Y, %I:%M:%S %p")
-                else:
-                    timestamp = datetime.strptime(timestamp_str, "%d/%m/%Y, %H:%M:%S")
-                dates.append(timestamp)
-        except (json.JSONDecodeError, ValueError, IndexError, OSError):
+    dates = [d for d in (_read_display_timestamp(fp) for fp in files) if d is not None]
+    if dates:
+        return max(dates).strftime("%Y年%m月%d日")
+    return None
+
+
+def sync_season_data(season_id):
+    """
+    从 game-logs/m-league/ 中扫描落在该赛季时间窗口 [start_time, end_time) 内的牌谱，
+    复制到该赛季的 data_folder 中（已存在的文件名会跳过，不重复复制）。
+
+    时间窗口按赛季配置的 start_time/end_time 字段判断（UTC+2显示时间），
+    未配置 start_time 的赛季（如手工维护的测试赛季）不做自动同步。
+
+    参数:
+        season_id: 赛季ID (如 's0', 's1')
+
+    返回:
+        int: 本次新复制的文件数
+    """
+    if season_id not in SEASONS:
+        raise ValueError(f"未知的赛季: {season_id}")
+
+    season = SEASONS[season_id]
+    start_time_str = season.get('start_time')
+
+    if not start_time_str:
+        return 0
+
+    start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
+    end_time_str = season.get('end_time')
+    end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S") if end_time_str else None
+
+    data_folder = season['data_folder']
+    os.makedirs(data_folder, exist_ok=True)
+
+    existing_filenames = {os.path.basename(fp) for fp in scan_files(data_folder, "*.json", recursive=True)}
+
+    copied = 0
+    for fp in scan_files('game-logs/m-league', "*.json", recursive=True):
+        filename = os.path.basename(fp)
+        if filename in existing_filenames:
             continue
 
-    if dates:
-        latest_date = max(dates) + timedelta(hours=2)
-        return latest_date.strftime("%Y年%m月%d日")
-    return None
+        display_timestamp = _read_display_timestamp(fp)
+        if display_timestamp is None:
+            continue
+        if display_timestamp < start_time:
+            continue
+        if end_time is not None and display_timestamp >= end_time:
+            continue
+
+        shutil.copy2(fp, os.path.join(data_folder, filename))
+        copied += 1
+
+    return copied
 
 
 def process_season_data(season_id):

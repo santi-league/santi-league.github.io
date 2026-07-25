@@ -11,7 +11,7 @@ import sys
 # 添加父目录到路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from .data_processor import process_season_data, get_all_seasons_summary
+from .data_processor import process_season_data, get_all_seasons_summary, sync_season_data
 from .templates import generate_index_template, generate_season_page_template
 from .config import SEASONS
 
@@ -21,10 +21,22 @@ def generate_all_s_league_pages():
     生成所有S-League页面
 
     包括：
+    - 从 game-logs/m-league/ 自动同步落在各赛季时间窗口内的新牌谱
     - S-League主页（赛季选择）
     - 各个赛季的统计页面
     """
     print("\n正在生成 S-League 页面...", file=sys.stderr)
+
+    # 0. 自动同步各赛季牌谱（仅对配置了start_time的赛季生效）
+    for season_id, season_info in SEASONS.items():
+        if not season_info['enabled']:
+            continue
+        try:
+            copied = sync_season_data(season_id)
+            if copied:
+                print(f"  ↻ {season_id} 自动同步了 {copied} 个新牌谱文件", file=sys.stderr)
+        except Exception as e:
+            print(f"  ✗ {season_id} 自动同步牌谱失败: {e}", file=sys.stderr)
 
     # 创建输出目录
     output_dir = "docs/s-league"
