@@ -867,10 +867,10 @@
     <!-- 玩家筛选选项卡 -->
     <div class="player-filter-tabs" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px;">
         <button class="player-filter-btn active" data-player="all">All Players</button>
-<button class="player-filter-btn" data-player="santi">santi (2Games)</button>
-<button class="player-filter-btn" data-player="Jwangta">Jwangta (2Games)</button>
-<button class="player-filter-btn" data-player="RinshanNomi">RinshanNomi (2Games)</button>
-<button class="player-filter-btn" data-player="tacolog">tacolog (2Games)</button>
+<button class="player-filter-btn" data-player="santi">santi (3Games)</button>
+<button class="player-filter-btn" data-player="Jwangta">Jwangta (3Games)</button>
+<button class="player-filter-btn" data-player="RinshanNomi">RinshanNomi (3Games)</button>
+<button class="player-filter-btn" data-player="tacolog">tacolog (3Games)</button>
 
     </div>
 
@@ -921,8 +921,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const gamesData = [{"date": "2026-07-26 00:38", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": 61.4, "final_points": 38800, "score_change": 58.8, "score_after": 120.2}, {"name": "tacolog", "original_name": "tacolog", "rank": 2, "score_before": -41.8, "final_points": 31300, "score_change": 11.3, "score_after": -30.5}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": -20.8, "final_points": 17100, "score_change": -22.9, "score_after": -43.7}, {"name": "Jwangta", "original_name": "JW27", "rank": 4, "score_before": 1.2, "final_points": 12800, "score_change": -47.2, "score_after": -46.0}]}, {"date": "2026-07-26 00:01", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": 0.0, "final_points": 41400, "score_change": 61.4, "score_after": 61.4}, {"name": "Jwangta", "original_name": "JW27", "rank": 2, "score_before": 0.0, "final_points": 21200, "score_change": 1.2, "score_after": 1.2}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 0.0, "final_points": 19200, "score_change": -20.8, "score_after": -20.8}, {"name": "tacolog", "original_name": "tacolog", "rank": 4, "score_before": 0.0, "final_points": 18200, "score_change": -41.8, "score_after": -41.8}]}];
-        const scoreHistory = {"RinshanNomi": [{"date": "2026-07-26 00:38", "games": 1, "score": 120.2}, {"date": "2026-07-26 00:01", "games": 0, "score": 61.4}], "tacolog": [{"date": "2026-07-26 00:38", "games": 1, "score": -30.5}, {"date": "2026-07-26 00:01", "games": 0, "score": -41.8}], "santi": [{"date": "2026-07-26 00:38", "games": 1, "score": -43.7}, {"date": "2026-07-26 00:01", "games": 0, "score": -20.8}], "Jwangta": [{"date": "2026-07-26 00:38", "games": 1, "score": -46.0}, {"date": "2026-07-26 00:01", "games": 0, "score": 1.2}]};
+        const gamesData = [{"date": "2026-07-26 01:18", "players": [{"name": "tacolog", "original_name": "tacolog", "rank": 1, "score_before": -30.5, "final_points": 40100, "score_change": 60.1, "score_after": 29.6}, {"name": "Jwangta", "original_name": "JW27", "rank": 2, "score_before": -46.0, "final_points": 26100, "score_change": 6.1, "score_after": -39.9}, {"name": "RinshanNomi", "original_name": "叶片dd", "rank": 3, "score_before": 120.2, "final_points": 23000, "score_change": -17.0, "score_after": 103.2}, {"name": "santi", "original_name": "santi", "rank": 4, "score_before": -43.7, "final_points": 10800, "score_change": -49.2, "score_after": -92.9}]}, {"date": "2026-07-26 00:38", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": 61.4, "final_points": 38800, "score_change": 58.8, "score_after": 120.2}, {"name": "tacolog", "original_name": "tacolog", "rank": 2, "score_before": -41.8, "final_points": 31300, "score_change": 11.3, "score_after": -30.5}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": -20.8, "final_points": 17100, "score_change": -22.9, "score_after": -43.7}, {"name": "Jwangta", "original_name": "JW27", "rank": 4, "score_before": 1.2, "final_points": 12800, "score_change": -47.2, "score_after": -46.0}]}, {"date": "2026-07-26 00:01", "players": [{"name": "RinshanNomi", "original_name": "叶片dd", "rank": 1, "score_before": 0.0, "final_points": 41400, "score_change": 61.4, "score_after": 61.4}, {"name": "Jwangta", "original_name": "JW27", "rank": 2, "score_before": 0.0, "final_points": 21200, "score_change": 1.2, "score_after": 1.2}, {"name": "santi", "original_name": "santi", "rank": 3, "score_before": 0.0, "final_points": 19200, "score_change": -20.8, "score_after": -20.8}, {"name": "tacolog", "original_name": "tacolog", "rank": 4, "score_before": 0.0, "final_points": 18200, "score_change": -41.8, "score_after": -41.8}]}];
+        const scoreHistory = {"tacolog": [{"date": "2026-07-26 01:18", "games": 2, "score": 29.6}, {"date": "2026-07-26 00:38", "games": 1, "score": -30.5}, {"date": "2026-07-26 00:01", "games": 0, "score": -41.8}], "Jwangta": [{"date": "2026-07-26 01:18", "games": 2, "score": -39.9}, {"date": "2026-07-26 00:38", "games": 1, "score": -46.0}, {"date": "2026-07-26 00:01", "games": 0, "score": 1.2}], "RinshanNomi": [{"date": "2026-07-26 01:18", "games": 2, "score": 103.2}, {"date": "2026-07-26 00:38", "games": 1, "score": 120.2}, {"date": "2026-07-26 00:01", "games": 0, "score": 61.4}], "santi": [{"date": "2026-07-26 01:18", "games": 2, "score": -92.9}, {"date": "2026-07-26 00:38", "games": 1, "score": -43.7}, {"date": "2026-07-26 00:01", "games": 0, "score": -20.8}]};
         let currentScoreChart = null;
 
         function renderGamesTable(filterPlayer = 'all') {
@@ -1145,34 +1145,34 @@
         
                         <tr style="background: #f8f9fa;">
                             <td style="padding: 12px; font-weight: 600;">santi</td>
-                            <td style="padding: 12px; text-align: center; font-weight: bold;">2</td>
-                            <td style="padding: 12px; text-align: center;">19</td>
-                            <td style="padding: 12px; text-align: center;">-43.7</td>
-                            <td style="padding: 12px; text-align: center;">3.00</td>
+                            <td style="padding: 12px; text-align: center; font-weight: bold;">3</td>
+                            <td style="padding: 12px; text-align: center;">30</td>
+                            <td style="padding: 12px; text-align: center;">-92.9</td>
+                            <td style="padding: 12px; text-align: center;">3.33</td>
                         </tr>
             
                         <tr style="background: #f8f9fa;">
                             <td style="padding: 12px; font-weight: 600;">Jwangta</td>
-                            <td style="padding: 12px; text-align: center; font-weight: bold;">2</td>
-                            <td style="padding: 12px; text-align: center;">19</td>
-                            <td style="padding: 12px; text-align: center;">-46.0</td>
-                            <td style="padding: 12px; text-align: center;">3.00</td>
+                            <td style="padding: 12px; text-align: center; font-weight: bold;">3</td>
+                            <td style="padding: 12px; text-align: center;">30</td>
+                            <td style="padding: 12px; text-align: center;">-39.9</td>
+                            <td style="padding: 12px; text-align: center;">2.67</td>
                         </tr>
             
                         <tr style="background: #f8f9fa;">
                             <td style="padding: 12px; font-weight: 600;">RinshanNomi</td>
-                            <td style="padding: 12px; text-align: center; font-weight: bold;">2</td>
-                            <td style="padding: 12px; text-align: center;">19</td>
-                            <td style="padding: 12px; text-align: center;">+120.2</td>
-                            <td style="padding: 12px; text-align: center;">1.00</td>
+                            <td style="padding: 12px; text-align: center; font-weight: bold;">3</td>
+                            <td style="padding: 12px; text-align: center;">30</td>
+                            <td style="padding: 12px; text-align: center;">+103.2</td>
+                            <td style="padding: 12px; text-align: center;">1.67</td>
                         </tr>
             
                         <tr style="background: #f8f9fa;">
                             <td style="padding: 12px; font-weight: 600;">tacolog</td>
-                            <td style="padding: 12px; text-align: center; font-weight: bold;">2</td>
-                            <td style="padding: 12px; text-align: center;">19</td>
-                            <td style="padding: 12px; text-align: center;">-30.5</td>
-                            <td style="padding: 12px; text-align: center;">3.00</td>
+                            <td style="padding: 12px; text-align: center; font-weight: bold;">3</td>
+                            <td style="padding: 12px; text-align: center;">30</td>
+                            <td style="padding: 12px; text-align: center;">+29.6</td>
+                            <td style="padding: 12px; text-align: center;">2.33</td>
                         </tr>
             
                     </tbody>
@@ -1239,22 +1239,58 @@
                     <tr>
                         <td style="padding: 10px; text-align: center; font-weight: bold;">🥇 1</td>
                         <td style="padding: 10px; font-weight: 600;">santi</td>
-                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">2Games</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">3Games</td>
                     </tr>
                     <tr>
                         <td style="padding: 10px; text-align: center; font-weight: bold;">🥈 2</td>
                         <td style="padding: 10px; font-weight: 600;">Jwangta</td>
-                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">2Games</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">3Games</td>
                     </tr>
                     <tr>
                         <td style="padding: 10px; text-align: center; font-weight: bold;">🥉 3</td>
                         <td style="padding: 10px; font-weight: 600;">RinshanNomi</td>
-                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">2Games</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">3Games</td>
                     </tr>
                     <tr>
                         <td style="padding: 10px; text-align: center; font-weight: bold;">4</td>
                         <td style="padding: 10px; font-weight: 600;">tacolog</td>
-                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">2Games</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">3Games</td>
+                    </tr>
+            </tbody>
+        </table>
+    </div>
+    
+        
+    <div style="background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+        <h3 style="margin: 0; padding: 16px 20px; background: #c15b42; color: white; font-size: 18px;">Highest Score Top 5</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 10px; text-align: center; color: #666; font-size: 13px;">#</th>
+                    <th style="padding: 10px; text-align: center; color: #666; font-size: 13px;">Player</th>
+                    <th style="padding: 10px; text-align: center; color: #666; font-size: 13px;">Highest Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">🥇 1</td>
+                        <td style="padding: 10px; font-weight: 600;">RinshanNomi</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">41400</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">🥈 2</td>
+                        <td style="padding: 10px; font-weight: 600;">tacolog</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">40100</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">🥉 3</td>
+                        <td style="padding: 10px; font-weight: 600;">Jwangta</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">26100</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">4</td>
+                        <td style="padding: 10px; font-weight: 600;">santi</td>
+                        <td style="padding: 10px; text-align: center; color: #c15b42; font-weight: bold;">19200</td>
                     </tr>
             </tbody>
         </table>

@@ -479,12 +479,25 @@ def _generate_top5_table(title, rows, value_label, t):
     """
 
 
-def generate_top5_leaderboards_content_s_league(stats_data, t, lang='zh', min_games=10):
+def _compute_max_scores(recent_games):
+    """计算每位玩家（按别名合并）取得过的最高单局得点"""
+    alias_map = load_player_aliases()
+    max_scores = {}
+    for game in recent_games:
+        for p in game.get('players_detail', []):
+            main_id = normalize_player_name(p['name'], alias_map)
+            final_points = p['final_points']
+            if main_id not in max_scores or final_points > max_scores[main_id]:
+                max_scores[main_id] = final_points
+    return max_scores
+
+
+def generate_top5_leaderboards_content_s_league(stats_data, t, lang='zh', recent_games=None, min_games=10):
     """
-    生成S-League排行榜内容：一位率/避四率/出勤半庄数，各取前5名
+    生成S-League排行榜内容：一位率/避四率/出勤半庄数/最高得点，各取前5名
 
     一位率、避四率仅统计半庄数达标（默认>=10）的玩家，避免小样本失真；
-    出勤半庄数按全部玩家统计。
+    出勤半庄数、最高得点按全部玩家统计（单局最高分是实打实拿到的，不受场次多少影响）。
     """
     players = [(name, data) for name, data in stats_data.items() if name != "_league_average"]
     qualified = [(name, data) for name, data in players if data['games'] >= min_games]
@@ -498,6 +511,10 @@ def generate_top5_leaderboards_content_s_league(stats_data, t, lang='zh', min_ga
     attendance_rows = sorted(players, key=lambda x: -x[1]['games'])[:5]
     games_label = t.get('games', '半庄')
     attendance_rows = [(name, f"{data['games']}{games_label}") for name, data in attendance_rows]
+
+    max_scores = _compute_max_scores(recent_games or [])
+    highest_score_rows = sorted(max_scores.items(), key=lambda x: -x[1])[:5]
+    highest_score_rows = [(name, f"{score}") for name, score in highest_score_rows]
 
     top5_label = 'Top 5' if lang == 'en' else '前5名'
     qualify_note = f"({t.get('qualified_players', '正式排名')} ≥{min_games} {t.get('games', '半庄')})"
@@ -514,12 +531,17 @@ def generate_top5_leaderboards_content_s_league(stats_data, t, lang='zh', min_ga
         f"{t.get('attendance_games', '出勤半庄数')} {top5_label}",
         attendance_rows, t.get('attendance_games', '出勤半庄数'), t
     )
+    highest_score_table = _generate_top5_table(
+        f"{t.get('highest_score', '最高得点')} {top5_label}",
+        highest_score_rows, t.get('highest_score', '最高得点'), t
+    )
 
     return f"""
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
         {rank_1_table}
         {avoid_last_table}
         {attendance_table}
+        {highest_score_table}
     </div>
     """
 

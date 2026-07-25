@@ -341,7 +341,7 @@ def generate_season_page_template(season_data, lang='zh'):
     # 生成各个标签页的内容
     recent_content = generate_recent_games_content_s_league(recent_games, stats_dict, t, lang)
     ranking_content = generate_ranking_content_s_league(stats_dict, t, league_avg, lang)
-    leaderboard_content = generate_top5_leaderboards_content_s_league(stats_dict, t, lang)
+    leaderboard_content = generate_top5_leaderboards_content_s_league(stats_dict, t, lang, recent_games)
 
     finals_data = process_finals_data(season_id)
     finals_content = generate_finals_content_s_league(finals_data, t, lang)
