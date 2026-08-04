@@ -157,56 +157,41 @@ if 'errors' in root or 'sanma' in root or 's-league' in root:
 
 ---
 
-## 当前文件统计
+## 当前文件统计（截至2026-07-30）
 
-- **M-League**: 615个牌谱文件
+- **M-League**: 630个牌谱文件
 - **EMA**: 20个牌谱文件
-- **S-League**: 0个文件（已恢复到git存档点）
-- **Errors**: 3个文件
-
----
-
-## Git状态
-
-已修改但未提交的文件：
-- 代码文件：
-  - `src/generate_website.py` - 时区调整
-  - `src/organize_logs.py` - 跳过s-league文件夹
-  - `src/config/translations.py` - S-League翻译
-  - `src/generators/page_generators.py` - S-League链接
-  - `src/templates/html/index.html` - 隐藏上传按钮
-  - `download_paipu.sh` - 空链接检查
-
-- 新增文件：
-  - `src/s_league/` - S-League模块
-  - `docs/s-league/` - S-League页面
-
-- game-logs已恢复到HEAD
+- **S-League S0**（测试赛季，已结束）: 101个文件，固定快照（不会被自动同步覆盖）
+- **S-League S1**（首届正式赛季，进行中）: 会随 `sync_season_data()` 自动增长
 
 ---
 
 ## 待办事项
 
-- [ ] 为S0赛季准备测试数据（复制过去2个月M-League牌谱）
-- [ ] 测试S-League页面生成
-- [ ] 提交代码到git
+- [ ] 提交本轮 S-League 改动到 git
+- [ ] 决定战数据尚未准备（`game-logs/s-league/s1-finals/` 目前为空，等常规赛打完前4名再补）
 - [ ] 部署到GitHub Pages
+- [ ] 视情况重新生成一次 M-League 荣誉牌谱数据，让日期解析bug修复生效（见上方"顺带修复的Bug"）
 
 ---
 
 ## 技术要点
 
 ### 时间处理
-- 牌谱文件时间戳存储为UTC+0
-- 网页显示时调整为UTC+2
-- 不修改原始文件，仅在显示层调整
+- 牌谱文件时间戳存储为UTC+0，网页显示时调整为UTC+2，不修改原始文件
+- **日期解析统一从JSON `title[1]` 读取**，不要再用文件名正则猜日期——文件名格式已经从`MM_DD_YYYY`换成`YYYY-MM-DD_HHMMSS_name.json`，旧的正则匹配不上会静默失败
+- 共享逻辑：`utils/helpers.py:sort_files_by_date()`、`s_league/data_processor.py:_read_display_timestamp()`
 
 ### S-League数据隔离
-- S-League文件夹独立管理，不参与自动分类
-- 使用M-League规则但数据完全隔离
-- 支持多赛季独立统计
+- S-League文件夹独立管理，不参与M-League自动分类（`organize_logs.py`里跳过`s-league`目录）
+- 每个赛季的常规赛数据（`data_folder`）和决定战数据（`finals_folder`）也互相隔离，避免决定战牌谱被算进常规赛统计
+- 使用M-League规则（25000起始分，uma: 45/5/-15/-35）但数据、页面、配色都和M-League完全独立
+
+### S-League vs M-League 渲染逻辑边界
+- **共用**：底层数据处理（`player_stats.py`、`summarize_v23.py`、`extract_honor_games.py`）、荣誉牌谱内容生成（`generators/content_generators.py:generate_honor_games_content_for_tabs`，S-League调用后会做一次配色替换）
+- **不共用（S-League专属）**：牌谱历史/总排名/排行榜/决定战的内容生成（`s_league/content.py`）、HTML模板和CSS（`templates/html/s_league.html`、`templates/css/s_league.css`）
+- 之所以拆开：M-League那套函数硬编码了Rating(R值)相关列和固定配色，S-League不用R值、配色也不同，共用会互相牵连
 
 ### 模块化设计
-- 配置、数据处理、页面生成、模板分离
-- 复用现有基础设施（player_stats, template renderers）
-- 最小化对现有代码的影响
+- 配置、数据处理、页面生成、模板、内容渲染分离（`config.py` / `data_processor.py` / `page_generator.py` / `templates.py` / `content.py`）
+- 赛季配置驱动一切：加赛季只需要在 `SEASONS` 字典里加一条，`status`（ended/ongoing/upcoming）控制首页卡片文案，`start_time`/`end_time` 控制是否自动同步牌谱
