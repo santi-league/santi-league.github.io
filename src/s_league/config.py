@@ -26,10 +26,10 @@ SEASONS = {
         'name_en': 'Season 1',
         'description_zh': 'S-League首届最高位战',
         'description_en': 'S-League Inaugural Top Player Championship',
-        'start_date_zh': '2026年7月23日0点 - 2026年8月23日0点',
-        'start_date_en': 'Jul 23, 2026 00:00 - Aug 23, 2026 00:00',
+        'start_date_zh': '2026年7月23日0点 - 2026年10月23日0点',
+        'start_date_en': 'Jul 23, 2026 00:00 - Oct 23, 2026 00:00',
         'start_time': '2026-07-23 00:00:00',  # 赛季时间窗口起点（UTC+2显示时间），用于自动同步牌谱
-        'end_time': '2026-08-23 00:00:00',    # 赛季时间窗口终点（不含），留空/不填则不设上限
+        'end_time': '2026-10-23 00:00:00',    # 赛季时间窗口终点（不含），留空/不填则不设上限
         'rule_type': 'm-league',  # 使用M-League规则
         'data_folder': 'game-logs/s-league/s1',
         'finals_folder': 'game-logs/s-league/s1-finals',  # 最高位决定战牌谱（独立于常规赛数据）
