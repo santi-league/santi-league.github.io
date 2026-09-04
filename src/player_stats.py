@@ -189,6 +189,14 @@ def calculate_tenhou_r_value(rank: int, games_played: int, player_r: float, tabl
     return r_change
 
 
+def _resolve_player_uma(player_stat: Dict[str, Any], uma_config: Dict[int, int]):
+    """获取玩家本场马点；同分时优先使用摘要中平分后的马点。"""
+    avg_uma = player_stat.get("avg_uma")
+    if avg_uma is not None:
+        return avg_uma
+    return uma_config.get(player_stat.get("rank", 4), 0)
+
+
 def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: List[int], uma_config=None, origin_points=25000) -> Dict[str, Dict[str, Any]]:
     """
     基于批量统计结果，计算每个玩家的综合数据
@@ -349,8 +357,9 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
             final_points = player_stat.get("final_points", origin_points)
             rank = player_stat.get("rank", 4)
 
-            # 使用传入的uma_config
-            score = (final_points - origin_points) + uma_config.get(rank, 0)
+            # 同分时使用 summarize_log 已平分的马点；旧摘要无该字段时再按名次取值
+            uma = _resolve_player_uma(player_stat, uma_config)
+            score = (final_points - origin_points) + uma
             pd["total_score"] += score
 
             # 名次统计
@@ -365,8 +374,7 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
 
             # 使用之前获取的 games_before 计算R值（传入uma_config、origin_points和avg_uma）
             current_r = player_r_values[name]
-            avg_uma = player_stat.get('avg_uma')
-            r_change = calculate_tenhou_r_value(rank, games_before, current_r, table_avg_r, final_points, uma_config, origin_points, avg_uma=avg_uma)
+            r_change = calculate_tenhou_r_value(rank, games_before, current_r, table_avg_r, final_points, uma_config, origin_points, avg_uma=uma)
             player_r_values[name] += r_change
             pd["current_r"] = player_r_values[name]
 
@@ -412,7 +420,8 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
             # 对战统计：计算与其他玩家的对战情况
             my_rank = player_stat.get("rank", 4)
             my_final_points = player_stat.get("final_points", origin_points)
-            my_score = (my_final_points - origin_points) + uma_config.get(my_rank, 0)
+            my_uma = _resolve_player_uma(player_stat, uma_config)
+            my_score = (my_final_points - origin_points) + my_uma
 
             for other_player in summary:
                 other_raw_name = other_player.get("name", "")
@@ -427,7 +436,8 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
 
                 other_rank = other_player.get("rank", 4)
                 other_final_points = other_player.get("final_points", origin_points)
-                other_score = (other_final_points - origin_points) + uma_config.get(other_rank, 0)
+                other_uma = _resolve_player_uma(other_player, uma_config)
+                other_score = (other_final_points - origin_points) + other_uma
 
                 vs_stat = pd["vs_players"][other_name]
                 vs_stat["games"] += 1
@@ -590,8 +600,8 @@ def calculate_player_stats(batch_results: List[Dict[str, Any]], round_counts: Li
             },
         }
 
-    # 计算所有半庄数超过10的玩家的平均值
-    qualified_players = [data for data in stats.values() if data["games"] > 10]
+    # 与正式排名口径一致：至少10个半庄的玩家计入联盟平均
+    qualified_players = [data for data in stats.values() if data["games"] >= 10]
 
     if qualified_players:
         num_qualified = len(qualified_players)

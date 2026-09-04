@@ -254,7 +254,8 @@ def extract_recent_games(files, results, count=5, all_results=None, uma_config=N
                 'final_points': final_points,
                 'r_before': round(r_before, 2),
                 'games_before': games_before,
-                'score_change': round(score_change, 1),
+                # 保留精确值供累计总分使用；页面渲染时再格式化为1位小数
+                'score_change': score_change,
                 'r_correction': round(r_correction, 2),
                 'games_correction': round(games_correction, 3),
                 'r_change': round(r_change, 2),
