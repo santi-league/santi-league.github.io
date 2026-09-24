@@ -3,6 +3,9 @@
 # Template engine for HTML generation
 Jinja2>=3.1.2
 
+# Downloading Mahjong Soul game logs via Ricochet
+requests>=2.31.0
+
 # Google Cloud Storage (for downloading files from Firebase)
 google-cloud-storage>=2.10.0
 

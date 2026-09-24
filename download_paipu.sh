@@ -73,6 +73,7 @@ fi
 python3 << PYTHON_SCRIPT
 from src.download_paipu.rico import RicochetDownloader
 import os
+import re
 import sys
 
 username = '''$USERNAME'''
@@ -84,15 +85,27 @@ urls = [
 $(for url in "${urls[@]}"; do echo "    '''$url''',"; done)
 ]
 
-# 登录一次
-print("正在登录...")
-try:
-    downloader = RicochetDownloader()
-    downloader.login(username, password)
-    print("✓ 登录成功")
-except Exception as e:
-    print(f"✗ 登录失败: {e}")
-    sys.exit(1)
+# 已下载的牌谱无需为了后续转换再次连接网络
+pending = 0
+for url in urls:
+    match = re.search(r'paipu=(\d{6}-[a-f0-9-]+)', url)
+    if match and not os.path.exists(f"downloaded_paipu/{match.group(1)}.json"):
+        pending += 1
+
+downloader = None
+if pending:
+    print("正在登录...")
+    try:
+        downloader = RicochetDownloader()
+        downloader.login(username, password)
+        print("✓ 登录成功")
+    except Exception as e:
+        print(f"✗ 登录失败: {e}")
+        if "NameResolutionError" in str(e) or "gaierror" in str(e):
+            print("提示: 无法解析 ricochet.cn，请检查网络或 DNS 设置后重试。")
+        sys.exit(1)
+else:
+    print("所有牌谱均已下载，跳过登录")
 
 # 下载所有牌谱
 current = 0
@@ -103,7 +116,6 @@ for url in urls:
     current += 1
 
     # 提取UUID
-    import re
     match = re.search(r'paipu=(\d{6}-[a-f0-9-]+)', url)
     if not match:
         print(f"[{current}/{len(urls)}] 跳过: 无法解析UUID")
@@ -144,7 +156,8 @@ for url in urls:
     print()
 
 # 关闭连接
-downloader.close()
+if downloader is not None:
+    downloader.close()
 
 # 输出统计
 print("=" * 42)
