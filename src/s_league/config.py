@@ -34,7 +34,7 @@ SEASONS = {
         'data_folder': 'game-logs/s-league/s1',
         'finals_folder': 'game-logs/s-league/s1-finals',  # 最高位决定战牌谱（独立于常规赛数据）
         'enabled': True,
-        'status': 'ongoing',  # 首届正式赛季进行中
+        'status': 'ended',  # 五个决定战半庄已完成
         'color': '#c15b42'  # 赛季主题色（红色）
     },
     # 未来赛季可以继续添加

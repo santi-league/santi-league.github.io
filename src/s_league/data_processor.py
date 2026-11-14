@@ -215,8 +215,9 @@ def process_finals_data(season_id):
 
     返回:
         dict: {
-            'games': [每个半庄一个列表，元素为{'name','rank','final_points'}], ...],
-            'dates': [每个半庄对应的日期字符串（已UTC+2调整）],
+            'games': [每个半庄一个列表，元素为{'name','rank','final_points','score_points'}], ...],
+            'dates': [每个半庄对应的日期时间字符串（已UTC+2调整）],
+            'urls': [每个半庄的雀魂牌谱链接或None],
             'file_count': 牌谱文件数量
         }
     """
@@ -227,17 +228,18 @@ def process_finals_data(season_id):
     finals_folder = season.get('finals_folder')
 
     if not finals_folder:
-        return {'games': [], 'dates': [], 'file_count': 0}
+        return {'games': [], 'dates': [], 'urls': [], 'file_count': 0}
 
     files = scan_files(finals_folder, "*.json", recursive=True)
     if not files:
-        return {'games': [], 'dates': [], 'file_count': 0}
+        return {'games': [], 'dates': [], 'urls': [], 'file_count': 0}
 
     sorted_files = sort_files_by_date(files)
     uma_config = RULE_CONFIG['uma_config']
 
     games = []
     dates = []
+    urls = []
 
     for fp in sorted_files:
         try:
@@ -247,9 +249,18 @@ def process_finals_data(season_id):
             result = summarize_log(data, uma_config=uma_config)
             summary = result.get('summary', [])
             games.append([
-                {'name': p['name'], 'rank': p['rank'], 'final_points': p['final_points']}
+                {
+                    'name': p['name'],
+                    'rank': p['rank'],
+                    'final_points': p['final_points'],
+                    'score_points': (
+                        p['final_points'] - RULE_CONFIG['origin_points']
+                        + p.get('avg_uma', uma_config.get(p['rank'], 0))
+                    ),
+                }
                 for p in summary
             ])
+            urls.append(data.get('source_url'))
 
             title = data.get('title', [])
             date_str = None
@@ -260,14 +271,14 @@ def process_finals_data(season_id):
                         timestamp = datetime.strptime(timestamp_str, "%m/%d/%Y, %I:%M:%S %p")
                     else:
                         timestamp = datetime.strptime(timestamp_str, "%d/%m/%Y, %H:%M:%S")
-                    date_str = (timestamp + timedelta(hours=2)).strftime("%Y年%m月%d日")
+                    date_str = (timestamp + timedelta(hours=2)).strftime("%Y-%m-%d %H:%M")
                 except (ValueError, IndexError):
                     date_str = None
             dates.append(date_str)
         except Exception as ex:
             print(f"  S-League决定战处理失败: {fp} - {ex}", file=sys.stderr)
 
-    return {'games': games, 'dates': dates, 'file_count': len(files)}
+    return {'games': games, 'dates': dates, 'urls': urls, 'file_count': len(games)}
 
 
 def get_all_seasons_summary():

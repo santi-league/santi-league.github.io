@@ -8,6 +8,8 @@ S-League不使用Rating(R值)概念，牌谱历史和总排名只基于实际得
 import os
 import sys
 import json
+import html
+from urllib.parse import urlsplit
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -549,10 +551,11 @@ def generate_top5_leaderboards_content_s_league(stats_data, t, lang='zh', recent
 def generate_finals_content_s_league(finals_data, t, lang='zh'):
     """
     生成S-League最高位决定战内容：一张表，每行一名选手，
-    每个半庄对应"名次"+"分数"两列，最右侧为总分，按总分从高到低排序
+    每个半庄对应"名次"和"得分(pt)"两列，按累计pt从高到低排序。
     """
     games = finals_data.get('games', [])
     dates = finals_data.get('dates', [])
+    urls = finals_data.get('urls', [])
 
     if not games:
         msg = '决定战尚未开始，敬请期待' if lang == 'zh' else 'The Championship Finals have not started yet'
@@ -561,7 +564,7 @@ def generate_finals_content_s_league(finals_data, t, lang='zh'):
     alias_map = load_player_aliases()
 
     player_order = []
-    player_rounds = {}  # main_id -> [(rank, final_points) 或 None, ...]，与games等长
+    player_rounds = {}  # main_id -> [该半庄的选手成绩或None, ...]，与games等长
 
     for game_idx, game in enumerate(games):
         for p in game:
@@ -569,25 +572,45 @@ def generate_finals_content_s_league(finals_data, t, lang='zh'):
             if main_id not in player_rounds:
                 player_rounds[main_id] = [None] * len(games)
                 player_order.append(main_id)
-            player_rounds[main_id][game_idx] = (p['rank'], p['final_points'])
+            player_rounds[main_id][game_idx] = p
 
     totals = {
-        main_id: sum(r[1] for r in rounds if r is not None)
+        main_id: sum(r['score_points'] for r in rounds if r is not None)
         for main_id, rounds in player_rounds.items()
     }
 
     ranked_players = sorted(player_order, key=lambda main_id: -totals[main_id])
+    complete = (
+        len(games) == 5
+        and len(player_order) == 4
+        and all(len(game) == 4 for game in games)
+        and all(all(round_result is not None for round_result in rounds)
+                for rounds in player_rounds.values())
+    )
 
-    game_label = t.get('games', '半庄' if lang == 'zh' else 'Game')
+    game_label = '半庄' if lang == 'zh' else 'Game'
     rank_label = '名次' if lang == 'zh' else 'Rank'
-    score_label = '分数' if lang == 'zh' else 'Score'
-    total_label = '总分' if lang == 'zh' else 'Total'
+    score_label = '得分 (pt)' if lang == 'zh' else 'Score (pt)'
+    total_label = '总分 (pt)' if lang == 'zh' else 'Total (pt)'
+
+    def format_pt(points):
+        return f'{points / 1000:+.1f}'
 
     header_row1 = f'<th rowspan="2" style="padding: 12px;">{t["player"]}</th>'
     header_row2 = ""
     for game_idx in range(len(games)):
         game_num_label = f"第{game_idx + 1}{game_label}" if lang == 'zh' else f"{game_label} {game_idx + 1}"
-        date_str = dates[game_idx] if game_idx < len(dates) and dates[game_idx] else ""
+        date_str = html.escape(dates[game_idx]) if game_idx < len(dates) and dates[game_idx] else ""
+        url = urls[game_idx] if game_idx < len(urls) else None
+        if isinstance(url, str):
+            parsed_url = urlsplit(url)
+            if parsed_url.scheme == 'https' and parsed_url.netloc == 'game.maj-soul.com' and parsed_url.path == '/1/' and 'paipu=' in parsed_url.query:
+                link_label = '查看牌谱' if lang == 'zh' else 'Open game log'
+                game_num_label = (
+                    f'<a href="{html.escape(url, quote=True)}" target="_blank" '
+                    f'rel="noopener noreferrer" title="{link_label}" '
+                    f'style="color: inherit; text-decoration: underline;">{game_num_label} ↗</a>'
+                )
         sub_label = f"{game_num_label}<br><span style=\"font-weight: normal; font-size: 11px; opacity: 0.85;\">{date_str}</span>" if date_str else game_num_label
         header_row1 += f'<th colspan="2" style="padding: 12px; text-align: center;">{sub_label}</th>'
         header_row2 += f'<th style="padding: 8px; text-align: center; font-size: 12px;">{rank_label}</th>'
@@ -600,28 +623,41 @@ def generate_finals_content_s_league(finals_data, t, lang='zh'):
         position = idx + 1
         position_emoji = rank_emojis[position - 1] + ' ' if position <= 3 else ''
         rounds = player_rounds[main_id]
+        is_champion = complete and idx == 0
 
         cells = ""
         for r in rounds:
             if r is None:
                 cells += '<td style="padding: 10px; text-align: center; color: #ccc;">-</td>' * 2
             else:
-                rank, final_points = r
+                rank = r['rank']
                 rank_color = '#c15b42' if rank == 1 else '#333'
                 cells += f'<td style="padding: 10px; text-align: center; color: {rank_color}; font-weight: {"bold" if rank == 1 else "normal"};">{rank}</td>'
-                cells += f'<td style="padding: 10px; text-align: center;">{final_points}</td>'
+                cells += f'<td style="padding: 10px; text-align: center;">{format_pt(r["score_points"])}</td>'
 
-        total_display = f"{totals[main_id]:+}" if totals[main_id] != 0 else "0"
+        total_display = format_pt(totals[main_id])
+        champion_label = ' · 冠军' if lang == 'zh' else ' · Champion'
+        champion_text = champion_label if is_champion else ''
+        row_style = ' style="background: #fff3ed; border-left: 4px solid #c15b42;"' if is_champion else ''
 
         rows_html += f"""
-                    <tr>
-                        <td style="padding: 12px; font-weight: bold;">{position_emoji}{main_id}</td>
+                    <tr{row_style}>
+                        <td style="padding: 12px; font-weight: bold;">{position_emoji}{html.escape(main_id)}{champion_text}</td>
                         {cells}
                         <td style="padding: 12px; text-align: center; color: #c15b42; font-weight: bold; font-size: 16px;">{total_display}</td>
                     </tr>"""
 
-    return f"""
-    <div style="overflow-x: auto;">
+    champion_banner = ''
+    if complete:
+        champion_name = html.escape(ranked_players[0])
+        champion_score = format_pt(totals[ranked_players[0]])
+        champion_title = '最高位决定战冠军' if lang == 'zh' else 'Championship Finals Winner'
+        title_separator = '：' if lang == 'zh' else ': '
+        champion_banner = f'''<div style="background: #fff3ed; border-left: 4px solid #c15b42; border-radius: 6px; padding: 16px 20px; margin-bottom: 20px; color: #9c4732; font-weight: bold; font-size: 18px;">
+        🏆 {champion_title}{title_separator}{champion_name} <span style="white-space: nowrap;">({champion_score} pt)</span>
+    </div>'''
+
+    table = f"""<div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
             <thead>
                 <tr style="background: #c15b42; color: white;">{header_row1}</tr>
@@ -630,5 +666,5 @@ def generate_finals_content_s_league(finals_data, t, lang='zh'):
             <tbody>{rows_html}
             </tbody>
         </table>
-    </div>
-    """
+    </div>"""
+    return f"{champion_banner}\n    {table}" if champion_banner else table
