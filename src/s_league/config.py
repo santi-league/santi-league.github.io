@@ -28,7 +28,7 @@ SEASONS = {
         'description_en': 'S-League Inaugural Top Player Championship',
         'start_date_zh': '2026年7月23日0点 - 2026年10月23日0点',
         'start_date_en': 'Jul 23, 2026 00:00 - Oct 23, 2026 00:00',
-        'start_time': '2026-07-23 00:00:00',  # 赛季时间窗口起点（UTC+2显示时间），用于自动同步牌谱
+        'start_time': '2026-07-23 00:00:00',  # 赛季时间窗口起点（网站固定 UTC+2 显示时间）
         'end_time': '2026-10-23 00:00:00',    # 赛季时间窗口终点（不含），留空/不填则不设上限
         'rule_type': 'm-league',  # 使用M-League规则
         'data_folder': 'game-logs/s-league/s1',
@@ -37,19 +37,22 @@ SEASONS = {
         'status': 'ended',  # 五个决定战半庄已完成
         'color': '#c15b42'  # 赛季主题色（红色）
     },
-    # 未来赛季可以继续添加
-    # 's2': {
-    #     'name_zh': 'S2赛季',
-    #     'name_en': 'Season 2',
-    #     'description_zh': 'S-League第三赛季',
-    #     'description_en': 'S-League Season 2',
-    #     'start_date_zh': '2027年1月',
-    #     'start_date_en': 'January 2027',
-    #     'rule_type': 'm-league',
-    #     'data_folder': 'game-logs/s-league/s2',
-    #     'enabled': False,  # 未开始
-    #     'color': '#3498db'  # 蓝色
-    # }
+    's2': {
+        'name_zh': 'S2赛季',
+        'name_en': 'Season 2',
+        'description_zh': 'S-League第二届最高位战',
+        'description_en': 'S-League Second Top Player Championship',
+        'start_date_zh': '2026年10月23日0点 - 2027年1月23日0点',
+        'start_date_en': 'Oct 23, 2026 00:00 - Jan 23, 2027 00:00',
+        'start_time': '2026-10-23 00:00:00',
+        'end_time': '2027-01-23 00:00:00',  # 终点不含，使用网站固定 UTC+2 显示时间
+        'rule_type': 'm-league',
+        'data_folder': 'game-logs/s-league/s2',
+        'finals_folder': 'game-logs/s-league/s2-finals',
+        'enabled': True,
+        'status': 'ongoing',
+        'color': '#3498db'
+    }
 }
 
 # S-League专用规则配置（目前使用M-League规则）

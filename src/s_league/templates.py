@@ -77,6 +77,8 @@ def generate_index_template(seasons_summary, lang='zh'):
         </a>
         """
 
+    season_cards = season_cards.rstrip()
+
     html = f"""<!DOCTYPE html>
 <html lang="{lang_code}">
 <head>
@@ -292,7 +294,7 @@ def generate_index_template(seasons_summary, lang='zh'):
         <div class="intro">
             <h2>{"S-League赛制" if lang == 'zh' else "S-League Rules"}</h2>
             <p>
-                {"比赛采用M-League规则。每个赛季包含两个月的常规赛季，在常规赛季中成绩前四名的人可以进入最高位决定战（只对至少打了10个半庄的人计算位次），然后进行五个半庄的决定战，最高分获得者获得当赛季的S-League最高位头衔。" if lang == 'zh' else "Games follow M-League rules. Each season consists of a two-month regular season. The top four players (with at least 10 games played) advance to the Championship Finals, where they compete in five games. The player with the highest score wins the S-League Championship title for that season."}
+                {"比赛采用M-League规则。常规赛季中成绩前四名的人可以进入最高位决定战（只对至少打了10个半庄的人计算位次），然后进行五个半庄的决定战，最高分获得者获得当赛季的S-League最高位头衔。" if lang == 'zh' else "Games follow M-League rules. The top four players in each regular season (with at least 10 games played) advance to the Championship Finals, where they compete in five games. The player with the highest score wins the S-League Championship title for that season."}
             </p>
         </div>
 
